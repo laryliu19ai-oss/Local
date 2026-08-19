@@ -1,0 +1,559 @@
+xrun(64): 24.09-s013: (c) Copyright 1995-2025 Cadence Design Systems, Inc.
+TOOL:	xrun(64)	24.09-s013: Started on Aug 17, 2026 at 16:35:07 CST
+xrun
+	-f xrunArgs
+		-UNBUFFERED
+		-cdslib ./cds.lib
+		-errormax 50
+		-status
+		-nowarn DLNOHV
+		-nowarn DLCLAP
+		-v93
+		-incdir /
+		-ade
+		-timescale 1ns/1ns
+		-vtimescale 1ns/1ns
+		-delay_mode None
+		-novitalaccl
+		-access r
+		-noparamerr
+		-amspartinfo ../psf/partition.info
+		-rnm_partinfo
+		-modelincdir /
+		./spiceModels.scs
+		./amsControlSpectre.scs
+		-input ./probe.tcl
+		-run
+		-exit
+		-xmsimargs "+amsrawdir ../psf"
+		-simcompatible_ams spectre
+		-name BVU025_Lary.sim_Bias_cosim_A1:config
+		-allowredefinition
+		-top BVU025_Lary.sim_Bias_cosim_A1:schematic_SAR
+		-top cds_globals
+		./netlist.vams
+		./ie_card.scs
+		-f ./textInputs
+			-amscompilefile "file:/home/lary/project/BVU025/SCH/BVU025_Lary/vaSAR6b/veriloga/veriloga.va lib:BVU025_Lary cell:vaSAR6b view:veriloga"
+			-amscompilefile "file:/home/lary/project/BVU025/SCH/BVU025_Lary/vaVDAC6b_FIXED/veriloga/veriloga.va lib:BVU025_Lary cell:vaVDAC6b_FIXED view:veriloga"
+			-makelib umc18cdmos
+			-endlib
+		./cds_globals.vams
+		-l ../psf/xrun.log
+		-spectre_args +aps
+file: ./netlist.vams
+	module BVU025_Lary.INVx2:schematic
+		errors: 0, warnings: 0
+	module umc18cdmos.RNHR3000_TG_CDMOS_G3_pcell_0:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.NR2x2:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.CMPTM_A1:schematic
+		errors: 0, warnings: 0
+	module umc18cdmos.RNHR4000_TG_CDMOS_G3_pcell_1:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.IRef_R_A1:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.Bias_A1:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.AN2x1:schematic
+		errors: 0, warnings: 0
+	module BVU025_Lary.sim_Bias_cosim_A1:schematic_SAR
+		errors: 0, warnings: 0
+file: ./cds_globals.vams
+	module BVU025_Lary.cds_globals:schematic_SAR
+		errors: 0, warnings: 0
+xmvlog: *W,SPDUSD: Include directory / given but not used.
+	Total errors/warnings found outside modules and primitives:
+		errors: 0, warnings: 1
+xmvlog: Memory Usage - Current physical: 23.7M, Current virtual: 53.6M, Peak physical: 23.7M
+xmvlog: CPU Usage - 0.0s system + 0.0s user = 0.0s total (0.0s, 94.0% cpu)
+AMSD Universal Connect Module UCM is enabled.
+	Elaborating the design hierarchy:
+xmelab: *N,MSFLON: Xcelium will initiate mixed signal elaboration, Reason: ./spiceModels.scs.
+		Caching library 'umc18cdmos' ....... Done
+		Caching library 'worklib' ....... Done
+xmelab: *W,CUSRCH: Resolved design unit 'Bias_A1' at 'I_Bias' to 'BVU025_Lary.Bias_A1:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'INVx2' at 'I5' to 'BVU025_Lary.INVx2:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'RNHR3000_TG_CDMOS_G3_pcell_0' at 'R0' to 'umc18cdmos.RNHR3000_TG_CDMOS_G3_pcell_0:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'CMPTM_A1' at 'I6' to 'BVU025_Lary.CMPTM_A1:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'NR2x2' at 'I2' to 'BVU025_Lary.NR2x2:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'RNHR4000_TG_CDMOS_G3_pcell_1' at 'R13_15' to 'umc18cdmos.RNHR4000_TG_CDMOS_G3_pcell_1:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'IRef_R_A1' at 'I0' to 'BVU025_Lary.IRef_R_A1:schematic' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'vaVDAC6b_FIXED' at 'I_Code' to 'BVU025_Lary.vaVDAC6b_FIXED:veriloga' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'vaSAR6b' at 'I_SAR6b' to 'BVU025_Lary.vaSAR6b:veriloga' through a global search of all libraries.
+xmelab: *W,CUSRCH: Resolved design unit 'AN2x1' at 'I_CLKCtl' to 'BVU025_Lary.AN2x1:schematic' through a global search of all libraries.
+	Top level design units:
+		sim_Bias_cosim_A1
+		cds_globals
+	Discipline resolution Pass...
+	Doing auto-insertion of connection elements...
+	Connect Rules applied are:
+		logic_cr
+	Building instance overlay tables: .................... Done
+	Using implicit TMP libraries; associated with library BVU025_Lary
+	Generating native compiled code:
+		connectLib.L2E_2:module <0x7ee972d9>
+			streams:  15, words:  8739
+		connectLib.E2L_2:module <0x41e779e6>
+			streams:  24, words: 12798
+		connectLib.Bidir_2:module <0x7b2bd133>
+			streams:  29, words: 20990
+	Building instance specific data structures.
+INVx2 I5 ( .VDD(aVdd), .VSS(aVss), .Z(EnA), .A(EnB));
+                                                 |
+xmelab: *W,CSINFI (./netlist.vams,503|49): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.EnB).
+INVx2 I5 ( .VDD(aVdd), .VSS(aVss), .Z(EnA), .A(EnB));
+                                        |
+xmelab: *W,CSINFI (./netlist.vams,503|40): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.EnA).
+INVx2 I3 ( .VDD(aVdd), .VSS(aVss), .Z(TMIRefOnA), .A(TMIRefOnB));
+                                                             |
+xmelab: *W,CSINFI (./netlist.vams,507|61): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.TMIRefOnB).
+INVx2 I3 ( .VDD(aVdd), .VSS(aVss), .Z(TMIRefOnA), .A(TMIRefOnB));
+                                              |
+xmelab: *W,CSINFI (./netlist.vams,507|46): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.TMIRefOnA).
+INVx2 I1 ( .VDD(aVdd), .VSS(aVss), .Z(TMIRefMeasB), .A(TMIRefMeas));
+                                                |
+xmelab: *W,CSINFI (./netlist.vams,511|48): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.TMIRefMeasB).
+    .B(aVdd), .MINUS(net1), .PLUS(VBP));
+                                    |
+xmelab: *W,CSINFI (./netlist.vams,515|36): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.VBP).
+    .B(aVdd), .MINUS(net1), .PLUS(VBP));
+                        |
+xmelab: *W,CSINFI (./netlist.vams,515|24): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.net1).
+    .aVbpc(VBPC));
+              |
+xmelab: *W,CSINFI (./netlist.vams,519|14): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.VBPC).
+    .EnB(TMIRefOnB), .InP(IBP_Res), .InN(xIRefTMIOi), .aVbp(VBP), 
+                                                  |
+xmelab: *W,CSINFI (./netlist.vams,518|50): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.xIRefTMIOi).
+    .EnB(TMIRefOnB), .InP(IBP_Res), .InN(xIRefTMIOi), .aVbp(VBP), 
+                                |
+xmelab: *W,CSINFI (./netlist.vams,518|32): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.IBP_Res).
+    .MINUS(TMIO_ESD), .PLUS(xIRefTMIO));
+                  |
+xmelab: *W,CSINFI (./netlist.vams,587|18): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.TMIO_ESD).
+IRef_R_A1 I0 ( .aVss(aVss), .aVdd(aVdd), .aR_In(VBN), 
+                                                  |
+xmelab: *W,CSINFI (./netlist.vams,621|50): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.VBN).
+INVx2 I1 ( .VDD(VDD), .VSS(VSS), .Z(OUT), .A(net4));
+                                                |
+xmelab: *W,CSINFI (./netlist.vams,110|48): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.I6.net4).
+INVx2 I0 ( .VDD(VDD), .VSS(VSS), .Z(net4), .A(net5));
+                                                 |
+xmelab: *W,CSINFI (./netlist.vams,112|49): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.I6.net5).
+NR2x2 I2 ( .VDD(VDD), .VSS(VSS), .Z(net5), .A(EnB), .B(VO2));
+                                                         |
+xmelab: *W,CSINFI (./netlist.vams,114|57): implicit wire has no fanin (sim_Bias_cosim_A1.I_Bias.I6.VO2).
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		                 Instances  Unique
+		Modules:               143      33
+		Verilog packages:        0       1
+		Primitives:             18       1
+		Registers:             429     317
+		Scalar wires:           73       -
+		Vectored wires:         21       -
+		Always blocks:         216      82
+		Initial blocks:        252     153
+		Cont. assignments:      15      24
+		Pseudo assignments:     24       -
+		Interconnect:           25       -
+		Compilation units:       0       3
+		Simulation timescale:  1ps
+	Writing initial simulation snapshot: BVU025_Lary.sim_Bias_cosim_A1:config
+xmelab: Memory Usage - Final: 61.3M, Peak: 231.8M, Peak virtual: 328.3M
+xmelab: CPU Usage - 0.3s system + 0.1s user = 0.4s total (0.4s, 99.2% cpu)
+Loading snapshot BVU025_Lary.sim_Bias_cosim_A1:config .................... Done
+Simulating in AMS-SIE mode...
+	Starting analog simulation engine...
+AMSD Flexible Release Matrix --- using Spectre from installation:
+    /tools/cadence/SPECTRE/211/bin/spectre
+AMSD: Using spectre solver with arguments: -ahdllibdir xcelium.d/AMSD/ahdlSimDB +aps.
+xcelium> source /tools/cadence/XCELIUM/2409/tools/xcelium/files/xmsimrc
+xcelium> source /tools/cadence/XCELIUM/2409/tools/xcelium/files/amsrc
+xcelium> 
+xcelium> # This is the NC-SIM(R) probe command file
+xcelium> # used in the AMS-ADE integration.
+xcelium> 
+xcelium> 
+xcelium> #
+xcelium> # Database settings
+xcelium> #
+xcelium> if { [info exists ::env(AMS_RESULTS_DIR) ] } { set AMS_RESULTS_DIR $env(AMS_RESULTS_DIR)} else {set AMS_RESULTS_DIR "../psf"}
+../psf
+xcelium> database -open ams_database -into ${AMS_RESULTS_DIR} -default
+Created default SHM database ams_database
+xcelium> 
+xcelium> #
+xcelium> # Probe settings
+xcelium> #
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.aVdd}
+Created probe 1
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.TMIRefOn}
+Created probe 2
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.TMIRefMeas}
+Created probe 3
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.TMIRefOni}
+Created probe 4
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.TMIRefMeasi}
+Created probe 5
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[5]}
+Created probe 6
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[4]}
+Created probe 7
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[3]}
+Created probe 8
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[2]}
+Created probe 9
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[1]}
+Created probe 10
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.NvTrmIref[0]}
+Created probe 11
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.IREF_TrmCode}
+Created probe 12
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.dIRefTMO}
+Created probe 13
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.I_Bias.IBP_Res}
+Created probe 14
+xcelium> probe -create -emptyok -database ams_database {sim_Bias_cosim_A1.I_Bias.xIRefTMIOi}
+Created probe 15
+xcelium> probe -create -emptyok -database ams_database -flow {sim_Bias_cosim_A1.I_Bias.MN0.d}
+xmsim: *SE,PNOOBJ: Path element could not be found: MN0.
+xmsim: *SE,PRNFND: No items are probed because no objects were found that match any specified name.
+xcelium> 
+xcelium> run
+
+Spectre (R) Circuit Simulator
+Version 21.1.0.612.isr15 64bit -- 10 Jan 2023
+Copyright (C) 1989-2022 Cadence Design Systems, Inc. All rights reserved worldwide. Cadence and Spectre are registered trademarks of Cadence Design Systems, Inc. All others are the property of their respective holders.
+
+Includes RSA BSAFE(R) Cryptographic or Security Protocol Software from RSA Security, Inc.
+
+User: lary   Host: lary-virtual-machine   HostID: 29D196B5   PID: 25714
+Memory  available: 5.6757 GB  physical: 8.2779 GB
+Linux   : Ubuntu 22.04.5 LTS
+CPU Type: AMD Ryzen 7 5800U with Radeon Graphics
+All processors running at 1896.4 MHz
+        Socket: Processors
+        0:       0,  1,  2,  3
+        
+System load averages (1min, 5min, 15min) : 9.5 %, 4.8 %, 3.9 %
+HPC is enabled
+This is a virtual machine
+
+
+Simulating `spiceModels.ams' on lary-virtual-machine at 4:35:28 PM, Mon Aug 17, 2026 (process id: 25714).
+Current working directory: /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist
+Command line:
+    /tools/cadence/SPECTRE/211/tools.lnx86/bin/spectre -64  \
+        spiceModels.ams +config  \
+        /tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/configs/ams.cfg  \
+        -ahdllibdir xcelium.d/AMSD/ahdlSimDB +aps -raw ../psf -I/  \
+        +ams_control=xcelium.d/AMSD/ams_ctrl/ams_ctrl_25317_lary-virtual-machine
+Spectre Licensing Information:
+Spectre [16:35:28.211401] Configured Lic search path (21.01-s002): /usr/local/share/license/cds.lic
+
+Spectre Licensing Information:
+Spectre [16:35:28.362417] Periodic Lic check successful
+
+Loading /tools/cadence/SPECTRE/211/tools.lnx86/cmi/lib/64bit/5.0/libinfineon_sh.so ...
+Loading /tools/cadence/SPECTRE/211/tools.lnx86/cmi/lib/64bit/5.0/libphilips_o_sh.so ...
+Loading /tools/cadence/SPECTRE/211/tools.lnx86/cmi/lib/64bit/5.0/libphilips_sh.so ...
+Loading /tools/cadence/SPECTRE/211/tools.lnx86/cmi/lib/64bit/5.0/libsparam_sh.so ...
+Loading /tools/cadence/SPECTRE/211/tools.lnx86/cmi/lib/64bit/5.0/libstmodels_sh.so ...
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/spiceModels.ams
+
+Notice from spectre during circuit read-in.
+    Configuration file used: `/tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/configs/ams.cfg'.
+
+Reading file:  /tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/configs/spectre.cfg
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/xcelium.d/AMSD/ahdl_in/ahdlIncludes.scs
+Reading file:  /home/lary/project/BVU025/SCH/BVU025_Lary/vaSAR6b/veriloga/veriloga.va
+Reading file:  /tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/ahdl/constants.vams
+Reading file:  /tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/ahdl/disciplines.vams
+Reading file:  /home/lary/project/BVU025/SCH/BVU025_Lary/vaVDAC6b_FIXED/veriloga/veriloga.va
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/xcelium.d/AMSD/ahdlSimDB/connectLib__Bidir_2__module__0x10000001_behavioral.va
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/xcelium.d/AMSD/ahdlSimDB/connectLib__E2L_2__module__0x10000001_behavioral.va
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/xcelium.d/AMSD/ahdlSimDB/connectLib__L2E_2__module__0x10000001_behavioral.va
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/spiceModels.scs
+Reading file:  /home/lary/pdk/pdk/umc18bcdg3/Models/Spectre/bcd18g3_hp_v0301_usage.lib.scs
+Reading file:  /home/lary/pdk/pdk/umc18bcdg3/Models/Spectre/bcd18g3_hp_v0301.lib.scs
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/amsControlSpectre.scs
+Reading file:  /home/lary/simulation/sim_Bias_cosim_A1/ams/config/netlist/ie_card.scs
+Reading file:  /tools/cadence/SPECTRE/211/tools.lnx86/spectre/etc/configs/ams.cfg
+Time for NDB Parsing: CPU = 1.33183 s, elapsed = 879.757 ms.
+Time accumulated: CPU = 1.40866 s, elapsed = 879.76 ms.
+Peak resident memory used = 167 Mbytes.
+
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//99a78d66d072c2cc3e6f24dcc4472b65.connectLib__L2E_2__module__0x10000001_behavioral.ahdlcmi/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//99a78d66d072c2cc3e6f24dcc4472b65.connectLib__L2E_2__module__0x10000001_behavioral.ahdlcmi/Linux-64/ (775)
+Compiling ahdlcmi module library for connectLib__L2E_2__module__0x10000001_behavioral.
+Finished compilation in 5.9 s (elapsed) for connectLib__L2E_2__module__0x10000001_behavioral.
+Installed compiled interface for connectLib__L2E_2__module__0x10000001_behavioral.
+Opening directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//ba98d4322a4493e51abc68b693f0d89f.BVU025_Lary__vaVDAC6b_FIXED__veriloga.ahdlcmi/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//ba98d4322a4493e51abc68b693f0d89f.BVU025_Lary__vaVDAC6b_FIXED__veriloga.ahdlcmi/Linux-64/ (775)
+Compiling ahdlcmi module library for BVU025_Lary__vaVDAC6b_FIXED__veriloga.
+Finished compilation in 5.95 s (elapsed) for BVU025_Lary__vaVDAC6b_FIXED__veriloga.
+Installed compiled interface for BVU025_Lary__vaVDAC6b_FIXED__veriloga.
+Opening directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//aa8427ec1c742d0ea4c45a545228466c.BVU025_Lary__vaSAR6b__veriloga.ahdlcmi/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//aa8427ec1c742d0ea4c45a545228466c.BVU025_Lary__vaSAR6b__veriloga.ahdlcmi/Linux-64/ (775)
+Compiling ahdlcmi module library for BVU025_Lary__vaSAR6b__veriloga.
+Finished compilation in 5.9 s (elapsed) for BVU025_Lary__vaSAR6b__veriloga.
+Installed compiled interface for BVU025_Lary__vaSAR6b__veriloga.
+Opening directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//bd0e54f46fec5e5e20086eebf85635cf.connectLib__Bidir_2__module__0x10000001_behavioral_c2_0_c0_0_c1_1.ahdlcmi/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//bd0e54f46fec5e5e20086eebf85635cf.connectLib__Bidir_2__module__0x10000001_behavioral_c2_0_c0_0_c1_1.ahdlcmi/Linux-64/ (775)
+Compiling ahdlcmi module library for connectLib__Bidir_2__module__0x10000001_behavioral_c2_0_c0_0_c1_1.
+Finished compilation in 5.82 s (elapsed) for connectLib__Bidir_2__module__0x10000001_behavioral_c2_0_c0_0_c1_1.
+Installed compiled interface for connectLib__Bidir_2__module__0x10000001_behavioral_c2_0_c0_0_c1_1.
+Opening directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//38dec50ab8683ea4f64573fb7d713f79.connectLib__E2L_2__module__0x10000001_behavioral_c1_0_c2_0_c0_1.ahdlcmi/ (775)
+Created directory xcelium.d/AMSD/ahdlSimDB/spiceModels.ahdlSimDB//38dec50ab8683ea4f64573fb7d713f79.connectLib__E2L_2__module__0x10000001_behavioral_c1_0_c2_0_c0_1.ahdlcmi/Linux-64/ (775)
+Compiling ahdlcmi module library for connectLib__E2L_2__module__0x10000001_behavioral_c1_0_c2_0_c0_1.
+Finished compilation in 5.85 s (elapsed) for connectLib__E2L_2__module__0x10000001_behavioral_c1_0_c2_0_c0_1.
+Installed compiled interface for connectLib__E2L_2__module__0x10000001_behavioral_c1_0_c2_0_c0_1.
+Time for Elaboration: CPU = 1.87528 s, elapsed = 29.639 s.
+Time accumulated: CPU = 3.28402 s, elapsed = 30.5189 s.
+Peak resident memory used = 188 Mbytes.
+
+
+Notice from spectre during hierarchy flattening.
+    The value 'psf' specified for the 'checklimitdest' option will no longer be supported in future releases. Use 'spectre -h' to see other recommended values for the 'checklimitdest' option.
+
+
+Time for EDB Visiting: CPU = 1.781 ms, elapsed = 1.78194 ms.
+Time accumulated: CPU = 3.2859 s, elapsed = 30.5207 s.
+Peak resident memory used = 189 Mbytes.
+
+
+Warning from spectre during initial setup.
+    WARNING (SPECTRE-8286): Ignoring invalid item `sim_Bias_cosim_A1.TMIRefOn' in save statement.
+    WARNING (SPECTRE-8286): Ignoring invalid item `sim_Bias_cosim_A1.TMIRefMeas' in save statement.
+Notice from spectre during initial setup.
+    Ignorevaref=yes is ignored since all nodes are connected to Verilog-A modules.
+Notice from spectre during topology check.
+    Only one connection to the following 12 nodes:
+        sim_Bias_cosim_A1.IREF_TrmCode
+        sim_Bias_cosim_A1.POR
+        sim_Bias_cosim_A1.SUB
+        sim_Bias_cosim_A1.TMIRefMeasi
+        sim_Bias_cosim_A1.TMIRefOni
+        Further occurrences of this notice will be suppressed.
+    No DC path from node `sim_Bias_cosim_A1.POR' to ground, Gmin installed to provide path.
+    No DC path from node `sim_Bias_cosim_A1.TMIRefMeasi' to ground, Gmin installed to provide path.
+    No DC path from node `sim_Bias_cosim_A1.TMIRefOni' to ground, Gmin installed to provide path.
+    No DC path from node `sim_Bias_cosim_A1.net5' to ground, Gmin installed to provide path.
+    No DC path from node `sim_Bias_cosim_A1.net6' to ground, Gmin installed to provide path.
+        Further occurrences of this notice will be suppressed.
+Notice from spectre during initial setup.
+    Multithreading is disabled due to the size of the design being too small.
+
+
+Global user options:
+               temp = 27
+            vabstol = 1e-06
+            iabstol = 1e-12
+               gmin = 1e-12
+             rforce = 1
+           maxnotes = 5
+           maxwarns = 5
+             digits = 5
+             pivrel = 0.001
+     checklimitdest = psf
+             rawfmt = sst2
+               save = selected
+               tnom = 27
+              scale = 1
+             scalem = 1
+             reltol = 0.001
+
+Scoped user options:
+
+Circuit inventory:
+              nodes 25
+BVU025_Lary__vaSAR6b__veriloga_behavioral 1     
+BVU025_Lary__vaVDAC6b_FIXED__veriloga_behavioral 1     
+connectLib__L2E_2__module__0x10000001_behavioral 3     
+connectLib__Bidir_2__module__0x10000001_behavioral 6     
+connectLib__E2L_2__module__0x10000001_behavioral 12    
+
+Analysis and control statement inventory:
+               info 4     
+               tran 1     
+
+Output statements:
+             .probe 0     
+           .measure 0     
+               save 13    
+
+
+Notice from spectre during initial setup.
+    APS enabled.
+    2 notices suppressed.
+
+Time for parsing: CPU = 4.648 ms, elapsed = 6.6812 ms.
+Time accumulated: CPU = 3.2907 s, elapsed = 30.5276 s.
+Peak resident memory used = 191 Mbytes.
+
+~~~~~~~~~~~~~~~~~~~~~~
+Pre-Simulation Summary
+~~~~~~~~~~~~~~~~~~~~~~
+   -   (APS) Multi-threading. The recommended number of threads is 1, consider adding +mt=1 on command line.
+~~~~~~~~~~~~~~~~~~~~~~
+
+***********************************************
+Transient Analysis `tran': time = (0 s -> 2 ms)
+***********************************************
+DC simulation time: CPU = 3.607 ms, elapsed = 9.90796 ms.
+
+Opening the AMSSST2 file ../psf/psf.trn ...
+Important parameter values:
+    start = 0 s
+    outputstart = 0 s
+    stop = 2 ms
+    step = 2 us
+    maxstep = 20 us
+    ic = all
+    useprevic = no
+    skipdc = no
+    reltol = 100e-06
+    abstol(V) = 1 uV
+    abstol(I) = 1 pA
+    temp = 27 C
+    tnom = 27 C
+    tempeffects = all
+    errpreset = conservative
+    method = gear2only
+    lteratio = 10
+    relref = alllocal
+    cmin = 0 F
+    gmin = 1 pS
+    rabsshort = 1 mOhm
+
+
+Notice from spectre during transient analysis `tran'.
+    Multithreading is disabled due to the size of the design being too small.
+
+
+Output and IC/nodeset summary:
+                 save   11      (voltage)
+
+    tran: time = 50 us        (2.5 %), step = 20 us           (1 %)
+    tran: time = 150 us       (7.5 %), step = 20 us           (1 %)
+    tran: time = 250 us      (12.5 %), step = 20 us           (1 %)
+    tran: time = 350 us      (17.5 %), step = 20 us           (1 %)
+    tran: time = 450 us      (22.5 %), step = 20 us           (1 %)
+    tran: time = 550 us      (27.5 %), step = 20 us           (1 %)
+    tran: time = 650 us      (32.5 %), step = 20 us           (1 %)
+    tran: time = 750 us      (37.5 %), step = 20 us           (1 %)
+    tran: time = 850 us      (42.5 %), step = 20 us           (1 %)
+    tran: time = 950 us      (47.5 %), step = 20 us           (1 %)
+    tran: time = 1.05 ms     (52.5 %), step = 20 us           (1 %)
+    tran: time = 1.15 ms     (57.5 %), step = 20 us           (1 %)
+    tran: time = 1.25 ms     (62.5 %), step = 20 us           (1 %)
+    tran: time = 1.35 ms     (67.5 %), step = 20 us           (1 %)
+    tran: time = 1.45 ms     (72.5 %), step = 20 us           (1 %)
+    tran: time = 1.55 ms     (77.5 %), step = 20 us           (1 %)
+    tran: time = 1.65 ms     (82.5 %), step = 20 us           (1 %)
+    tran: time = 1.75 ms     (87.5 %), step = 20 us           (1 %)
+    tran: time = 1.85 ms     (92.5 %), step = 20 us           (1 %)
+    tran: time = 1.95 ms     (97.5 %), step = 20 us           (1 %)
+
+The analog simulator has reached stop time, please use `analog -stop <new stop time>' to extend the analog stop time.
+Simulation stopped via transient analysis stoptime at time 2 MS
+Memory Usage - Current physical: 119.0M, Current virtual: 494.7M, Peak physical: 119.0M
+CPU Usage - 0.2s system + 0.9s user = 1.1s total (2.6% cpu)
+xcelium> exit
+Number of accepted tran steps =             103
+
+Maximum value achieved for any signal of each quantity: 
+V: V(sim_Bias_cosim_A1.I_Code:inter_com_0) = 0 V
+I: I(sim_Bias_cosim_A1.I_Code:VO_VSS_flow) = 0 A
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Post-Transient Simulation Summary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   -   To further speed up simulation, consider
+          add ++aps on command line
+   -   Non-default settings that could significantly slow down simulation
+          errpreset = conservative, default moderate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+During simulation, the CPU load for active processors is :
+         0 (38.6 %)      1 (35.8 %)      2 (34.1 %)      3 (25.4 %)
+        Total: 133.9%
+Initial condition solution time: CPU = 3.697 ms, elapsed = 9.99689 ms.
+Intrinsic tran analysis time:    CPU = 30.248 ms, elapsed = 73.72 ms.
+
+**** AMSD: Mixed-Signal Activity Statistics ****
+Number of A-to-D events:                      36
+  Number of A-to-D events in IEs:             36
+Number of D-to-A events:                      15
+  Number of D-to-A events in IEs:             15
+Number of VHDL-AMS Breaks:                     0
+Number of direct digital accesses:               0
+
+**** AMSD: IE Additional Activity Statistics ****
+                                          Detected IEs,    Reporting IEs / Total IEs
+Number of IEs with D-to-A X edge:                    3,    21/21
+Number of IEs with D-to-A Z edge:                    9,    21/21
+Number of IEs with A-to-D X edge:                    0,    21/21
+Number of IEs with A-to-D Z edge:                    0,    21/21
+List of IEs with max number of D-to-A edges:         3,    21/21
+   sim_Bias_cosim_A1.CLK__L2E_2__logic    (2)
+   sim_Bias_cosim_A1.dIRefTMO__L2E_2__logic    (2)
+   sim_Bias_cosim_A1.net3__L2E_2__logic    (2)
+List of IEs with max number of A-to-D edges:        18,    21/21
+   sim_Bias_cosim_A1.DVDD_Trm__Bidir_2__logic    (1)
+   sim_Bias_cosim_A1.SUB__Bidir_2__logic    (1)
+   sim_Bias_cosim_A1.TMIRefMeasi__E2L_2__logic    (1)
+   sim_Bias_cosim_A1.TMIRefOni__E2L_2__logic    (1)
+   sim_Bias_cosim_A1.VBNC__Bidir_2__logic    (1)
+   ...
+Number of IEs with narrow/lost D-to-A pulses:        0
+List of IEs with max narrow/lost D-to-A pulses:      1,    21/21
+   sim_Bias_cosim_A1.SUB__Bidir_2__logic    (0)
+List of IEs with Vin exceeded limit:                 0,    0/21
+List of IEs with Vdd exceeded limit:                 0,    0/21
+List of IEs with port current reached ilimit:        0,    0/21
+
+Total time required for tran analysis `tran': CPU = 35.359 ms, elapsed = 86.7488 ms, util. = 40.8%.
+Time accumulated: CPU = 3.33629 s, elapsed = 30.6336 s.
+Peak resident memory used = 191 Mbytes.
+
+finalTimeOP: writing operating point information to rawfile.
+
+Opening the PSF file ../psf/finalTimeOP.info ...
+modelParameter: writing model parameter values to rawfile.
+
+Opening the PSF file ../psf/modelParameter.info ...
+element: writing instance parameter values to rawfile.
+
+Opening the PSF file ../psf/element.info ...
+outputParameter: writing output parameter values to rawfile.
+
+Opening the PSF file ../psf/outputParameter.info ...
+Spectre Licensing Information:
+Spectre Lic Summary:
+[16:35:58.001456] cdslmd servers: /usr/local/share/license/cds.lic
+[16:35:58.016608] Feature usage summary:
+[16:35:58.248327]   Virtuoso_Acceler_Parallel_sc  
+
+
+Aggregate audit (4:35:58 PM, Mon Aug 17, 2026):
+Time used: CPU = 3.36 s, elapsed = 30.7 s, util. = 11%.
+Time spent in licensing: elapsed = 267 ms.
+Peak memory used = 191 Mbytes.
+Simulation started at: 4:35:28 PM, Mon Aug 17, 2026, ended at: 4:35:58 PM, Mon Aug 17, 2026, with elapsed time (wall clock): 30.7 s.
+spectre completes with 0 errors, 2 warnings, and 13 notices.
+Total License Acquisition Time : 0.267 s.
+  xmsim  : License Acquisition Time -- 5e-06 s.
+  spectre: License Acquisition Time -- 0.267 s.
+xmsim: Memory Usage - Final: 113.9M, Peak: 119.9M, Peak virtual: 555.2M
+xmsim: CPU Usage - 25.4s system + 23.7s user = 49.1s total (42.9s, 100.0% cpu)
+TOOL:	xrun(64)	24.09-s013: Exiting on Aug 17, 2026 at 16:35:58 CST  (total: 00:00:51)

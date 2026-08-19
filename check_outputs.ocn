@@ -1,0 +1,19 @@
+simulator( 'ams )
+design( "BVU025_Lary" "sim_Bias_cosim_A1" "config" )
+openResults("/home/lary/simulation/BVU025/BVU025A/sim_Bias_cosim_A1/ams/config/psf")
+selectResult('tran)
+outp = outputs()
+p = outfile("/tmp/ocean_outputs.txt")
+foreach( o outp
+    if( pcreMatchp("VBN" o) then
+        fprintf(p "Found VBN: %s\n" o)
+    )
+    if( pcreMatchp("IBP_Res" o) then
+        fprintf(p "Found IBP_Res: %s\n" o)
+    )
+    if( pcreMatchp("Code" o) then
+        fprintf(p "Found Code: %s\n" o)
+    )
+)
+close(p)
+exit()

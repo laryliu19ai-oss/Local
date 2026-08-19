@@ -1,0 +1,35 @@
+
+-UNBUFFERED 
+-cdslib ./cds.lib 
+-errormax 50 
+-status 
+-nowarn DLNOHV 
+-nowarn DLCLAP 
+-v93 
+-incdir ${IC_INVOKE_DIR}/
+-ade 
+-timescale 1ns/1ns 
+-vtimescale 1ns/1ns 
+-delay_mode None 
+-novitalaccl 
+-access r 
+-noparamerr 
+-amspartinfo ../psf/partition.info -rnm_partinfo 
+-modelincdir ${IC_INVOKE_DIR}/
+./spiceModels.scs 
+./amsControlSpectre.scs 
+-input ./probe.tcl 
+-run -exit 
+-xmsimargs "+amsrawdir ../psf" 
+ -simcompatible_ams spectre 
+-name BVU025_Lary.sim_Bias_cosim_A1:config  
+-allowredefinition 
+ 
+-top BVU025_Lary.sim_Bias_cosim_A1:schematic_SAR 
+-top cds_globals 
+./netlist.vams 
+./ie_card.scs
+-f ./textInputs
+./cds_globals.vams 
+-l ../psf/xrun.log
+-spectre_args +aps

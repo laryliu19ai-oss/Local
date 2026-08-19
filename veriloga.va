@@ -1,0 +1,151 @@
+/*
+** Developer: Chao-Jen Huang
+** Revision: Aug 01, 2026 (Robust SAR Trim State Machine Fix & Lock)
+*/
+
+`define TRIM_BITS 6
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+`define crossedge_double   0
+`define crossedge_positive 1
+`define crossedge_negative -1
+
+module vaSAR6b(VDD, VSS, EN, CLK, CMP, CODE, DONE);
+    // Declare the direction of input/output signals
+    inout VDD, VSS;
+    input EN, CLK, CMP;
+    output [`TRIM_BITS-1:0] CODE;
+    output DONE;
+
+    // Define the electrical signals
+    voltage VDD, VSS, EN, CLK, CMP, DONE;
+    voltage [`TRIM_BITS-1:0] CODE;
+
+    // Define the parameters for threshold, timing, and comparison polarity
+    parameter real threshold_low = 0.25 from (0:1);
+    parameter real threshold_high = 0.75 from (0:1);
+    parameter real delay = 10p from (0:inf);
+    parameter real rise_time = 10p from (0:inf);
+    parameter real fall_time = 10p from (0:inf);
+    parameter integer comp_invert = 0 from [0:1]; // 0: Normal CMP=1 clears bit, 1: Inverted CMP=0 clears bit
+
+    // Copy parameters to avoid unclear operation logic
+    real ireal_threshold_low, ireal_threshold_high;
+    real ireal_delay, ireal_rise_time, ireal_fall_time;
+
+    // Copy ports to internal signals
+    real ireal_port_en, ireal_port_clk, ireal_port_cmp, ireal_port_done;
+
+    // Define the logic voltage levels
+    real ireal_level_low, ireal_level_high;
+    real ireal_output_voltage;
+
+    // Internal calculation signals
+    integer iint_startcode, iint_step, iint_code, iint_first;
+    integer iint_enable, iint_comp, iint_done;
+    integer iint_dcode[`TRIM_BITS-1:0];
+    real ireal_dcode[`TRIM_BITS-1:0];
+
+    // Iteration variable
+    genvar i;
+
+    analog begin
+        @( initial_step ) begin
+            iint_startcode = (1 << (`TRIM_BITS - 1)); // 32 (6'b100000)
+            iint_step = iint_startcode;
+            ireal_threshold_low = threshold_low;
+            ireal_threshold_high = threshold_high;
+            ireal_delay = delay;
+            ireal_rise_time = rise_time;
+            ireal_fall_time = fall_time;
+            iint_first = 1;
+            iint_done = 0;
+            iint_code = iint_startcode;
+        end
+
+        // Define logic voltage levels based on VDD/VSS
+        ireal_level_low = ireal_threshold_low * V(VDD, VSS) + V(VSS);
+        ireal_level_high = ireal_threshold_high * V(VDD, VSS) + V(VSS);
+        ireal_output_voltage = V(VDD, VSS);
+
+        // Sample EN signal
+        ireal_port_en = V(EN);
+        if (ireal_port_en > ireal_level_high) begin
+            iint_enable = 1;
+        end else if (ireal_port_en <= ireal_level_low) begin
+            iint_enable = 0;
+        end
+
+        // Sample CMP signal with polarity support
+        ireal_port_cmp = V(CMP);
+        if (ireal_port_cmp > ireal_level_high) begin
+            iint_comp = (comp_invert == 0) ? 0 : 1;
+        end else if (ireal_port_cmp <= ireal_level_low) begin
+            iint_comp = (comp_invert == 0) ? 1 : 0;
+        end
+
+        // Reset SAR state machine when EN is low
+        if ( !iint_enable ) begin
+            iint_first = 1;
+            iint_done = 0;
+            iint_code = iint_startcode; // 6'b100000
+            iint_step = iint_startcode;
+        end
+
+        // Trigger SAR FSM on positive clock edge
+        ireal_port_clk = V(CLK);
+        @( cross(ireal_port_clk - ireal_level_high, `crossedge_positive) ) begin
+            if (iint_enable && !iint_done) begin
+                if (iint_first) begin
+                    // Clock 1: Set MSB (6'b100000 = 32)
+                    iint_code = iint_startcode;
+                    iint_step = iint_startcode >> 1; // 16
+                    iint_first = 0;
+                    iint_done = 0;
+                end else if (iint_step > 0) begin
+                    // Clocks 2..6: Evaluate previous bit & set next lower bit
+                    if (iint_comp) begin
+                        iint_code = iint_code - (iint_step << 1); // Clear current bit if CMP is high
+                    end
+                    iint_code = iint_code + iint_step; // Set next lower bit
+                    iint_step = iint_step >> 1;
+                end else if (iint_step == 0) begin
+                    // Clock 7: Evaluate LSB comparison and lock final result
+                    if (iint_comp) begin
+                        iint_code = iint_code - 1; // Clear LSB if CMP is high
+                    end
+                    iint_done = 1; // Lock SAR code; freeze state machine
+                end
+            end
+
+            // Convert integer code to 6-bit binary array
+            for (i = `TRIM_BITS - 1; i >= 0; i = i - 1) begin
+                iint_dcode[i] = (iint_code >> i) & 1;
+            end
+        end
+
+        if (iint_step == 0 && !iint_first) begin
+            iint_done = 1;
+        end
+
+        // Output transition function for analog voltage output
+        ireal_dcode[5] = transition(iint_dcode[5], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_dcode[4] = transition(iint_dcode[4], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_dcode[3] = transition(iint_dcode[3], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_dcode[2] = transition(iint_dcode[2], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_dcode[1] = transition(iint_dcode[1], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_dcode[0] = transition(iint_dcode[0], ireal_delay, ireal_rise_time, ireal_fall_time);
+        ireal_port_done = transition(iint_done, ireal_delay, ireal_rise_time, ireal_fall_time);
+
+        // Drive output ports
+        V(CODE[5], VSS) <+ ireal_dcode[5] * ireal_output_voltage;
+        V(CODE[4], VSS) <+ ireal_dcode[4] * ireal_output_voltage;
+        V(CODE[3], VSS) <+ ireal_dcode[3] * ireal_output_voltage;
+        V(CODE[2], VSS) <+ ireal_dcode[2] * ireal_output_voltage;
+        V(CODE[1], VSS) <+ ireal_dcode[1] * ireal_output_voltage;
+        V(CODE[0], VSS) <+ ireal_dcode[0] * ireal_output_voltage;
+        V(DONE, VSS) <+ ireal_port_done * ireal_output_voltage;
+    end
+endmodule

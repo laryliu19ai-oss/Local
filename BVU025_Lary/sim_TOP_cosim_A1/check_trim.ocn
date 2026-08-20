@@ -1,0 +1,22 @@
+simulator('ams)
+openResults("/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_A1/ams/config/psf")
+selectResult('tran)
+outp = outfile("/tmp/trim_res.txt")
+
+v_ibp = value(v("sim_TOP_cosim_A1.I_Bias.I_Bias.IBP_Res") 800e-6)
+v_tmio = value(v("sim_TOP_cosim_A1.I_Bias.I_Bias.xIRefTMIOt") 800e-6)
+v_cmp = value(v("sim_TOP_cosim_A1.dIRefTMO") 800e-6)
+
+v_c5 = value(v("sim_TOP_cosim_A1.NvTrmIref[5]") 1.5e-3)
+v_c4 = value(v("sim_TOP_cosim_A1.NvTrmIref[4]") 1.5e-3)
+v_c3 = value(v("sim_TOP_cosim_A1.NvTrmIref[3]") 1.5e-3)
+v_c2 = value(v("sim_TOP_cosim_A1.NvTrmIref[2]") 1.5e-3)
+v_c1 = value(v("sim_TOP_cosim_A1.NvTrmIref[1]") 1.5e-3)
+v_c0 = value(v("sim_TOP_cosim_A1.NvTrmIref[0]") 1.5e-3)
+
+fprintf(outp "IBP_Res at 800us = %g V\n" v_ibp)
+fprintf(outp "xIRefTMIOt at 800us = %g V\n" v_tmio)
+fprintf(outp "dIRefTMO at 800us = %g V\n" v_cmp)
+fprintf(outp "Calibrated Code [5:0] = %g%g%g%g%g%g\n" v_c5 v_c4 v_c3 v_c2 v_c1 v_c0)
+close(outp)
+exit()

@@ -1,0 +1,6 @@
+envSetVal("asimenv.startup" "simulator" 'string "ams")
+session = asiInitialize(?design '(BVU025_Lary sim_Bias_cosim_A1 config) ?simulator "ams")
+asiLoadState(session "ams_SAR")
+asiNetlist(session)
+asiQuit(session)
+exit()

@@ -1,7 +1,7 @@
 {
     "$schema": "../../../oneTestConfig_260814/schema/oneTest.schema.json",
     "version": 1.0,
-    "release": "2026/08/20",
+    "release": "2026/08/21",
     "author": "Lary Liu",
     "debugMode": true,
     "oneTest": {
@@ -41,7 +41,7 @@
             }
         },
         "components": {
-            "Board_A1": {
+            "TOP_A1": {
                 "package": "DFN-12_3x3mm_P0.5mm",
                 "size": {
                     "unit": "um",
@@ -95,7 +95,7 @@
                 "TESTER": {
                     "design": {
                         "library": "BVU025_Lary",
-                        "cell": "sim_TOP_cosim_python_A1"
+                        "cell": "py_tester"
                     },
                     "spice_type": "sub-circuit",
                     "pins": {
@@ -112,11 +112,11 @@
         },
         "testboard": {
             "components": {
-                "DUT": {
-                    "id": "Board",
+                "BVU025": {
+                    "id": "TOP_A1",
                     "connection": {
-                        "aVdd": "aVdd",
-                        "aVss": "aVss",
+                        "VDD_PCB": "aVdd",
+                        "VSS_PCB": "aVss",
                         "TMIRefOn": "TMIRefOn",
                         "TMIRefMeas": "TMIRefMeas",
                         "GPIO8": "GPIO8",
@@ -127,8 +127,8 @@
                 "CIN": {
                     "id": "CAP_0805",
                     "connection": {
-                        "aVdd": "PLUS",
-                        "aVss": "MINUS"
+                        "VDD_PCB": "PLUS",
+                        "VSS_PCB": "MINUS"
                     },
                     "value": "10u"
                 }
@@ -140,8 +140,8 @@
                     "TESTER": {
                         "id": "TESTER",
                         "connection": {
-                            "aVdd": "aVdd",
-                            "aVss": "aVss",
+                            "VDD_PCB": "aVdd",
+                            "VSS_PCB": "aVss",
                             "TMIRefOn": "TMIRefOn",
                             "TMIRefMeas": "TMIRefMeas",
                             "GPIO8": "GPIO8",
@@ -161,7 +161,7 @@
                     "VGND": {
                         "id": "global_ground",
                         "connection": {
-                            "aVss": 0
+                            "VSS_PCB": 0
                         }
                     }
                 }
@@ -180,11 +180,11 @@
                             "type": "voltage_source",
                             "voltage": 0,
                             "current_limiting": "150m",
-                            "connection": "aVdd"
+                            "connection": "VDD_PCB"
                         },
                         "0": {
                             "type": "ground",
-                            "connection": "aVss"
+                            "connection": "VSS_PCB"
                         },
                         "V_TM_ON": {
                             "type": "voltage_source",
@@ -214,7 +214,7 @@
                             "type": "voltage_source",
                             "voltage": 3.3,
                             "current_limiting": "150m",
-                            "connection": "aVdd"
+                            "connection": "VDD_PCB"
                         }
                     }
                 },
@@ -317,7 +317,7 @@
                     "actions": {
                         "102": {
                             "type": "measure",
-                            "connection": "aVdd",
+                            "connection": "VDD_PCB",
                             "capability": "waveform_measurement",
                             "test_item_id": 102,
                             "name": "Capture transient simulation waveform",

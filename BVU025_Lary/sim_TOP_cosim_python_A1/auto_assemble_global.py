@@ -143,7 +143,7 @@ endmodule
 """
 
         # 5. Determine TB block with exact schematic instance names: Board & TESTER
-        if "python" in top_cell:
+        if "python" in top_cell or "sv" in top_cell:
             tb_block = f"""
 // Exact Schematic Top Module for {top_cell}
 `timescale 1ns / 1ns 

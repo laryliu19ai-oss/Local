@@ -138,7 +138,7 @@
             "sim": {
                 "components": {
                     "TESTER": {
-                        "id": "TESTER",
+                        "id": "py_tester",
                         "connection": {
                             "VDD_PCB": "aVdd",
                             "VSS_PCB": "aVss",

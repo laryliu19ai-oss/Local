@@ -138,7 +138,7 @@
             "sim": {
                 "components": {
                     "TESTER": {
-                        "id": "py_tester",
+                        "id": "sim_TOP_cosim_python_A1",
                         "connection": {
                             "VDD_PCB": "aVdd",
                             "VSS_PCB": "aVss",
@@ -317,7 +317,7 @@
                     "actions": {
                         "102": {
                             "type": "measure",
-                            "connection": "aVdd",
+                            "connection": "VDD_PCB",
                             "capability": "waveform_measurement",
                             "test_item_id": 102,
                             "name": "Capture transient simulation waveform",

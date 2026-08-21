@@ -1,7 +1,7 @@
 {
     "$schema": "../../../oneTestConfig_260814/schema/oneTest.schema.json",
     "version": 1.0,
-    "release": "2026/08/21",
+    "release": "2026/08/20",
     "author": "Lary Liu",
     "debugMode": true,
     "oneTest": {
@@ -112,11 +112,11 @@
         },
         "testboard": {
             "components": {
-                "BVU025": {
+                "TOP": {
                     "id": "TOP_A1",
                     "connection": {
-                        "VDD_PCB": "aVdd",
-                        "VSS_PCB": "aVss",
+                        "aVdd": "aVdd",
+                        "aVss": "aVss",
                         "TMIRefOn": "TMIRefOn",
                         "TMIRefMeas": "TMIRefMeas",
                         "GPIO8": "GPIO8",
@@ -127,8 +127,8 @@
                 "CIN": {
                     "id": "CAP_0805",
                     "connection": {
-                        "VDD_PCB": "PLUS",
-                        "VSS_PCB": "MINUS"
+                        "aVdd": "PLUS",
+                        "aVss": "MINUS"
                     },
                     "value": "10u"
                 }
@@ -317,7 +317,7 @@
                     "actions": {
                         "102": {
                             "type": "measure",
-                            "connection": "VDD_PCB",
+                            "connection": "aVdd",
                             "capability": "waveform_measurement",
                             "test_item_id": 102,
                             "name": "Capture transient simulation waveform",

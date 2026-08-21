@@ -347,16 +347,24 @@ amsd {{
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
         open('./xrunArgs', 'w').write(args)
 
-        # Update amsControlSpectre.scs with subcircuit probe levels and transistor terminal saves
-        ctrl_lines = open('./amsControlSpectre.scs').read() if os.path.exists('./amsControlSpectre.scs') else ''
-        if 'subcktprobelvl' not in ctrl_lines:
-            ctrl_clean = ctrl_lines + f"""
+        # Update amsControlSpectre.scs with subcircuit probe levels and transistor terminal saves BEFORE tran
+        ctrl_raw = open('./amsControlSpectre.scs').read() if os.path.exists('./amsControlSpectre.scs') else ''
+        ctrl_clean_lines = [l for l in ctrl_raw.splitlines() if 'subcktprobelvl' not in l and 'save ' not in l]
+        ctrl_base = '\n'.join(ctrl_clean_lines)
+
+        save_block = f"""
 saveOptions options subcktprobelvl=5 currents=all save=allpub
 save {top_cell}.Board.TOP.I_Bias:all
 save {top_cell}.Board.TOP.I_Bias.MN0:d
+save {top_cell}.Board.TOP.I_Bias.MN0:s
 save {top_cell}.Board.TOP.I_Bias.MN0:1
+save {top_cell}.Board.TOP.I_Bias.MN0:all
 """
-            open('./amsControlSpectre.scs', 'w').write(ctrl_clean)
+        if 'tran tran' in ctrl_base:
+            ctrl_final = ctrl_base.replace('tran tran', save_block + '\ntran tran')
+        else:
+            ctrl_final = save_block + '\n' + ctrl_base
+        open('./amsControlSpectre.scs', 'w').write(ctrl_final)
 
         # Update probe.tcl with deep hierarchy probe for subcircuit instances
         probe_tcl = f"""

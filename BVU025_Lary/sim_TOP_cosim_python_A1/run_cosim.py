@@ -30,7 +30,7 @@ class OneTestRunner:
         self.one_test = self.config.get("oneTest", {})
         self.dut_info = self.one_test.get("components", {}).get("TOP_A1", {})
         self.setup_steps = self.one_test.get("setup", {}).get("steps", [])
-        self.sim_dir = "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_A1/ams/config"
+        self.sim_dir = "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config"
 
     def run_simulation(self):
         """Execute AMS simulation on the virtual workstation."""

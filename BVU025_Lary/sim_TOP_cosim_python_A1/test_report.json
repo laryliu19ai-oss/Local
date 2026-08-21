@@ -1,0 +1,28 @@
+{
+    "test_summary": "OneTest Calibration & Trim Verification (sim_TOP_cosim_python_A1)",
+    "tester_mode": "sim",
+    "items": {
+        "101": {
+            "name": "Sample comparator output dIRefTMO for Python SAR successive approximation",
+            "measured": 3.3,
+            "unit": "V",
+            "status": "PASS"
+        },
+        "103": {
+            "name": "Measure trimmed reference current on GPIO8",
+            "measured": 1.002,
+            "unit": "uA",
+            "limits": {
+                "lower": 0.9,
+                "upper": 1.1
+            },
+            "status": "PASS"
+        },
+        "102": {
+            "name": "Capture transient simulation waveform",
+            "psf_database": "psf/",
+            "viva_command": "viva -mode xl -results C:\\Antgravity\\Local\\BVU025_Lary\\sim_TOP_cosim_python_A1\\psf",
+            "status": "PASS"
+        }
+    }
+}

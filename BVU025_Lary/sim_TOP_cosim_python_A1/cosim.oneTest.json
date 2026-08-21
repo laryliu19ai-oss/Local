@@ -292,7 +292,7 @@
                 {
                     "id": "measure_trimmed_iref",
                     "time": {
-                        "value": "1.6m",
+                        "value": "1.8m",
                         "related": null
                     },
                     "actions": {
@@ -311,7 +311,7 @@
                 {
                     "id": "capture_full_waveform",
                     "time": {
-                        "value": "2.0m",
+                        "value": "1.8m",
                         "related": null
                     },
                     "actions": {

@@ -359,10 +359,17 @@ probe -create -emptyok -database ams_database -flow -ports -index -depth all -no
 """
         open('./probe.tcl', 'w').write(probe_tcl)
 
-        # Update spiceModels.scs with save for internal terminal currents
-        save_stmt = f"\nsave {top_cell}.Board.TOP.I_Bias.MN0:d\n"
-        if save_stmt not in open('./spiceModels.scs').read():
-            open('./spiceModels.scs', 'a').write(save_stmt)
+        # Update spiceModels.scs with save for internal terminal currents and port currents
+        save_stmts = f"""
+save {top_cell}.Board:GPIO8
+save {top_cell}.Board.TOP:GPIO8
+save {top_cell}.Board.TOP.I_Bias.MN0:d
+save {top_cell}.Board.TOP.I_Bias.MN0:s
+save {top_cell}.Board.TOP.I_Bias.MN0:1
+"""
+        sm_content = open('./spiceModels.scs').read()
+        if f"{top_cell}.Board.TOP.I_Bias.MN0:d" not in sm_content:
+            open('./spiceModels.scs', 'a').write(save_stmts)
 
         print(f"[Auto-Assemble] Finished auto-assembling {lib_name}.{top_cell} successfully!")
 

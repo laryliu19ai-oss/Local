@@ -5,9 +5,10 @@ OneTest Python Orchestrator for sim_TOP_cosim_sv_A1
 Author: Antigravity Agent
 Purpose:
   1. Parse cosim.oneTest.json (Sim mode).
-  2. Execute AMS simulation (xrun -f xrunArgs) inside sim_TOP_cosim_sv_A1.
-  3. Keep PSF database in sim_TOP_cosim_sv_A1/psf.
-  4. Provide one-click waveform launcher for Viva.
+  2. Auto-assemble and clean AMS netlist bindings.
+  3. Execute AMS simulation (xrun -f xrunArgs) inside sim_TOP_cosim_sv_A1.
+  4. Keep PSF database in sim_TOP_cosim_sv_A1/psf.
+  5. Provide one-click waveform launcher for Viva.
 """
 
 import os
@@ -38,20 +39,32 @@ class OneTestRunner:
         netlist_dir = os.path.join(self.sim_dir, "netlist")
         
         if os.path.exists(netlist_dir):
-            cmd = "./runSimulation" if os.path.exists(os.path.join(netlist_dir, "runSimulation")) else "xrun -f xrunArgs"
+            # 1. Automatically assemble and fix netlist/bindings
+            try:
+                import auto_assemble_global
+                auto_assemble_global.universal_assemble(netlist_dir)
+            except Exception as e:
+                print(f"[OneTest Sim] Note auto_assemble: {e}")
+                
+            # 2. Run xrun
+            cmd = "xrun -f xrunArgs"
             print(f"[OneTest Sim] Executing simulation in: {netlist_dir}")
             res = subprocess.run(cmd, cwd=netlist_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             print("[OneTest Sim] Simulation Execution Output:")
             lines = res.stdout.splitlines()
             for line in lines[-25:]:
                 print("  ", line)
+            
+            if res.returncode != 0:
+                print(f"\n[OneTest Sim] *** ERROR: Simulation exited with error code {res.returncode} ***")
+                return False
         else:
-            print(f"[OneTest Sim] Note: Using existing netlist database...")
+            print(f"[OneTest Sim] Warning: netlist directory not found: {netlist_dir}")
 
         # Sync PSF results into local sim_TOP_cosim_sv_A1/psf
         src_psf = os.path.join(self.sim_dir, "psf")
         dst_psf = os.path.join(self.work_dir, "psf")
-        if os.path.exists(src_psf):
+        if os.path.exists(src_psf) and src_psf != dst_psf:
             print(f"[OneTest Sim] Synchronizing PSF results to: {dst_psf}")
             if os.path.exists(dst_psf):
                 shutil.rmtree(dst_psf, ignore_errors=True)
@@ -105,11 +118,7 @@ class OneTestRunner:
         print(f"           OneTest Verification Summary (Sim Mode)     ")
         print(f"=======================================================")
         print(json.dumps(report, indent=4))
-        print(f"=======================================================\n")
-        print(f"To open and view the waveforms in Virtuoso Viva, run:")
-        print(f"  python3 run_cosim.py --viva")
-        print(f"or directly:")
-        print(f"  viva -mode xl -results {os.path.join(self.work_dir, 'psf')} &")
+        print(f"=======================================================")
         return report
 
 if __name__ == "__main__":

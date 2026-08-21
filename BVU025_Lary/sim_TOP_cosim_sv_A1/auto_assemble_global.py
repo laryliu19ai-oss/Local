@@ -143,7 +143,7 @@ endmodule
 """
 
         # 5. Determine TB block with exact schematic instance names: Board & TESTER
-        if "python" in top_cell:
+        if "python" in top_cell or "sv" in top_cell:
             tb_block = f"""
 // Exact Schematic Top Module for {top_cell}
 `timescale 1ns / 1ns 
@@ -343,7 +343,7 @@ amsd {{
         args = open('./xrunArgs').read()
         args = args.replace('${IC_INVOKE_DIR}/', f'/home/lary/project/BVU025/SCH/')
         args = args.replace('-sv', '')
-        if "python" in top_cell:
+        if "python" in top_cell or "sv" in top_cell:
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
         open('./xrunArgs', 'w').write(args)
 

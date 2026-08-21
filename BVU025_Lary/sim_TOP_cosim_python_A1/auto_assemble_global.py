@@ -353,9 +353,16 @@ database -open ams_database -into "../psf" -default
 probe -create -emptyok -database ams_database -all -noaicms {{{top_cell}}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.GPIO8}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.GPIO8}}
+probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.I_Bias.MN0:d}}
+probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.I_Bias.MN0:1}}
 probe -create -emptyok -database ams_database -flow -ports -index -depth all -noaicms {{{top_cell}}}
 """
         open('./probe.tcl', 'w').write(probe_tcl)
+
+        # Update spiceModels.scs with save for internal terminal currents
+        save_stmt = f"\nsave {top_cell}.Board.TOP.I_Bias.MN0:d\n"
+        if save_stmt not in open('./spiceModels.scs').read():
+            open('./spiceModels.scs', 'a').write(save_stmt)
 
         print(f"[Auto-Assemble] Finished auto-assembling {lib_name}.{top_cell} successfully!")
 

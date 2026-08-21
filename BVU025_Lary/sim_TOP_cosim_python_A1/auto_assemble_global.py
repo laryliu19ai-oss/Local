@@ -308,15 +308,16 @@ amsd {{
         full_vams = h + '\n\n`include "disciplines.vams"\n`include "userDisciplines.vams"\n\n' + hdl + common_digital_helpers + '\n\n' + top_a1_block + '\n\n' + board_a1_block + '\n\n' + tb_block + '\n'
         open('./netlist.vams', 'w').write(full_vams)
 
-        # Subcircuits
+        # Subcircuits (strictly extract subckt ... ends blocks to avoid stray top-level nets)
+        raw_scs = ""
         bias_subckts_path = f'/home/lary/simulation/BVU025/BVU025A/sim_Bias_cosim_A1/ams/config/netlist/subckts.scs'
         if os.path.exists(bias_subckts_path):
-            subckts_scs = open(bias_subckts_path).read()
-        else:
-            analog_raw = open('./analog/netlist').read() if os.path.exists('./analog/netlist') else ''
-            subckt_blocks = re.findall(r'subckt\s+.*?ends(?:\s+\w+)?', analog_raw, re.DOTALL)
-            subckts_scs = "simulator lang=spectre\n\n" + "\n\n".join(subckt_blocks) + "\n"
+            raw_scs = open(bias_subckts_path).read()
+        elif os.path.exists('./analog/netlist'):
+            raw_scs = open('./analog/netlist').read()
 
+        subckt_blocks = re.findall(r'subckt\s+.*?ends(?:\s+\w+)?', raw_scs, re.DOTALL)
+        subckts_scs = "simulator lang=spectre\nglobal 0\n\n" + "\n\n".join(subckt_blocks) + "\n"
         open('./subckts.scs', 'w').write(subckts_scs)
 
         # Update spiceModels.scs

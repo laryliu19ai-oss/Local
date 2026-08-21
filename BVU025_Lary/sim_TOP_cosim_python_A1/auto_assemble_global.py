@@ -347,6 +347,16 @@ amsd {{
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
         open('./xrunArgs', 'w').write(args)
 
+        # Update probe.tcl with explicit voltage and current flow probes
+        probe_tcl = f"""
+database -open ams_database -into "../psf" -default
+probe -create -emptyok -database ams_database -all -noaicms {{{top_cell}}}
+probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.GPIO8}}
+probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.GPIO8}}
+probe -create -emptyok -database ams_database -flow -ports -index -depth all -noaicms {{{top_cell}}}
+"""
+        open('./probe.tcl', 'w').write(probe_tcl)
+
         print(f"[Auto-Assemble] Finished auto-assembling {lib_name}.{top_cell} successfully!")
 
     finally:

@@ -138,7 +138,7 @@
             "sim": {
                 "components": {
                     "TESTER": {
-                        "id": "sim_TOP_cosim_python_A1",
+                        "id": "sim_TOP_cosim_sv_A1",
                         "connection": {
                             "VDD_PCB": "aVdd",
                             "VSS_PCB": "aVss",

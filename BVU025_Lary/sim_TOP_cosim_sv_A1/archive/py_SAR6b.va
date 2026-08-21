@@ -1,0 +1,109 @@
+/*
+** Real-time Dynamic Python Bridge Module for Cadence AMS (Condition A)
+** Cell: py_SAR6b (Library: BVU025_Lary)
+*/
+
+`define TRIM_BITS 6
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+`define crossedge_positive 1
+
+module py_SAR6b(VDD, VSS, EN, CLK, CMP, CODE, DONE);
+    inout VDD, VSS;
+    input EN, CLK, CMP;
+    output [`TRIM_BITS-1:0] CODE;
+    output DONE;
+
+    voltage VDD, VSS, EN, CLK, CMP, DONE;
+    voltage [`TRIM_BITS-1:0] CODE;
+
+    parameter real threshold_low = 0.25 from (0:1);
+    parameter real threshold_high = 0.75 from (0:1);
+    parameter real delay = 10p from (0:inf);
+    parameter real rise_time = 10p from (0:inf);
+    parameter real fall_time = 10p from (0:inf);
+
+    real ireal_level_low, ireal_level_high, ireal_output_voltage;
+    real ireal_port_en, ireal_port_clk, ireal_port_cmp, ireal_port_done;
+    integer iint_enable, iint_code, iint_done;
+    integer iint_dcode[`TRIM_BITS-1:0];
+    real ireal_dcode[`TRIM_BITS-1:0];
+    genvar i;
+
+    // File pointers for Real-time Python IPC Handshake
+    integer fp_cmd, fp_resp, num_read;
+
+    analog begin
+        @( initial_step ) begin
+            iint_code = (2 ** `TRIM_BITS) >> 1; // Default 32
+            iint_done = 0;
+
+            // Notify Python controller on startup
+            fp_cmd = $fopen("/tmp/py_sar_cmd.txt", "w");
+            if (fp_cmd) begin
+                $fwrite(fp_cmd, "RESET\n");
+                $fclose(fp_cmd);
+            end
+        end
+
+        ireal_level_low = threshold_low * V(VDD, VSS) + V(VSS);
+        ireal_level_high = threshold_high * V(VDD, VSS) + V(VSS);
+        ireal_output_voltage = V(VDD, VSS);
+
+        ireal_port_en = V(EN);
+        if (ireal_port_en > ireal_level_high) begin
+            iint_enable = 1;
+        end else if (ireal_port_en <= ireal_level_low) begin
+            iint_enable = 0;
+            iint_done = 0;
+            iint_code = (2 ** `TRIM_BITS) >> 1;
+        end
+
+        ireal_port_cmp = V(CMP);
+
+        // On Clock Positive Edge: Send real-time request to Python controller
+        ireal_port_clk = V(CLK);
+        @( cross(ireal_port_clk - ireal_level_high, `crossedge_positive) ) begin
+            if (iint_enable && !iint_done) begin
+                // 1. Send CMP voltage to Python
+                fp_cmd = $fopen("/tmp/py_sar_cmd.txt", "w");
+                if (fp_cmd) begin
+                    $fwrite(fp_cmd, "STEP %g\n", ireal_port_cmp);
+                    $fclose(fp_cmd);
+                end
+
+                // 2. Read new Code and Done from Python
+                fp_resp = $fopen("/tmp/py_sar_resp.txt", "r");
+                if (fp_resp) begin
+                    num_read = $fscanf(fp_resp, "%d %d", iint_code, iint_done);
+                    $fclose(fp_resp);
+                end
+            end
+
+            // Convert code integer into bit bus
+            for (i = `TRIM_BITS - 1; i >= 0 ; i = i - 1) begin
+                iint_dcode[i] = (iint_code % (1 << (1 + i))) >> i;
+            end
+        end
+
+        // Apply smooth transition
+        ireal_dcode[5] = transition(iint_dcode[5], delay, rise_time, fall_time);
+        ireal_dcode[4] = transition(iint_dcode[4], delay, rise_time, fall_time);
+        ireal_dcode[3] = transition(iint_dcode[3], delay, rise_time, fall_time);
+        ireal_dcode[2] = transition(iint_dcode[2], delay, rise_time, fall_time);
+        ireal_dcode[1] = transition(iint_dcode[1], delay, rise_time, fall_time);
+        ireal_dcode[0] = transition(iint_dcode[0], delay, rise_time, fall_time);
+        ireal_port_done = transition(iint_done, delay, rise_time, fall_time);
+
+        // Drive electrical output pins to DUT
+        V(CODE[5], VSS) <+ ireal_dcode[5] * ireal_output_voltage;
+        V(CODE[4], VSS) <+ ireal_dcode[4] * ireal_output_voltage;
+        V(CODE[3], VSS) <+ ireal_dcode[3] * ireal_output_voltage;
+        V(CODE[2], VSS) <+ ireal_dcode[2] * ireal_output_voltage;
+        V(CODE[1], VSS) <+ ireal_dcode[1] * ireal_output_voltage;
+        V(CODE[0], VSS) <+ ireal_dcode[0] * ireal_output_voltage;
+        V(DONE, VSS)    <+ ireal_port_done * ireal_output_voltage;
+    end
+endmodule

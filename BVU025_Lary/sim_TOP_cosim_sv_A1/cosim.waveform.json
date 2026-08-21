@@ -1,0 +1,59 @@
+{
+    "$schema": "../../../schema/waveform.schema.json",
+    "version": 1.0,
+    "release": "2026/08/21",
+    "author": "Antigravity",
+    "debugMode": true,
+    "waveform": {
+        "type": "viva",
+        "imageSavePath": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_sv_A1/ams/config/images",
+        "database": {
+            "sim_TOP_cosim_sv_A1": {
+                "file": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_sv_A1/ams/config/psf"
+            }
+        },
+        "imageSettings": {
+            "resolution": 100,
+            "width": 1600,
+            "height": 900,
+            "backgroundColor": "white"
+        },
+        "plot": [
+            {
+                "enable": true,
+                "results": [
+                    {
+                        "enable": true,
+                        "select": "tran",
+                        "databaseGroup": [
+                            "sim_TOP_cosim_sv_A1"
+                        ],
+                        "signals": [
+                            {
+                                "type": "voltage",
+                                "signal": "/VDD_PCB",
+                                "display": "VDD_PCB",
+                                "color": "red",
+                                "thickness": "thick",
+                                "stripNumber": 1
+                            },
+                            {
+                                "type": "current",
+                                "signal": "/Board/GPIO8",
+                                "display": "I(GPIO8)",
+                                "color": "blue",
+                                "thickness": "thick",
+                                "stripNumber": 2
+                            }
+                        ]
+                    }
+                ],
+                "closeAfterCapture": false,
+                "capture": {
+                    "enable": true,
+                    "filename": "cosim_waveform.png"
+                }
+            }
+        ]
+    }
+}

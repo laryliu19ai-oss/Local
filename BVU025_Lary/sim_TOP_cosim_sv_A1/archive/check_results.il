@@ -1,0 +1,6 @@
+openResults("/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/psf")
+selectResults("tran")
+printf("===> Available outputs: %L\n" outputs())
+printf("===> aVdd: %L\n" value(v("aVdd") 500u))
+printf("===> aVss: %L\n" value(v("aVss") 500u))
+exit()

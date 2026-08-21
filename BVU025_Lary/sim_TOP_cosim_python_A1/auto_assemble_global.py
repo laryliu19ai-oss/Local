@@ -347,15 +347,27 @@ amsd {{
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
         open('./xrunArgs', 'w').write(args)
 
-        # Update probe.tcl with explicit voltage and current flow probes
+        # Update amsControlSpectre.scs with subcircuit probe levels and transistor terminal saves
+        ctrl_lines = open('./amsControlSpectre.scs').read() if os.path.exists('./amsControlSpectre.scs') else ''
+        if 'subcktprobelvl' not in ctrl_lines:
+            ctrl_clean = ctrl_lines + f"""
+saveOptions options subcktprobelvl=5 currents=all save=allpub
+save {top_cell}.Board.TOP.I_Bias:all
+save {top_cell}.Board.TOP.I_Bias.MN0:d
+save {top_cell}.Board.TOP.I_Bias.MN0:1
+"""
+            open('./amsControlSpectre.scs', 'w').write(ctrl_clean)
+
+        # Update probe.tcl with deep hierarchy probe for subcircuit instances
         probe_tcl = f"""
 database -open ams_database -into "../psf" -default
-probe -create -emptyok -database ams_database -all -noaicms {{{top_cell}}}
+probe -create -emptyok -database ams_database -all -depth all {{{top_cell}}}
+probe -create -emptyok -database ams_database -flow -depth all {{{top_cell}}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.GPIO8}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.GPIO8}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.I_Bias.MN0:d}}
 probe -create -emptyok -database ams_database -flow {{{top_cell}.Board.TOP.I_Bias.MN0:1}}
-probe -create -emptyok -database ams_database -flow -ports -index -depth all -noaicms {{{top_cell}}}
+probe -create -emptyok -database ams_database -flow -ports -index -depth all {{{top_cell}}}
 """
         open('./probe.tcl', 'w').write(probe_tcl)
 

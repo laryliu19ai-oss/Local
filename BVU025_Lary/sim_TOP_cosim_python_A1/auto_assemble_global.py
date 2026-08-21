@@ -308,7 +308,7 @@ amsd {{
         full_vams = h + '\n\n`include "disciplines.vams"\n`include "userDisciplines.vams"\n\n' + hdl + common_digital_helpers + '\n\n' + top_a1_block + '\n\n' + board_a1_block + '\n\n' + tb_block + '\n'
         open('./netlist.vams', 'w').write(full_vams)
 
-        # Subcircuits (strictly extract subckt ... ends blocks to avoid stray top-level nets)
+        # Subcircuits (strictly extract only lines inside subckt ... ends blocks)
         raw_scs = ""
         bias_subckts_path = f'/home/lary/simulation/BVU025/BVU025A/sim_Bias_cosim_A1/ams/config/netlist/subckts.scs'
         if os.path.exists(bias_subckts_path):
@@ -316,9 +316,19 @@ amsd {{
         elif os.path.exists('./analog/netlist'):
             raw_scs = open('./analog/netlist').read()
 
-        subckt_blocks = re.findall(r'subckt\s+.*?ends(?:\s+\w+)?', raw_scs, re.DOTALL)
-        subckts_scs = "simulator lang=spectre\nglobal 0\n\n" + "\n\n".join(subckt_blocks) + "\n"
-        open('./subckts.scs', 'w').write(subckts_scs)
+        clean_lines = ['simulator lang=spectre\nglobal 0\n\n']
+        in_subckt = False
+        for line in raw_scs.splitlines(True):
+            stripped = line.strip()
+            if stripped.startswith('subckt '):
+                in_subckt = True
+            if in_subckt:
+                clean_lines.append(line)
+            if stripped.startswith('ends') or stripped.startswith('ends '):
+                in_subckt = False
+                clean_lines.append('\n')
+
+        open('./subckts.scs', 'w').writelines(clean_lines)
 
         # Update spiceModels.scs
         sm_lines = [l for l in open('./spiceModels.scs').read().splitlines() if 'analog/netlist' not in l and 'subckts.scs' not in l]

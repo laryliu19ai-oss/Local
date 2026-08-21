@@ -1,0 +1,16 @@
+{
+    "[json]": {
+        "editor.formatOnSave": false
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": false
+    },
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "*.oneTest.json"
+            ],
+            "url": "file:///C:/Antgravity/oneTestConfig_260814/schema/oneTest.schema.json"
+        }
+    ]
+}

@@ -1,0 +1,117 @@
+/*
+** Real-time Full Virtual Tester Bridge for Cadence AMS (Condition A)
+** Cell: py_tester (Library: BVU025_Lary)
+*/
+
+`define TRIM_BITS 6
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+module py_tester(aVdd, aVss, TMIRefOn, TMIRefMeas, GPIO8, NvTrmIref, dIRefTMO);
+    inout aVdd, aVss;
+    inout GPIO8;
+    output TMIRefOn, TMIRefMeas;
+    output [`TRIM_BITS-1:0] NvTrmIref;
+    input dIRefTMO;
+
+    // Must be declared as electrical for both V() and I() support
+    electrical aVdd, aVss, TMIRefOn, TMIRefMeas, GPIO8, dIRefTMO;
+    electrical [`TRIM_BITS-1:0] NvTrmIref;
+
+    parameter real trise = 10n from (0:inf);
+    parameter real tfall = 10n from (0:inf);
+    parameter real tdelay = 1n from (0:inf);
+
+    real v_avdd_target, v_tmon_target, v_tmmeas_target;
+    real i_gpio8_target, r_gpio8_shunt;
+    integer iint_code;
+    integer iint_dcode[`TRIM_BITS-1:0];
+    real ireal_dcode[`TRIM_BITS-1:0];
+
+    real v_avdd_out, v_tmon_out, v_tmmeas_out;
+    real i_gpio8_out, r_gpio8_out;
+    
+    integer fp_cmd, fp_resp, num_read, gpio8_mode;
+    genvar i;
+
+    analog begin
+        @( initial_step ) begin
+            v_avdd_target = 0.0;
+            v_tmon_target = 0.0;
+            v_tmmeas_target = 0.0;
+            i_gpio8_target = 0.0;
+            r_gpio8_shunt = 1e9; // High-Z
+            iint_code = 0;
+
+            fp_cmd = $fopen("/tmp/py_tester_cmd.txt", "w");
+            if (fp_cmd) begin
+                $fwrite(fp_cmd, "INIT 0.0\n");
+                $fclose(fp_cmd);
+            end
+        end
+
+        // Event Timers matching OneTest calibration sequence
+        @( timer(0.000100) or timer(0.000390) or timer(0.000400) or 
+           timer(0.000500) or timer(0.000650) or timer(0.000800) or 
+           timer(0.000950) or timer(0.001100) or timer(0.001250) or
+           timer(0.001410) or timer(0.001600) ) begin
+            
+            // 1. Send Current Time & dIRefTMO to Python
+            fp_cmd = $fopen("/tmp/py_tester_cmd.txt", "w");
+            if (fp_cmd) begin
+                $fwrite(fp_cmd, "TIME %g CMP %g\n", $abstime, V(dIRefTMO, aVss));
+                $fclose(fp_cmd);
+            end
+
+            // 2. Read new Full Control Vector from Python
+            fp_resp = $fopen("/tmp/py_tester_resp.txt", "r");
+            if (fp_resp) begin
+                num_read = $fscanf(fp_resp, "%f %f %f %d %f %d", 
+                                   v_avdd_target, v_tmon_target, v_tmmeas_target, 
+                                   gpio8_mode, i_gpio8_target, iint_code);
+                $fclose(fp_resp);
+            end
+
+            // Set GPIO8 shunt resistor according to mode
+            if (gpio8_mode == 2) begin
+                r_gpio8_shunt = 1e-3; // 1mOhm Ground Sense in Measure Mode
+            end else begin
+                r_gpio8_shunt = 1e9;  // High-Z in Calibration Mode
+            end
+
+            for (i = `TRIM_BITS - 1; i >= 0; i = i - 1) begin
+                iint_dcode[i] = (iint_code % (1 << (1 + i))) >> i;
+            end
+        end
+
+        // Smooth transition
+        v_avdd_out   = transition(v_avdd_target, tdelay, trise, tfall);
+        v_tmon_out   = transition(v_tmon_target, tdelay, trise, tfall);
+        v_tmmeas_out = transition(v_tmmeas_target, tdelay, trise, tfall);
+        i_gpio8_out  = transition(i_gpio8_target, tdelay, trise, tfall);
+        r_gpio8_out  = transition(r_gpio8_shunt, tdelay, trise, tfall);
+
+        for (i = 0; i < `TRIM_BITS; i = i + 1) begin
+            ireal_dcode[i] = transition(iint_dcode[i], tdelay, trise, tfall);
+        end
+
+        // 1. Power Supply
+        V(aVdd, aVss) <+ v_avdd_out;
+
+        // 2. Digital Controls
+        V(TMIRefOn, aVss)   <+ v_tmon_out;
+        V(TMIRefMeas, aVss) <+ v_tmmeas_out;
+
+        // 3. 6-bit Trim Code Bus
+        V(NvTrmIref[5], aVss) <+ ireal_dcode[5] * v_avdd_out;
+        V(NvTrmIref[4], aVss) <+ ireal_dcode[4] * v_avdd_out;
+        V(NvTrmIref[3], aVss) <+ ireal_dcode[3] * v_avdd_out;
+        V(NvTrmIref[2], aVss) <+ ireal_dcode[2] * v_avdd_out;
+        V(NvTrmIref[1], aVss) <+ ireal_dcode[1] * v_avdd_out;
+        V(NvTrmIref[0], aVss) <+ ireal_dcode[0] * v_avdd_out;
+
+        // 4. GPIO8 Current Source & Sense Shunt
+        I(GPIO8, aVss) <+ -i_gpio8_out + V(GPIO8, aVss) / r_gpio8_out;
+    end
+endmodule

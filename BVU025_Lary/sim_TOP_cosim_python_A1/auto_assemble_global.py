@@ -346,12 +346,14 @@ amsd {{
 \tconfig designtop="{lib_name}.{top_cell}:schematic"
 
 \tconfig cell="Buffer_DIG" lib="{lib_name}" view="functional"
+\tconfig cell="py_tester" lib="{lib_name}" view="systemVerilog"
 \tconfig cell="TOP_A1" lib="{lib_name}" view="schematic"
 \tconfig cell="Bias_A1" lib="{lib_name}" view="analogtext"
 }}
 """
             text_inputs = f"""// HDL file for Lib - {lib_name} ,Cell - Buffer_DIG, View - functional
 -amscompilefile "file:/home/lary/project/BVU025/SCH/{lib_name}/Buffer_DIG/functional/verilog.v lib:{lib_name} cell:Buffer_DIG view:functional"
+-amscompilefile "file:/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/py_tester.sv lib:{lib_name} cell:py_tester view:systemVerilog"
 
 -makelib umc18cdmos
 -endlib
@@ -394,12 +396,20 @@ amsd {{
         open('./.amsbind.scs', 'w').write(amsbind_content)
         open('./textInputs', 'w').write(text_inputs)
 
-        # Clean xrunArgs
+        # Clean and configure xrunArgs
         args = open('./xrunArgs').read()
         args = args.replace('${IC_INVOKE_DIR}/', f'/home/lary/project/BVU025/SCH/')
-        args = args.replace('-sv', '')
         if "python" in top_cell or "sv" in top_cell:
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
+        
+        # Link DPI-C py_bridge.c and Python 3.10 C-API libraries
+        py_bridge_path = "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/py_bridge.c"
+        if not os.path.exists(py_bridge_path):
+            py_bridge_path = os.path.abspath(os.path.join(work_dir, "py_bridge.c"))
+
+        if "py_bridge.c" not in args:
+            args += f"\n{py_bridge_path}\n-I/usr/include/python3.10\n-L/usr/lib/x86_64-linux-gnu\n-lpython3.10\n"
+
         open('./xrunArgs', 'w').write(args)
 
         # Update amsControlSpectre.scs with subcircuit probe levels and transistor terminal saves BEFORE tran

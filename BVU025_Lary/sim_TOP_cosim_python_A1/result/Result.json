@@ -5,6 +5,14 @@
         "sample_time": "500u",
         "result_file": "result/Result.json",
         "result_path": "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/result/Result.json",
+        "limits": {
+            "exclude": [
+                "0x00",
+                "0x3F"
+            ],
+            "min": 1,
+            "max": 62
+        },
         "measured": "0x1F (31)",
         "status": "PASS"
     },
@@ -13,7 +21,7 @@
         "step_id": "measure_trimmed_iref",
         "sample_time": "1.6m",
         "unit": "uA",
-        "measured": 0.9674,
+        "measured": 0.9672,
         "result_file": "result/Result.json",
         "result_path": "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/result/Result.json",
         "limits": {

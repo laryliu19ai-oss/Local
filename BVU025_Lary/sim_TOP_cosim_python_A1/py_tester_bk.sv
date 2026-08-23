@@ -23,8 +23,8 @@ module py_tester (
 );
 
     // Import C functions via DPI-C
-    import "DPI-C" context function void py_init_tester(input string work_dir);
-    import "DPI-C" context function void py_tester_step(
+    import "DPI-C" context task py_init_tester(input string work_dir);
+    import "DPI-C" context task py_tester_step(
         input  longint time_ns,
         input  int     cmp_val,
         output int     trim_code,
@@ -33,7 +33,7 @@ module py_tester (
         output int     tm_on_out,
         output int     tm_meas_out
     );
-    import "DPI-C" context function void py_finish_tester();
+    import "DPI-C" context task py_finish_tester();
 
     int trim_val;
     int clk_val;

@@ -1,0 +1,93 @@
+{
+    "$schema": "../../../schema/sim.schema.json",
+    "version": 1.0,
+    "release": "2026/08/23",
+    "author": "Antigravity",
+    "debugMode": true,
+    "dryRun": false,
+    "testbenches": {
+        "sim_TOP_cosim_python_A1": {
+            "enable": true,
+            "description": "OneTest Co-simulation Verification for BVU025 TOP_A1 (AMS/Ocean)",
+            "library": "BVU025_Lary",
+            "cell": "sim_TOP_cosim_python_A1",
+            "view": "config",
+            "simulator": "ams",
+            "temperature": 25,
+            "analysis": [
+                {
+                    "type": "tran",
+                    "enable": true,
+                    "stop": "2.0m",
+                    "accuracy": "moderate",
+                    "errpreset": "moderate"
+                }
+            ],
+            "simulation": {
+                "ams": {
+                    "output": {
+                        "savedSettings": {
+                            "signals": "all"
+                        },
+                        "plot": {
+                            "images": [
+                                {
+                                    "filename": "cosim_waveform.png",
+                                    "imageSavePath": "images",
+                                    "backgroundColor": "white",
+                                    "width": 1600,
+                                    "height": 900,
+                                    "results": [
+                                        {
+                                            "select": "tran",
+                                            "signals": [
+                                                {
+                                                    "type": "digital",
+                                                    "signal": "NvTrmIref[5:0]",
+                                                    "display": "NvTrmIref[5:0]",
+                                                    "color": "green",
+                                                    "thickness": "thick",
+                                                    "stripNumber": 1
+                                                },
+                                                {
+                                                    "type": "current",
+                                                    "signal": "/Board/GPIO8",
+                                                    "display": "I(GPIO8)",
+                                                    "color": "red",
+                                                    "thickness": "thick",
+                                                    "stripNumber": 2
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "evaluation": {
+                            "variable": {
+                                "IREF_GPIO8": "sim_TOP_cosim_python_A1.Board.GPIO8_$flow"
+                            },
+                            "expression": {
+                                "IREF_MEAS_1P6M": "abs(value(getData(\"sim_TOP_cosim_python_A1.Board.GPIO8_$flow\") 1.6m)) * 1e6"
+                            }
+                        }
+                    }
+                }
+            },
+            "savedSignals": {
+                "voltage": [
+                    "sim_TOP_cosim_python_A1.VDD_PCB",
+                    "sim_TOP_cosim_python_A1.dIRefTMO",
+                    "sim_TOP_cosim_python_A1.TMIRefOn",
+                    "sim_TOP_cosim_python_A1.TMIRefMeas"
+                ],
+                "current": [
+                    "sim_TOP_cosim_python_A1.Board.GPIO8_$flow"
+                ],
+                "digital": [
+                    "sim_TOP_cosim_python_A1.NvTrmIref[5:0]"
+                ]
+            }
+        }
+    }
+}

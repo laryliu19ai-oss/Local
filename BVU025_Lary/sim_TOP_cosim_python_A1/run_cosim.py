@@ -114,7 +114,67 @@ class OneTestRunner:
         print("[OneTest Sim] Viva viewer started.")
 
     def get_trim_code_from_simulation(self):
-        """Extract optimal SAR trim code NvTrmIref<5:0> from simulation log / PSF."""
+        """Extract optimal SAR trim code NvTrmIref<5:0> from Python state, PSF database or simulation log."""
+        # 1. Check Python Virtual Tester state file
+        state_files = [
+            os.path.join(self.work_dir, "result", ".py_tester_state.json"),
+            os.path.join(self.work_dir, "ams", "config", "netlist", "result", ".py_tester_state.json"),
+            os.path.join(self.work_dir, "ams", "config", "netlist", ".py_tester_state.json"),
+            os.path.join(self.work_dir, ".py_tester_state.json")
+        ]
+        for sf in state_files:
+            if os.path.exists(sf):
+                try:
+                    with open(sf, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if "optimal_trim_code" in data:
+                            return int(data["optimal_trim_code"])
+                except Exception:
+                    pass
+
+        # 2. Extract from PSF waveform database via Ocean
+        psf_path = os.path.join(self.work_dir, "psf")
+        if not os.path.exists(psf_path):
+            psf_path = os.path.join(self.work_dir, "ams", "config", "psf")
+
+        if os.path.exists(psf_path):
+            ocn_script = f"""
+openResults("{psf_path}")
+selectResult('tran)
+
+code = 0
+for(i 0 5
+    sig = getData(sprintf(nil "{self.top_cell}.NvTrmIref[%d]" i))
+    if(!sig sig = getData(sprintf(nil "sim_TOP_cosim_python_A1.NvTrmIref[%d]" i)))
+    if(!sig sig = getData(sprintf(nil "{self.top_cell}.NvTrmIref<%d>" i)))
+    if(!sig sig = getData(sprintf(nil "sim_TOP_cosim_python_A1.NvTrmIref<%d>" i)))
+    if(sig then
+        v = value(sig 1.0m)
+        is_hi = nil
+        if(numberp(v) && v > 0.5 is_hi = t)
+        if(stringp(v) && (v == "1" || v == "1'b1" || v == "1'h1" || v == "t") is_hi = t)
+        if(v == t is_hi = t)
+        if(is_hi code = code + (1 << i))
+    )
+)
+
+p = outfile("/tmp/onetest_trim_code.txt" "w")
+fprintf(p "%d" code)
+close(p)
+exit()
+"""
+            with open("/tmp/onetest_trim.ocn", "w") as f:
+                f.write(ocn_script)
+            try:
+                subprocess.run("export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_trim.ocn", shell=True, executable="/bin/bash", capture_output=True)
+                if os.path.exists("/tmp/onetest_trim_code.txt"):
+                    val_str = open("/tmp/onetest_trim_code.txt").read().strip()
+                    if val_str.isdigit():
+                        return int(val_str)
+            except Exception:
+                pass
+
+        # 3. Fallback to log search
         search_logs = [
             os.path.join(self.work_dir, "psf", "xrun.log"),
             os.path.join(self.work_dir, "ams", "config", "netlist", "xrun.log"),
@@ -127,8 +187,7 @@ class OneTestRunner:
                         content = f.read()
                     matches = re.findall(r'Optimal Trim Code\s*=\s*(\d+)', content)
                     if matches:
-                        code_int = int(matches[-1])
-                        return code_int
+                        return int(matches[-1])
                 except Exception:
                     pass
         return None

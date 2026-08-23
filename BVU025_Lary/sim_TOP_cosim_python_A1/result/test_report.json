@@ -1,0 +1,40 @@
+{
+    "test_summary": "OneTest Calibration & Trim Verification (sim_TOP_cosim_python_A1)",
+    "tester_mode": "sim",
+    "spec_file": "cosim.oneTest.json",
+    "items": {
+        "101": {
+            "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
+            "step_id": "sar_calibration_search",
+            "sample_time": "500u",
+            "result_file": "result/Result.json",
+            "result_path": "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/result/Result.json",
+            "measured": "0x1F (31)",
+            "status": "PASS"
+        },
+        "102": {
+            "name": "Measure trimmed reference current on GPIO8",
+            "step_id": "measure_trimmed_iref",
+            "sample_time": "1.6m",
+            "unit": "uA",
+            "measured": 0.9674,
+            "result_file": "result/Result.json",
+            "result_path": "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/result/Result.json",
+            "limits": {
+                "lower": 0.9,
+                "upper": 1.1
+            },
+            "status": "PASS"
+        },
+        "103": {
+            "name": "Capture transient simulation waveform",
+            "step_id": "capture_full_waveform",
+            "sample_time": "1.8m",
+            "psf_database": "psf/",
+            "waveform_image": "images/cosim_waveform.png",
+            "image_path": "/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/images/cosim_waveform.png",
+            "viva_command": "viva -mode xl -results /home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1/psf",
+            "status": "PASS"
+        }
+    }
+}

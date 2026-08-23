@@ -30,10 +30,10 @@
                         ],
                         "signals": [
                             {
-                                "type": "voltage",
-                                "signal": "/VDD_PCB",
-                                "display": "VDD_PCB",
-                                "color": "red",
+                                "type": "digital",
+                                "signal": "NvTrmIref[5:0]",
+                                "display": "NvTrmIref[5:0]",
+                                "color": "green",
                                 "thickness": "thick",
                                 "stripNumber": 1
                             },
@@ -41,7 +41,7 @@
                                 "type": "current",
                                 "signal": "/Board/GPIO8",
                                 "display": "I(GPIO8)",
-                                "color": "blue",
+                                "color": "red",
                                 "thickness": "thick",
                                 "stripNumber": 2
                             }

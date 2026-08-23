@@ -10,7 +10,7 @@ Purpose:
   4. Keep PSF database in psf/.
   5. Item 101: Extract & evaluate NvTrmIref<5:0> (FAIL if 0x00 or 0x3F).
   6. Item 102: Extract & evaluate GPIO8 reference current against limits.
-  7. Item 103: Capture & verify transient simulation waveform database.
+  7. Item 103: Auto-generate waveform screenshot & database from cosim.waveform.json.
 """
 
 import os
@@ -143,6 +143,7 @@ class OneTestRunner:
 openResults("{psf_path}")
 selectResult('tran)
 
+// Check all possible flow / terminal current signals
 sig = getData("{self.top_cell}.Board.GPIO8_$flow")
 if(!sig sig = getData("sim_TOP_cosim_python_A1.Board.GPIO8_$flow"))
 if(!sig sig = getData("{self.top_cell}.Board.TOP.GPIO8_$flow"))
@@ -172,6 +173,88 @@ exit()
         except Exception as e:
             print(f"[OneTest Sim] Ocean extraction error: {e}")
         return None
+
+    def capture_waveform_from_json(self):
+        """Parse cosim.waveform.json and automatically generate/capture waveform image."""
+        wave_json_path = os.path.join(self.work_dir, "cosim.waveform.json")
+        if not os.path.exists(wave_json_path):
+            wave_json_path = os.path.join(self.work_dir, "..", "cosim.waveform.json")
+            
+        psf_dir = os.path.join(self.work_dir, "psf")
+        if not os.path.exists(psf_dir):
+            psf_dir = os.path.join(self.work_dir, "ams", "config", "psf")
+
+        img_dir = os.path.join(self.work_dir, "images")
+        os.makedirs(img_dir, exist_ok=True)
+        img_file = os.path.join(img_dir, "cosim_waveform.png")
+
+        # Load waveform definition if present
+        wave_cfg = {}
+        if os.path.exists(wave_json_path):
+            try:
+                with open(wave_json_path, 'r', encoding='utf-8') as f:
+                    wave_cfg = json.load(f).get("waveform", {})
+            except Exception:
+                pass
+
+        img_settings = wave_cfg.get("imageSettings", {})
+        width = img_settings.get("width", 1600)
+        height = img_settings.get("height", 900)
+        res = img_settings.get("resolution", 100)
+        bg = img_settings.get("backgroundColor", "white")
+
+        ocn_code = f"""
+openResults("{psf_dir}")
+selectResult('tran)
+
+b5 = getData("{self.top_cell}.NvTrmIref[5]")
+b4 = getData("{self.top_cell}.NvTrmIref[4]")
+b3 = getData("{self.top_cell}.NvTrmIref[3]")
+b2 = getData("{self.top_cell}.NvTrmIref[2]")
+b1 = getData("{self.top_cell}.NvTrmIref[1]")
+b0 = getData("{self.top_cell}.NvTrmIref[0]")
+
+bus_sig = awvCreateBus("NvTrmIref[5:0]" list(b5 b4 b3 b2 b1 b0) "hex")
+if(!bus_sig bus_sig = bus(list(b5 b4 b3 b2 b1 b0)))
+
+i_gpio = getData("{self.top_cell}.Board.GPIO8_$flow")
+if(!i_gpio i_gpio = getData("sim_TOP_cosim_python_A1.Board.GPIO8_$flow"))
+if(!i_gpio i_gpio = IT("/Board/GPIO8"))
+
+win = newWindow()
+if(bus_sig plot(bus_sig ?expr "NvTrmIref[5:0]" ?strip 1))
+if(i_gpio plot(i_gpio ?expr "I(GPIO8)" ?strip 2))
+
+saveGraphImage(?window win ?fileName "{img_file}" ?resolution {res} ?width {width} ?height {height} ?backgroundColor "{bg}" ?saveAllSubwindows t)
+printf("SUCCESS_AUTO_WAVE\\n")
+exit()
+"""
+        with open("/tmp/auto_wave_gen.ocn", "w") as f:
+            f.write(ocn_code)
+            
+        try:
+            subprocess.run("xvfb-run -a ocean -replay /tmp/auto_wave_gen.ocn", shell=True, executable="/bin/bash", capture_output=True)
+            if os.path.exists(img_file):
+                print(f"[OneTest Sim] Waveform screenshot successfully generated: {img_file}")
+                self.open_image(img_file)
+                return img_file
+        except Exception as e:
+            print(f"[OneTest Sim] Waveform capture error: {e}")
+        return None
+
+    def open_image(self, img_path):
+        """Open the generated waveform screenshot in default viewer without blocking."""
+        if os.path.exists(img_path):
+            print(f"[OneTest Sim] Launching Image Viewer for: {img_path}...")
+            try:
+                if sys.platform.startswith("linux"):
+                    subprocess.Popen(f"nohup eog '{img_path}' >/dev/null 2>&1 &", shell=True)
+                elif sys.platform.startswith("win"):
+                    os.startfile(img_path)
+                elif sys.platform == "darwin":
+                    subprocess.Popen(["open", img_path])
+            except Exception as e:
+                print(f"[OneTest Sim] Could not launch image viewer: {e}")
 
     def evaluate_results(self):
         """Dynamically parse cosim.oneTest.json and generate test_report.json."""
@@ -208,15 +291,19 @@ exit()
 
                     # Item 103 (Waveform)
                     if capability == "waveform_measurement" or measure_cfg.get("kind") == "waveform" or item_id == "103":
+                        img_path = self.capture_waveform_from_json()
                         item_report["psf_database"] = "psf/"
+                        if img_path:
+                            item_report["waveform_image"] = "images/cosim_waveform.png"
+                            item_report["image_path"] = img_path
                         item_report["viva_command"] = f"viva -mode xl -results {os.path.join(self.work_dir, 'psf')}"
                         psf_exists = os.path.exists(os.path.join(self.work_dir, "psf")) or os.path.exists(os.path.join(self.work_dir, "ams", "config", "psf"))
                         item_report["status"] = "PASS" if psf_exists else "FAIL (NO_PSF_DATABASE)"
 
                     # Item 101 (Trim Code NvTrmIref<5:0>)
                     elif item_id == "101" or metric == "TRIM_CODE" or "NvTrmIref" in act_val.get("connection", ""):
-                        item_report["result_file"] = "Result.json"
-                        item_report["result_path"] = os.path.join(self.work_dir, "Result.json")
+                        item_report["result_file"] = "result/Result.json"
+                        item_report["result_path"] = os.path.join(self.work_dir, "result", "Result.json")
                         code_int = self.get_trim_code_from_simulation()
                         if code_int is None:
                             item_report["measured"] = "N/A"
@@ -238,8 +325,8 @@ exit()
                         item_report["measured"] = val
                         
                         if step_id == "measure_trimmed_iref" or item_id == "102":
-                            item_report["result_file"] = "Result.json"
-                            item_report["result_path"] = os.path.join(self.work_dir, "Result.json")
+                            item_report["result_file"] = "result/Result.json"
+                            item_report["result_path"] = os.path.join(self.work_dir, "result", "Result.json")
                         
                         if val is None:
                             item_report["status"] = "FAIL (NO_SIGNAL_DATA)"
@@ -253,7 +340,10 @@ exit()
 
                     report["items"][item_id] = item_report
 
-        report_file = os.path.join(self.work_dir, "test_report.json")
+        result_dir = os.path.join(self.work_dir, "result")
+        os.makedirs(result_dir, exist_ok=True)
+
+        report_file = os.path.join(result_dir, "test_report.json")
         with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=4)
 
@@ -263,7 +353,7 @@ exit()
             if item_id in ["101", "102"] or item_data.get("step_id") in ["sar_calibration_search", "measure_trimmed_iref"]:
                 result_data[item_id] = item_data
                 
-        result_file = os.path.join(self.work_dir, "Result.json")
+        result_file = os.path.join(result_dir, "Result.json")
         with open(result_file, "w", encoding="utf-8") as f:
             json.dump(result_data, f, indent=4)
             

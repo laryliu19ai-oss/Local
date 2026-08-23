@@ -215,6 +215,8 @@ exit()
 
                     # Item 101 (Trim Code NvTrmIref<5:0>)
                     elif item_id == "101" or metric == "TRIM_CODE" or "NvTrmIref" in act_val.get("connection", ""):
+                        item_report["result_file"] = "Result.json"
+                        item_report["result_path"] = os.path.join(self.work_dir, "Result.json")
                         code_int = self.get_trim_code_from_simulation()
                         if code_int is None:
                             item_report["measured"] = "N/A"
@@ -235,6 +237,10 @@ exit()
                         val = self.get_real_psf_value(step_time or "1.6m")
                         item_report["measured"] = val
                         
+                        if step_id == "measure_trimmed_iref" or item_id == "102":
+                            item_report["result_file"] = "Result.json"
+                            item_report["result_path"] = os.path.join(self.work_dir, "Result.json")
+                        
                         if val is None:
                             item_report["status"] = "FAIL (NO_SIGNAL_DATA)"
                         elif limits:
@@ -250,12 +256,23 @@ exit()
         report_file = os.path.join(self.work_dir, "test_report.json")
         with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=4)
+
+        # Save Result.json containing Item 101 and Item 102 measurement results
+        result_data = {}
+        for item_id, item_data in report["items"].items():
+            if item_id in ["101", "102"] or item_data.get("step_id") in ["sar_calibration_search", "measure_trimmed_iref"]:
+                result_data[item_id] = item_data
+                
+        result_file = os.path.join(self.work_dir, "Result.json")
+        with open(result_file, "w", encoding="utf-8") as f:
+            json.dump(result_data, f, indent=4)
             
         print(f"\n=======================================================")
         print(f"       OneTest Verification Summary (via cosim.oneTest.json)  ")
         print(f"=======================================================")
         print(json.dumps(report, indent=4))
         print(f"=======================================================")
+        print(f"[OneTest Sim] Result.json generated successfully in {result_file}")
         return report
 
 if __name__ == "__main__":

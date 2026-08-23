@@ -1,0 +1,710 @@
+{
+    "$schema": "schema/oneTest.schema.json",
+    "version": 1.0,
+    "release": "2026/08/12",
+    "author": "Chao-Jen Huang (ephoton)",
+    "debugMode": true,
+    "oneTest": {
+        "ic_code": "OS3201",
+        "revision": "B",
+        "combo_version": "C0",
+        "combo_meta": { "purpose": "yield", "backend_change": "baseline, no trim" },
+        "spec_version": "1.4.0",
+        "packages": {
+            "WLCSP-6x6-P0.40mm-D0.25mm": {
+                "note": "No FreeCAD script for WLCSP/BGA yet (development/oneTest/02_LAB/03_FREECAD.md §2 only lists QFP/SOP/SOT/SMD as done) — footprint below has no model_3d until that script exists. body_width/body_length match the BV8042_A0 component's size (2.4x2.4mm); ball_count_x/y=6 matches the package name's \"6x6\" grid; body_height/ball_height are placeholders pending datasheet confirmation.",
+                "solder_ball": {
+                    "unit": "um",
+                    "body_width": 2400,
+                    "body_length": 2400,
+                    "body_height": 250,
+                    "ball_count_x": 6,
+                    "ball_count_y": 6,
+                    "x_pitch": 400,
+                    "y_pitch": 400,
+                    "diameter": 250,
+                    "ball_height": 180
+                },
+                "footprint": { "lib": "Package_CSP", "fp_type": "wlcsp", "pad_shape": "circle" }
+            },
+            "SMD_0402": {
+                "standard": { "spec": "IEC 60063 / EIA-198", "code": "0402", "metric_code": "1005" },
+                "footprint": { "fp_type": "smd", "kicad_dist_ref": "Resistor_SMD.pretty/R_0402_1005Metric.kicad_mod" }
+            },
+            "SMD_0805": {
+                "standard": { "spec": "IEC 60063 / EIA-198", "code": "0805", "metric_code": "2012" },
+                "footprint": { "fp_type": "smd", "kicad_dist_ref": "Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod" }
+            },
+            "HTTD32251": {
+                "vendor": "Cyntec",
+                "note": "Molded power inductor, non-standard vendor package. Body size derived from case code '3225' in the part number (3.2 x 2.5mm); height and land_pattern pad dims below are placeholders pending confirmation against the Cyntec datasheet before FreeCAD footprint generation.",
+                "body": { "unit": "um", "x": 3200, "y": 2500, "z": 1000 },
+                "land_pattern": { "unit": "mm", "pad_length": 1.0, "pad_width": 2.5, "pad_pitch": 2.2 },
+                "footprint": { "lib": "Inductor_SMD", "fp_type": "smd" }
+            },
+            "HMMQ20161": {
+                "vendor": "Cyntec",
+                "note": "Molded power inductor, non-standard vendor package. Body size derived from case code '2016' in the part number (2.0 x 1.6mm); height and land_pattern pad dims below are placeholders pending confirmation against the Cyntec datasheet before FreeCAD footprint generation.",
+                "body": { "unit": "um", "x": 2000, "y": 1600, "z": 1000 },
+                "land_pattern": { "unit": "mm", "pad_length": 0.6, "pad_width": 1.6, "pad_pitch": 1.4 },
+                "footprint": { "lib": "Inductor_SMD", "fp_type": "smd" }
+            },
+            "LQFP-32_STM32_7x7mm_P0.8mm": {
+                "note": "Demonstrates lead_frame/footprint field parity with the real lab/kicad/components.json 'lqfp32_stm32' entry and lab/freecad/qfp/lqfp32_stm32.py script params (08_UNIFIED_CONFIG.md Q2). Not referenced by any component in this example — the BV8042 application circuit below has no QFP part; included here purely to show the schema can now fully specify what the FreeCAD/KiCAD scripts need.",
+                "lead_frame": {
+                    "unit": "mm",
+                    "body_width": 7.0,
+                    "body_length": 7.0,
+                    "body_height": 1.4,
+                    "pin_count": 32,
+                    "pin_sides": 4,
+                    "pin_pitch": 0.8,
+                    "pin_length": 0.6,
+                    "pin_width": 0.22,
+                    "pin_height": 0.15,
+                    "standoff": 0.1
+                },
+                "footprint": {
+                    "lib": "Package_QFP",
+                    "fp_type": "qfp",
+                    "model_3d": { "step_file": "lqfp32_stm32.step" }
+                }
+            }
+        },
+        "components": {
+            "BV8042_A0": {
+                "package": "WLCSP-6x6-P0.40mm-D0.25mm",
+                "size": {
+                    "unit": "um",
+                    "x": 2400,
+                    "y": 2400
+                },
+                "design": {
+                    "library": "BVU025_ephoton",
+                    "cell": "BVU025A0"
+                },
+                "spice_type": "sub-circuit",
+                "pins": {
+                    "SW_B1": { "position": ["A1", "A2"], "type": "switching node", "function": "Switch Pins for Buck1 Converter." },
+                    "PGND12": { "position": ["A3", "B3", "B4"], "type": "power ground", "function": "Power Stage Power Ground for Buck1 and Buck2." },
+                    "SW_B2": { "position": "A4", "type": "switching node", "function": "Switch Pin for Buck2 Converter." },
+                    "VIN_B2": { "position": "A5", "type": "power", "function": "VIN Power Input for Buck2." },
+                    "VIN_LDO1": { "position": "A6", "type": "power", "function": "VIN Power Input for LDO1." },
+                    "VIN_B1": { "position": ["B1", "B2"], "type": "power", "function": "VIN Power Input pins for Buck1." },
+                    "FB_B2": { "position": "B5", "type": "analog input", "function": "Feedback for Buck2. Connect to the Buck2 output capacitor." },
+                    "LDO1": { "position": "B6", "type": "regulation output", "function": "Output for LDO1 Regulator (Leave unconnected if LDO is disabled)." },
+                    "GPIO3": { "position": "C1", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "GPIO7": { "position": "C2", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "FB_B1": { "position": "C3", "type": "analog input", "function": "Feedback for Buck1. Connect to the Buck1 output capacitor." },
+                    "AGND": { "position": "C4", "type": "analog ground", "function": "Analog Ground." },
+                    "GPIO6": { "position": "C5", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "LDO2": { "position": "C6", "type": "regulation output", "function": "Output for LDO2 Regulator (Leave unconnected if LDO is disabled)." },
+                    "GPIO2": { "position": "D1", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "SCL": { "position": "D2", "type": "digital input", "function": "I2C Serial Clock Line." },
+                    "SDA": { "position": "D3", "type": "digital input/output", "function": "I2C Serial Data Line." },
+                    "GPIO5": { "position": "D4", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "FB_B3": { "position": "D5", "type": "analog input", "function": "Feedback for Buck3. Connect to the Buck3 output capacitor." },
+                    "AVIN": { "position": "D6", "type": "analog power", "function": "Internal Analog Circuit Input Supply and Power Input for LDO2. This pin also is designed to monitor for VIN OV and UV." },
+                    "FB_B4": { "position": "E1", "type": "analog input", "function": "Feedback for Buck4. Connect to the Buck4 output capacitor." },
+                    "GPIO8": { "position": "E2", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "GPIO1": { "position": "E3", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "PGND34": { "position": ["E4", "F3", "F4"], "type": "power ground", "function": "Power Stage Power Ground for Buck3 and Buck4." },
+                    "GPIO4": { "position": "E5", "type": "digital input/output", "function": "Configurable General-purpose Input/Open Drain Output." },
+                    "VIN_B3": { "position": "E6", "type": "power", "function": "VIN Power Input for Buck3." },
+                    "VIN_B4": { "position": "F1", "type": "power", "function": "VIN Power Input for Buck4." },
+                    "SW_B4": { "position": "F2", "type": "switching node", "function": "Switch Pin for Buck4 Converter." },
+                    "SW_B3": { "position": ["F5", "F6"], "type": "switching node", "function": "Switch Pins for Buck3 Converter." }
+                }
+            },
+            "HTTD32251B-R47MMR": {
+                "package": "HTTD32251",
+                "design": {
+                    "library": "cyntec",
+                    "cell": "HTTD32251B_R47MMR"
+                },
+                "spice_type": "inductor",
+                "default_value": "470n",
+                "pins": {
+                    "PLUS": { "position": 0, "type": "none", "function": "node 1" },
+                    "MINUS": { "position": 1, "type": "none", "function": "node 2" }
+                }
+            },
+            "HMMQ20161B-R47MDR": {
+                "package": "HMMQ20161",
+                "design": {
+                    "library": "cyntec",
+                    "cell": "HMMQ20161B_R47MDR"
+                },
+                "spice_type": "inductor",
+                "default_value": "470n",
+                "pins": {
+                    "PLUS": { "position": 0, "type": "none", "function": "Node 1" },
+                    "MINUS": { "position": 1, "type": "none", "function": "Node 2" }
+                }
+            },
+            "CAP_0805": {
+                "package": "SMD_0805",
+                "design": {
+                    "library": "analogLib",
+                    "cell": "cap"
+                },
+                "spice_type": "capacitor",
+                "default_value": "1u",
+                "pins": {
+                    "PLUS": { "position": 0, "type": "none", "function": "Node 1" },
+                    "MINUS": { "position": 1, "type": "none", "function": "Node 2" }
+                }
+            },
+            "RES_0402": {
+                "package": "SMD_0402",
+                "design": {
+                    "library": "analogLib",
+                    "cell": "res"
+                },
+                "spice_type": "resistor",
+                "default_value": "1k",
+                "pins": {
+                    "PLUS": { "position": 0, "type": "none", "function": "Node 1" },
+                    "MINUS": { "position": 1, "type": "none", "function": "Node 2" }
+                }
+            }
+        },
+        "testers": {
+            "sim": {
+                "TESTER": {
+                    "design": {
+                        "library": "tester",
+                        "cell": "virtual_tester"
+                    },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "VIN": { "type": "power", "function": "Primary supply voltage source to the DUT.", "capabilities": ["voltage_source"] },
+                        "BCK1": { "type": "analog input", "function": "Monitor/measure Buck1 output voltage.", "capabilities": ["voltage_measurement", "waveform_measurement"] },
+                        "BCK2": { "type": "analog input", "function": "Monitor/measure Buck2 output voltage.", "capabilities": ["voltage_measurement"] },
+                        "BCK3": { "type": "analog input", "function": "Monitor/measure Buck3 output voltage.", "capabilities": ["voltage_measurement"] },
+                        "BCK4": { "type": "analog input", "function": "Monitor/measure Buck4 output voltage.", "capabilities": ["voltage_measurement"] },
+                        "LDO1": { "type": "analog input", "function": "Monitor/measure LDO1 output voltage.", "capabilities": ["voltage_measurement"] },
+                        "LDO2": { "type": "analog input", "function": "Monitor/measure LDO2 output voltage.", "capabilities": ["voltage_measurement"] },
+                        "SCL": { "type": "digital input/output", "function": "I2C serial clock line to the DUT.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "SDA": { "type": "digital input/output", "function": "I2C serial data line to the DUT.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "GND": { "type": "power ground", "function": "Common ground reference." }
+                    }
+                }
+            },
+            "lab": {
+                "SMU_2450": {
+                    "design": { "library": "lab.instruments.smu.smu2450", "cell": "SMU2450Core" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "OUT": { "type": "power", "function": "Sourced voltage/current output, wired to the DUT's VIN.", "capabilities": ["voltage_source"] },
+                        "GND": { "type": "power ground", "function": "Source-measure low / chassis ground reference." }
+                    }
+                },
+                "STM32F439": {
+                    "design": { "library": "lab.stm32.st.stm32f439", "cell": "STM32F439" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "I2C_SDA0": { "type": "digital input/output", "function": "I2C serial data line to the DUT.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "I2C_SCL0": { "type": "digital input/output", "function": "I2C serial clock line to the DUT.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "GND": { "type": "power ground", "function": "Common ground reference." }
+                    }
+                },
+                "DMM_6510": {
+                    "design": { "library": "lab.instruments.dmm.dmm6500", "cell": "DMM6500Core" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "SOURCE": { "type": "analog input", "function": "Sense input probing the DUT node under test.", "capabilities": ["voltage_measurement", "current_measurement", "resistance_measurement"] },
+                        "GND": { "type": "power ground", "function": "Sense low / ground reference." }
+                    }
+                },
+                "MSO58": {
+                    "design": { "library": "lab.instruments.oscilloscope.mso456", "cell": "MSO456Core" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "CH1": { "type": "analog input", "function": "Oscilloscope channel 1 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH2": { "type": "analog input", "function": "Oscilloscope channel 2 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH3": { "type": "analog input", "function": "Oscilloscope channel 3 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH4": { "type": "analog input", "function": "Oscilloscope channel 4 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH5": { "type": "analog input", "function": "Oscilloscope channel 5 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH6": { "type": "analog input", "function": "Oscilloscope channel 6 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH7": { "type": "analog input", "function": "Oscilloscope channel 7 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH8": { "type": "analog input", "function": "Oscilloscope channel 8 probe input.", "capabilities": ["waveform_measurement"] }
+                    }
+                },
+                "SMU_2461": {
+                    "note": "Active load/stimulus duty (e.g. load-transient forcing) on nets that already have a DMM_6510 for sensing (BCK1/LDO2) — capabilities below deliberately omit voltage_measurement/current_measurement even though SMU2461Core can sense too, so tester-compile stays unambiguous between the SMU and the DMM on the same net (see $defs.pin.capabilities).",
+                    "design": { "library": "lab.instruments.smu.smu2461", "cell": "SMU2461Core" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "OUT": { "type": "power", "function": "Sourced voltage/current output, wired to the DUT node under test.", "capabilities": ["voltage_source", "current_source"] },
+                        "GND": { "type": "power ground", "function": "Source-measure low / chassis ground reference." }
+                    }
+                }
+            },
+            "ate": {
+                "ACCOTEST_STS8200": {
+                    "note": "FOVI/FPVI10 force/measure resource pins (manual/sts8200, ateMeasurement.func_index/param_name lookup) — pin identity here is the physical tester channel, command parameters live in this instance's own \"measurements\" map, keyed by test_item_id.",
+                    "design": { "library": "ate.accotest", "cell": "STS8200" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "V0": { "type": "power", "function": "Dedicated VIN force channel.", "capabilities": ["voltage_source"] },
+                        "A0": { "type": "analog input", "function": "FOVI channel wired to VIN sense.", "capabilities": ["voltage_measurement"] },
+                        "A1": { "type": "analog input", "function": "FOVI channel measuring Buck1 output.", "capabilities": ["voltage_measurement"] },
+                        "A2": { "type": "analog input", "function": "FOVI channel measuring Buck2 output.", "capabilities": ["voltage_measurement"] },
+                        "A3": { "type": "analog input", "function": "FOVI channel measuring Buck3 output.", "capabilities": ["voltage_measurement"] },
+                        "A4": { "type": "analog input", "function": "FOVI channel measuring Buck4 output.", "capabilities": ["voltage_measurement"] },
+                        "A5": { "type": "analog input", "function": "FOVI channel measuring LDO1 output.", "capabilities": ["voltage_measurement"] },
+                        "A6": { "type": "analog input", "function": "FOVI channel measuring LDO2 output.", "capabilities": ["voltage_measurement"] },
+                        "D1": { "type": "digital input/output", "function": "Digital channel mapped to I2C SCL.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "D2": { "type": "digital input/output", "function": "Digital channel mapped to I2C SDA.", "capabilities": ["digital_source", "digital_measurement"] },
+                        "GND0": { "type": "power ground", "function": "Tester ground channel 0." },
+                        "GND1": { "type": "power ground", "function": "Tester ground channel 1." },
+                        "GND2": { "type": "power ground", "function": "Tester ground channel 2." },
+                        "GND3": { "type": "power ground", "function": "Tester ground channel 3." },
+                        "GND4": { "type": "power ground", "function": "Tester ground channel 4." },
+                        "GND5": { "type": "power ground", "function": "Tester ground channel 5." }
+                    }
+                },
+                "MSO24": {
+                    "note": "External Tektronix scope wired into the ATE fixture — STS8200 has no native scope hardware (08_UNIFIED_CONFIG.md scopeCapture).",
+                    "design": { "library": "lab.instruments.oscilloscope.mso2", "cell": "MSO2Core" },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "CH1": { "type": "analog input", "function": "Oscilloscope channel 1 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH2": { "type": "analog input", "function": "Oscilloscope channel 2 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH3": { "type": "analog input", "function": "Oscilloscope channel 3 probe input.", "capabilities": ["waveform_measurement"] },
+                        "CH4": { "type": "analog input", "function": "Oscilloscope channel 4 probe input.", "capabilities": ["waveform_measurement"] }
+                    }
+                }
+            }
+        },
+        "testboard": {
+            "components": {
+                "BV8042": {
+                    "id": "BV8042_A0",
+                    "connection": {
+                        "VIN": [ "AVIN", "VIN_B1", "VIN_B2", "VIN_B3", "VIN_B4" ],
+                        "GND": [ "AGND", "PGND12", "PGND34" ],
+                        "SW_B1": "SW_B1",
+                        "SW_B2": "SW_B2",
+                        "SW_B3": "SW_B3",
+                        "SW_B4": "SW_B4",
+                        "SCL": "SCL",
+                        "SDA": "SDA",
+                        "FB_B1": "FB_B1",
+                        "FB_B2": "FB_B2",
+                        "FB_B3": "FB_B3",
+                        "FB_B4": "FB_B4",
+                        "LDO1": "LDO1",
+                        "LDO2": "LDO2"
+                    }
+                },
+                "CIN": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "VIN": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "10u",
+                    "multiple": 6
+                },
+                "COUT_L1": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "LDO1": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "2.2u"
+                },
+                "COUT_L2": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "LDO2": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "2.2u"
+                },
+                "COUT_B1": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "BCK1": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "22u",
+                    "multiple": 3
+                },
+                "COUT_B2": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "BCK2": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "22u",
+                    "multiple": 2
+                },
+                "COUT_B3": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "BCK3": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "22u",
+                    "multiple": 3
+                },
+                "COUT_B4": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "BCK4": "PLUS",
+                        "GND": "MINUS"
+                    },
+                    "value": "22u",
+                    "multiple": 2
+                },
+                "IND_B1": {
+                    "id": "HTTD32251B-R47MMR",
+                    "connection": {
+                        "SW_B1": "PLUS",
+                        "BCK1": "MINUS"
+                    }
+                },
+                "IND_B2": {
+                    "id": "HMMQ20161B-R47MDR",
+                    "connection": {
+                        "SW_B2": "PLUS",
+                        "BCK2": "MINUS"
+                    }
+                },
+                "IND_B3": {
+                    "id": "HTTD32251B-R47MMR",
+                    "connection": {
+                        "SW_B3": "PLUS",
+                        "BCK3": "MINUS"
+                    }
+                },
+                "IND_B4": {
+                    "id": "HMMQ20161B-R47MDR",
+                    "connection": {
+                        "SW_B4": "PLUS",
+                        "BCK4": "MINUS"
+                    }
+                },
+                "R1": {
+                    "id": "RES_0402",
+                    "connection": {
+                        "VIN": "PLUS",
+                        "SCL": "MINUS"
+                    },
+                    "value": "4.7k"
+                },
+                "R2": {
+                    "id": "RES_0402",
+                    "connection": {
+                        "VIN": "PLUS",
+                        "SDA": "MINUS"
+                    },
+                    "value": "4.7k"
+                }
+            }
+        },
+        "testbench": {
+            "sim": {
+                "components": {
+                    "TESTER": {
+                        "id": "TESTER",
+                        "connection": {
+                            "VIN": "VIN",
+                            "BCK1": "BCK1",
+                            "BCK2": "BCK2",
+                            "BCK3": "BCK3",
+                            "BCK4": "BCK4",
+                            "LDO1": "LDO1",
+                            "LDO2": "LDO2",
+                            "SCL": "SCL",
+                            "SDA": "SDA",
+                            "GND": "GND"
+                        },
+                        "measurements": {
+                            "101": { "tb": "dpi_c", "settle_ns": 200 },
+                            "102": {
+                                "tb": "dpi_c",
+                                "wave_db_mode": "simvision",
+                                "time_range": { "start": "0ns", "end": "1000ns" }
+                            },
+                            "103": { "tb": "dpi_c", "settle_ns": 200 }
+                        }
+                    },
+                    "VGND": {
+                        "id": "global_ground",
+                        "connection": {
+                            "GND": 0
+                        }
+                    }
+                }
+            },
+            "lab": {
+                "components": {
+                    "PSU": {
+                        "id": "SMU_2450",
+                        "connection": {
+                            "VIN": "OUT",
+                            "GND": "GND"
+                        }
+                    },
+                    "MCU": {
+                        "id": "STM32F439",
+                        "connection": {
+                            "SDA": "I2C_SDA0",
+                            "SCL": "I2C_SCL0",
+                            "GND": "GND"
+                        }
+                    },
+                    "DMM1": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "BCK1": "SOURCE",
+                            "GND": "GND"
+                        },
+                        "measurements": {
+                            "101": { "function": "VOLT:DC", "autorange": true, "nplc": 10, "read_mode": "READ" }
+                        }
+                    },
+                    "DMM2": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "BCK2": "SOURCE",
+                            "GND": "GND"
+                        }
+                    },
+                    "DMM3": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "BCK3": "SOURCE",
+                            "GND": "GND"
+                        }
+                    },
+                    "DMM4": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "BCK4": "SOURCE",
+                            "GND": "GND"
+                        }
+                    },
+                    "DMM5": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "LDO1": "SOURCE",
+                            "GND": "GND"
+                        },
+                        "measurements": {
+                            "103": { "function": "VOLT:DC", "autorange": true, "nplc": 10, "read_mode": "READ" }
+                        }
+                    },
+                    "DMM6": {
+                        "id": "DMM_6510",
+                        "connection": {
+                            "LDO2": "SOURCE",
+                            "GND": "GND"
+                        }
+                    },
+                    "SCOPE0": {
+                        "id": "MSO58",
+                        "connection": {
+                            "BCK1": "CH1",
+                            "BCK2": "CH2",
+                            "BCK3": "CH3",
+                            "BCK4": "CH4",
+                            "LDO1": "CH5",
+                            "LDO2": "CH6",
+                            "SCL": "CH7",
+                            "SDA": "CH8"
+                        },
+                        "measurements": {
+                            "102": {
+                                "channel": "CH1",
+                                "vertical": { "scale": 0.5, "coupling": "DC" },
+                                "waveform": { "source": "CH1", "encoding": "ASCII", "start": 1, "stop": 2500, "synced": true },
+                                "screenshot": { "output_path": "lab/results/bck1_ramp.png", "ink_saver": true }
+                            }
+                        }
+                    },
+                    "SMU1": {
+                        "id": "SMU_2461",
+                        "connection": {
+                            "BCK1": "OUT",
+                            "GND": "GND"
+                        }
+                    },
+                    "SMU6": {
+                        "id": "SMU_2461",
+                        "connection": {
+                            "LDO2": "OUT",
+                            "GND": "GND"
+                        }
+                    }
+                }
+            },
+            "ate": {
+                "components": {
+                    "TESTER": {
+                        "id": "ACCOTEST_STS8200",
+                        "connection": {
+                            "VIN": [ "V0", "A0" ],
+                            "BCK1": "A1",
+                            "BCK2": "A2",
+                            "BCK3": "A3",
+                            "BCK4": "A4",
+                            "LDO1": "A5",
+                            "LDO2": "A6",
+                            "SCL": "D1",
+                            "SDA": "D2",
+                            "GND": [ "GND0", "GND1", "GND2", "GND3", "GND4", "GND5" ]
+                        },
+                        "measurements": {
+                            "101": {
+                                "func_index": 7,
+                                "param_name": "BCK1_VOUT",
+                                "resource_type": "FOVI",
+                                "mode": "FI",
+                                "force_value": 0,
+                                "vrange": "FOVI_2V",
+                                "relay": "RELAY_SENSE_ON",
+                                "measure": { "sample_count": 20, "sample_period_us": 10, "ret_type": "MVRET", "sample_select": "AVERAGE_RESULT" }
+                            },
+                            "103": {
+                                "func_index": 7,
+                                "param_name": "LDO1_VOUT",
+                                "resource_type": "FOVI",
+                                "mode": "FI",
+                                "force_value": 0,
+                                "vrange": "FOVI_2V",
+                                "relay": "RELAY_SENSE_ON",
+                                "measure": { "sample_count": 20, "sample_period_us": 10, "ret_type": "MVRET", "sample_select": "AVERAGE_RESULT" }
+                            }
+                        }
+                    },
+                    "SCOPE0": {
+                        "id": "MSO24",
+                        "connection": {
+                            "BCK1": "CH1",
+                            "BCK2": "CH2",
+                            "BCK3": "CH3",
+                            "BCK4": "CH4"
+                        },
+                        "measurements": {
+                            "102": {
+                                "channel": "CH1",
+                                "vertical": { "scale": 0.5, "coupling": "DC" },
+                                "waveform": { "source": "CH1", "encoding": "ASCII", "start": 1, "stop": 2500, "synced": true }
+                            }
+                        }
+                    },
+                    "SCOPE1": {
+                        "id": "MSO24",
+                        "connection": {
+                            "LDO1": "CH1",
+                            "LDO2": "CH2"
+                        }
+                    }
+                }
+            }
+        },
+        "setup": {
+            "steps": [
+                {
+                    "id": "init",
+                    "time": {
+                        "value": 0,
+                        "related": null
+                    },
+                    "actions": {
+                        "V1": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "current_limiting": "150m",
+                            "connection": "VIN"
+                        },
+                        "0": {
+                            "type": "ground",
+                            "connection": "GND"
+                        }
+                    }
+                },
+                {
+                    "id": "power_up",
+                    "time": {
+                        "value": "100u",
+                        "related": null
+                    },
+                    "actions": {
+                        "V1": {
+                            "type": "voltage_source",
+                            "voltage": 3.3,
+                            "current_limiting": "150m",
+                            "connection": "VIN"
+                        }
+                    }
+                },
+                {
+                    "id": "measure_bck1",
+                    "time": {
+                        "value": "900u",
+                        "related": { "step": "power_up" }
+                    },
+                    "actions": {
+                        "101": {
+                            "type": "measure",
+                            "connection": "BCK1",
+                            "capability": "voltage_measurement",
+                            "test_item_id": 101,
+                            "name": "BCK1 output voltage @ nominal load",
+                            "measure": { "metric": "VOUT", "unit": "V" },
+                            "conditions": { "vin": 3.3, "temp_c": 25 },
+                            "limits": { "lower": 1.14, "upper": 1.26 }
+                        }
+                    }
+                },
+                {
+                    "id": "capture_bck1_waveform",
+                    "time": {
+                        "value": "1.5m",
+                        "related": null
+                    },
+                    "actions": {
+                        "102": {
+                            "type": "measure",
+                            "connection": "BCK1",
+                            "capability": "waveform_measurement",
+                            "test_item_id": 102,
+                            "name": "BCK1 startup ramp waveform",
+                            "measure": { "kind": "waveform" },
+                            "conditions": { "vin": 3.3, "temp_c": 25 }
+                        }
+                    }
+                },
+                {
+                    "id": "measure_ldo1_after_bck1_settle",
+                    "time": {
+                        "value": "50u",
+                        "related": {
+                            "connection": "BCK1",
+                            "edge": "rising",
+                            "threshold": { "type": "voltage", "value": 1.2 }
+                        }
+                    },
+                    "actions": {
+                        "103": {
+                            "type": "measure",
+                            "connection": "LDO1",
+                            "capability": "voltage_measurement",
+                            "test_item_id": 103,
+                            "name": "LDO1 output voltage, 50us after BCK1 settles",
+                            "measure": { "metric": "VOUT", "unit": "V" },
+                            "conditions": { "vin": 3.3, "temp_c": 25 },
+                            "limits": { "lower": 1.7, "upper": 1.9 }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

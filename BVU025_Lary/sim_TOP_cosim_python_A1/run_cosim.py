@@ -5,10 +5,12 @@ OneTest Python Orchestrator for sim_TOP_cosim_python_A1
 Author: Antigravity Agent
 Purpose:
   1. Parse cosim.oneTest.json dynamically.
-  2. Auto-assemble and clean AMS netlist bindings.
+  2. Auto-assemble and clean AMS netlist bindings using auto_assemble_global.
   3. Execute AMS simulation (xrun -f xrunArgs).
-  4. Keep PSF database in sim_TOP_cosim_python_A1/psf.
-  5. Evaluate measurement items directly from cosim.oneTest.json specification.
+  4. Keep PSF database in psf/.
+  5. Item 101: Extract & evaluate NvTrmIref<5:0> (FAIL if 0x00 or 0x3F).
+  6. Item 102: Extract & evaluate GPIO8 reference current against limits.
+  7. Item 103: Capture & verify transient simulation waveform database.
 """
 
 import os
@@ -25,6 +27,9 @@ class OneTestRunner:
         self.json_path = os.path.join(self.work_dir, os.path.basename(json_path))
         os.makedirs(self.work_dir, exist_ok=True)
         
+        if self.work_dir not in sys.path:
+            sys.path.insert(0, self.work_dir)
+        
         if not os.path.exists(self.json_path):
             raise FileNotFoundError(f"OneTest specification file not found: {self.json_path}")
             
@@ -36,46 +41,66 @@ class OneTestRunner:
         self.setup_steps = self.one_test.get("setup", {}).get("steps", [])
         self.cell_name = self.dut_info.get("design", {}).get("cell", "TOP_A1")
         self.lib_name = self.dut_info.get("design", {}).get("lib", "BVU025_Lary")
-        self.sim_dir = f"/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config"
+        self.top_cell = os.path.basename(self.work_dir)
+        if not self.top_cell or self.top_cell == ".":
+            self.top_cell = "sim_TOP_cosim_python_A1"
 
     def run_simulation(self):
         """Execute AMS simulation on the virtual workstation."""
         print(f"===> [OneTest Sim] Loaded specification from: {os.path.basename(self.json_path)}")
         print(f"===> [OneTest Sim] Starting AMS Simulation for DUT: {self.lib_name}.{self.cell_name}...")
-        netlist_dir = os.path.join(self.sim_dir, "netlist")
         
-        if os.path.exists(netlist_dir):
-            # 1. Automatically assemble and fix netlist/bindings
-            try:
-                import auto_assemble_global
-                auto_assemble_global.universal_assemble(netlist_dir)
-            except Exception as e:
-                print(f"[OneTest Sim] Note auto_assemble: {e}")
-                
-            # 2. Run xrun
-            cmd = "xrun -f xrunArgs"
-            print(f"[OneTest Sim] Executing simulation in: {netlist_dir}")
-            res = subprocess.run(cmd, cwd=netlist_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            print("[OneTest Sim] Simulation Execution Output:")
-            lines = res.stdout.splitlines()
-            for line in lines[-25:]:
-                print("  ", line)
+        # Check netlist location
+        search_netlist = [
+            os.path.join(self.work_dir, "ams", "config", "netlist"),
+            os.path.join(self.work_dir, "netlist"),
+            f"/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/netlist",
+            f"/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/netlist"
+        ]
+        netlist_dir = None
+        for nd in search_netlist:
+            if os.path.exists(nd):
+                netlist_dir = nd
+                break
+        
+        if not netlist_dir:
+            print(f"\n[OneTest Sim] *** FATAL ERROR: netlist directory not found in known paths! ***")
+            return False
             
-            if res.returncode != 0:
-                print(f"\n[OneTest Sim] *** ERROR: Simulation exited with error code {res.returncode} ***")
-                return False
-        else:
-            print(f"[OneTest Sim] Warning: netlist directory not found: {netlist_dir}")
+        # 1. Automatically assemble and fix netlist/bindings
+        try:
+            import auto_assemble_global
+            auto_assemble_global.universal_assemble(netlist_dir)
+        except Exception as e:
+            print(f"[OneTest Sim] Error in auto_assemble: {e}")
+            
+        # 2. Run xrun
+        cmd = "xrun -f xrunArgs"
+        print(f"[OneTest Sim] Executing simulation in: {netlist_dir}")
+        res = subprocess.run(cmd, cwd=netlist_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        print("[OneTest Sim] Simulation Execution Output:")
+        lines = res.stdout.splitlines()
+        for line in lines[-25:]:
+            print("  ", line)
+        
+        if res.returncode != 0:
+            print(f"\n[OneTest Sim] *** ERROR: Simulation exited with error code {res.returncode} ***")
+            return False
 
-        # Sync PSF results into local psf directory
-        src_psf = os.path.join(self.sim_dir, "psf")
+        # Sync PSF results into local psf directory if needed
+        possible_src_psf = [
+            os.path.join(self.work_dir, "ams", "config", "psf"),
+            os.path.join(netlist_dir, "..", "psf")
+        ]
         dst_psf = os.path.join(self.work_dir, "psf")
-        if os.path.exists(src_psf) and src_psf != dst_psf:
-            print(f"[OneTest Sim] Synchronizing PSF results to: {dst_psf}")
-            if os.path.exists(dst_psf):
-                shutil.rmtree(dst_psf, ignore_errors=True)
-            shutil.copytree(src_psf, dst_psf)
-            print(f"[OneTest Sim] PSF waveform database successfully stored in {dst_psf}")
+        for src_psf in possible_src_psf:
+            if os.path.exists(src_psf) and src_psf != dst_psf:
+                print(f"[OneTest Sim] Synchronizing PSF results to: {dst_psf}")
+                if os.path.exists(dst_psf):
+                    shutil.rmtree(dst_psf, ignore_errors=True)
+                shutil.copytree(src_psf, dst_psf)
+                print(f"[OneTest Sim] PSF waveform database successfully stored in {dst_psf}")
+                break
 
         self.evaluate_results()
         return True
@@ -87,6 +112,66 @@ class OneTestRunner:
         cmd = f"viva -mode xl -results {psf_dir} &"
         subprocess.Popen(cmd, shell=True, cwd=self.work_dir)
         print("[OneTest Sim] Viva viewer started.")
+
+    def get_trim_code_from_simulation(self):
+        """Extract optimal SAR trim code NvTrmIref<5:0> from simulation log / PSF."""
+        search_logs = [
+            os.path.join(self.work_dir, "psf", "xrun.log"),
+            os.path.join(self.work_dir, "ams", "config", "netlist", "xrun.log"),
+            os.path.join(self.work_dir, "xrun.log")
+        ]
+        for log_path in search_logs:
+            if os.path.exists(log_path):
+                try:
+                    with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                    matches = re.findall(r'Optimal Trim Code\s*=\s*(\d+)', content)
+                    if matches:
+                        code_int = int(matches[-1])
+                        return code_int
+                except Exception:
+                    pass
+        return None
+
+    def get_real_psf_value(self, sample_time="1.6m"):
+        """Query EXACT real simulation measurement from PSF database using Ocean."""
+        psf_path = os.path.join(self.work_dir, "psf")
+        if not os.path.exists(psf_path):
+            psf_path = os.path.join(self.work_dir, "ams", "config", "psf")
+            
+        ocn_script = f"""
+openResults("{psf_path}")
+selectResult('tran)
+
+sig = getData("{self.top_cell}.Board.GPIO8_$flow")
+if(!sig sig = getData("sim_TOP_cosim_python_A1.Board.GPIO8_$flow"))
+if(!sig sig = getData("{self.top_cell}.Board.TOP.GPIO8_$flow"))
+if(!sig sig = IT("/Board/GPIO8"))
+
+if(sig then
+    val = abs(value(sig {sample_time})) * 1e6
+    p = outfile("/tmp/onetest_meas_val.txt" "w")
+    fprintf(p "%.4f" val)
+    close(p)
+else
+    p = outfile("/tmp/onetest_meas_val.txt" "w")
+    fprintf(p "ERROR_SIG_NOT_FOUND")
+    close(p)
+)
+exit()
+"""
+        with open("/tmp/onetest_meas.ocn", "w") as f:
+            f.write(ocn_script)
+            
+        try:
+            subprocess.run("export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_meas.ocn", shell=True, executable="/bin/bash", capture_output=True)
+            if os.path.exists("/tmp/onetest_meas_val.txt"):
+                val_str = open("/tmp/onetest_meas_val.txt").read().strip()
+                if val_str and "ERROR" not in val_str:
+                    return float(val_str)
+        except Exception as e:
+            print(f"[OneTest Sim] Ocean extraction error: {e}")
+        return None
 
     def evaluate_results(self):
         """Dynamically parse cosim.oneTest.json and generate test_report.json."""
@@ -112,6 +197,7 @@ class OneTestRunner:
                     item_name = act_val.get("name", f"Measurement at {step_id}")
                     capability = act_val.get("capability", "")
                     measure_cfg = act_val.get("measure", {})
+                    metric = measure_cfg.get("metric", "")
                     limits = act_val.get("limits")
 
                     item_report = {
@@ -120,24 +206,38 @@ class OneTestRunner:
                         "sample_time": step_time
                     }
 
-                    if capability == "waveform_measurement" or measure_cfg.get("kind") == "waveform":
+                    # Item 103 (Waveform)
+                    if capability == "waveform_measurement" or measure_cfg.get("kind") == "waveform" or item_id == "103":
                         item_report["psf_database"] = "psf/"
                         item_report["viva_command"] = f"viva -mode xl -results {os.path.join(self.work_dir, 'psf')}"
-                        item_report["status"] = "PASS"
-                    else:
-                        unit = measure_cfg.get("unit", "")
-                        item_report["unit"] = unit
-                        
-                        # Extract measured value based on capability & item
-                        if "voltage" in capability or unit == "V":
-                            val = 3.3
+                        psf_exists = os.path.exists(os.path.join(self.work_dir, "psf")) or os.path.exists(os.path.join(self.work_dir, "ams", "config", "psf"))
+                        item_report["status"] = "PASS" if psf_exists else "FAIL (NO_PSF_DATABASE)"
+
+                    # Item 101 (Trim Code NvTrmIref<5:0>)
+                    elif item_id == "101" or metric == "TRIM_CODE" or "NvTrmIref" in act_val.get("connection", ""):
+                        code_int = self.get_trim_code_from_simulation()
+                        if code_int is None:
+                            item_report["measured"] = "N/A"
+                            item_report["status"] = "FAIL (CODE_NOT_FOUND)"
                         else:
-                            # Current measurement on GPIO8
-                            val = 0.967
-                            
+                            code_hex = f"0x{code_int:02X}"
+                            item_report["measured"] = f"{code_hex} ({code_int})"
+                            # Fail if 0x00 (0) or 0x3F (63)
+                            if code_int == 0 or code_int == 63 or code_hex in ["0x00", "0x3F"]:
+                                item_report["status"] = "FAIL"
+                            else:
+                                item_report["status"] = "PASS"
+
+                    # Item 102 (Current measurement on GPIO8)
+                    else:
+                        unit = measure_cfg.get("unit", "uA")
+                        item_report["unit"] = unit
+                        val = self.get_real_psf_value(step_time or "1.6m")
                         item_report["measured"] = val
                         
-                        if limits:
+                        if val is None:
+                            item_report["status"] = "FAIL (NO_SIGNAL_DATA)"
+                        elif limits:
                             item_report["limits"] = limits
                             lower = limits.get("lower", float("-inf"))
                             upper = limits.get("upper", float("inf"))

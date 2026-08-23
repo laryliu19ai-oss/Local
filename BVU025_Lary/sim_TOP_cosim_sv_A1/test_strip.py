@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 ocn_code = """
 openResults("/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_sv_A1/ams/config/psf")
@@ -14,9 +15,13 @@ awvPlotWaveform(?window win ?stripNumber 2 ?expr '("I(GPIO8)") ?color '("blue") 
 
 saveGraphImage(?window win ?fileName "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_sv_A1/ams/config/images/cosim_waveform.png" ?resolution 100 ?width 1600 ?height 900 ?backgroundColor "white" ?saveAllSubwindows t)
 printf("SUCCESS_STRIP_PLOT\\n")
+exit()
 """
 
-subprocess.run(["ssh", "lary@192.168.16.130", "cat > /tmp/test_strip_plot.ocn"], input=ocn_code.encode("utf-8"))
-res = subprocess.run(["ssh", "lary@192.168.16.130", "export DISPLAY=:0; source ~/.bashrc; ocean -replay /tmp/test_strip_plot.ocn"], capture_output=True, text=True)
+with open("/tmp/strip_plot.ocn", "w") as f:
+    f.write(ocn_code)
+
+res = subprocess.run("export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/strip_plot.ocn", shell=True, executable="/bin/bash", capture_output=True, text=True)
 print(res.stdout)
-print(res.stderr)
+if "SUCCESS_STRIP_PLOT" in res.stdout:
+    print("Waveform image updated successfully at /home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_sv_A1/ams/config/images/cosim_waveform.png")

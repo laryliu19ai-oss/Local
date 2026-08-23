@@ -5,8 +5,8 @@
     "author": "Antigravity",
     "debugMode": true,
     "evaluationResults": {
-        "psfData": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/psf",
-        "outputFile": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/evaluation/cosim.evaluationResults.json",
+        "psfData": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/psf",
+        "outputFile": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/evaluation/cosim.evaluationResults.json",
         "evaluation": {
             "expressions": {
                 "i_gpio8_1p8m": "value(IT(\"/Board/GPIO8\") 1.8m)"

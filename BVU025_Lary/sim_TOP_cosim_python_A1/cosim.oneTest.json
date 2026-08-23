@@ -150,12 +150,12 @@
                         },
                         "measurements": {
                             "101": { "tb": "dpi_c", "settle_ns": 200 },
-                            "102": {
+                            "102": { "tb": "dpi_c", "settle_ns": 500 },
+                            "103": {
                                 "tb": "dpi_c",
                                 "wave_db_mode": "simvision",
                                 "time_range": { "start": "0ns", "end": "2000000ns" }
-                            },
-                            "103": { "tb": "dpi_c", "settle_ns": 500 }
+                            }
                         }
                     },
                     "VGND": {
@@ -256,12 +256,12 @@
                     "actions": {
                         "101": {
                             "type": "measure",
-                            "connection": "dIRefTMO",
+                            "connection": "NvTrmIref",
                             "capability": "digital_measurement",
                             "test_item_id": 101,
-                            "name": "Sample comparator output dIRefTMO for Python SAR successive approximation",
-                            "measure": { "metric": "CMP_OUT", "unit": "V" },
-                            "conditions": { "vdd": 3.3, "temp_c": 25 }
+                            "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
+                            "measure": { "metric": "TRIM_CODE", "format": "hex" },
+                            "limits": { "exclude": ["0x00", "0x3F"], "min": 1, "max": 62 }
                         }
                     }
                 },
@@ -296,11 +296,11 @@
                         "related": null
                     },
                     "actions": {
-                        "103": {
+                        "102": {
                             "type": "measure",
                             "connection": "GPIO8",
                             "capability": "current_measurement",
-                            "test_item_id": 103,
+                            "test_item_id": 102,
                             "name": "Measure trimmed reference current on GPIO8",
                             "measure": { "metric": "IREF", "unit": "uA" },
                             "conditions": { "vdd": 3.3, "temp_c": 25 },
@@ -315,11 +315,11 @@
                         "related": null
                     },
                     "actions": {
-                        "102": {
+                        "103": {
                             "type": "measure",
                             "connection": "VDD_PCB",
                             "capability": "waveform_measurement",
-                            "test_item_id": 102,
+                            "test_item_id": 103,
                             "name": "Capture transient simulation waveform",
                             "measure": { "kind": "waveform" },
                             "conditions": { "vdd": 3.3, "temp_c": 25 }

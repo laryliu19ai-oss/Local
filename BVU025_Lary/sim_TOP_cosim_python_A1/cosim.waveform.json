@@ -6,10 +6,10 @@
     "debugMode": true,
     "waveform": {
         "type": "viva",
-        "imageSavePath": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/images",
+        "imageSavePath": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/images",
         "database": {
             "sim_TOP_cosim_python_A1": {
-                "file": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/ams/config/psf"
+                "file": "/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1/psf"
             }
         },
         "imageSettings": {

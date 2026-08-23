@@ -260,8 +260,7 @@
                             "capability": "digital_measurement",
                             "test_item_id": 101,
                             "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
-                            "measure": { "metric": "TRIM_CODE", "format": "hex" },
-                            "limits": { "exclude": ["0x00", "0x3F"], "min": 1, "max": 62 }
+                            "measure": { "metric": "TRIM_CODE", "format": "hex" }
                         }
                     }
                 },
@@ -303,8 +302,7 @@
                             "test_item_id": 102,
                             "name": "Measure trimmed reference current on GPIO8",
                             "measure": { "metric": "IREF", "unit": "uA" },
-                            "conditions": { "vdd": 3.3, "temp_c": 25 },
-                            "limits": { "lower": 0.9, "upper": 1.1 }
+                            "conditions": { "vdd": 3.3, "temp_c": 25 }
                         }
                     }
                 },

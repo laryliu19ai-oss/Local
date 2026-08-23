@@ -1,0 +1,42 @@
+{
+    "version": "1.0",
+    "description": "Test Specifications and Limits for OneTest Verification",
+    "specifications": {
+        "101": {
+            "test_item_id": 101,
+            "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
+            "category": "digital_measurement",
+            "metric": "TRIM_CODE",
+            "format": "hex",
+            "connection": "NvTrmIref",
+            "limits": {
+                "exclude": ["0x00", "0x3F"],
+                "min": 1,
+                "max": 62
+            },
+            "description": "SAR calibration optimal code must converge within 0x01 ~ 0x3E, excluding boundary values 0x00 and 0x3F"
+        },
+        "102": {
+            "test_item_id": 102,
+            "name": "Measure trimmed reference current on GPIO8",
+            "category": "current_measurement",
+            "metric": "IREF",
+            "unit": "uA",
+            "connection": "GPIO8",
+            "sample_time": "1.6m",
+            "limits": {
+                "lower": 0.9,
+                "upper": 1.1
+            },
+            "description": "Trimmed reference current on GPIO8 at 1.6ms must be within 0.9uA ~ 1.1uA"
+        },
+        "103": {
+            "test_item_id": 103,
+            "name": "Capture transient simulation waveform",
+            "category": "waveform_measurement",
+            "connection": "VDD_PCB",
+            "sample_time": "1.8m",
+            "description": "Capture transient simulation waveform database and generate screenshot"
+        }
+    }
+}

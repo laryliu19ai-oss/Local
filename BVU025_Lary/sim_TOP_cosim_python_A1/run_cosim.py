@@ -256,13 +256,32 @@ exit()
             except Exception as e:
                 print(f"[OneTest Sim] Could not launch image viewer: {e}")
 
+    def load_specifications(self):
+        """Load test specifications and limits from Specification.json if present."""
+        spec_paths = [
+            os.path.join(self.work_dir, "Specification.json"),
+            os.path.join(self.work_dir, "..", "Specification.json")
+        ]
+        for sp in spec_paths:
+            if os.path.exists(sp):
+                try:
+                    with open(sp, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        specs = data.get("specifications", data)
+                        print(f"[OneTest Sim] Loaded specifications from: {os.path.basename(sp)}")
+                        return specs
+                except Exception as e:
+                    print(f"[OneTest Sim] Warning: failed to parse {sp}: {e}")
+        return {}
+
     def evaluate_results(self):
-        """Dynamically parse cosim.oneTest.json and generate test_report.json."""
+        """Dynamically parse cosim.oneTest.json and evaluate against Specification.json."""
         test_summary = self.config.get("description", f"OneTest Calibration & Trim Verification ({os.path.basename(self.work_dir)})")
+        specs_dict = self.load_specifications()
         report = {
             "test_summary": test_summary,
             "tester_mode": "sim",
-            "spec_file": os.path.basename(self.json_path),
+            "spec_file": "Specification.json" if specs_dict else os.path.basename(self.json_path),
             "items": {}
         }
 
@@ -277,11 +296,13 @@ exit()
                     continue
                 if act_val.get("type") == "measure" or "test_item_id" in act_val:
                     item_id = str(act_val.get("test_item_id", act_key))
-                    item_name = act_val.get("name", f"Measurement at {step_id}")
-                    capability = act_val.get("capability", "")
+                    item_spec = specs_dict.get(item_id, {})
+                    
+                    item_name = item_spec.get("name", act_val.get("name", f"Measurement at {step_id}"))
+                    capability = item_spec.get("category", act_val.get("capability", ""))
                     measure_cfg = act_val.get("measure", {})
-                    metric = measure_cfg.get("metric", "")
-                    limits = act_val.get("limits")
+                    metric = item_spec.get("metric", measure_cfg.get("metric", ""))
+                    limits = item_spec.get("limits", act_val.get("limits"))
 
                     item_report = {
                         "name": item_name,
@@ -304,6 +325,8 @@ exit()
                     elif item_id == "101" or metric == "TRIM_CODE" or "NvTrmIref" in act_val.get("connection", ""):
                         item_report["result_file"] = "result/Result.json"
                         item_report["result_path"] = os.path.join(self.work_dir, "result", "Result.json")
+                        if limits:
+                            item_report["limits"] = limits
                         code_int = self.get_trim_code_from_simulation()
                         if code_int is None:
                             item_report["measured"] = "N/A"
@@ -311,15 +334,16 @@ exit()
                         else:
                             code_hex = f"0x{code_int:02X}"
                             item_report["measured"] = f"{code_hex} ({code_int})"
-                            # Fail if 0x00 (0) or 0x3F (63)
-                            if code_int == 0 or code_int == 63 or code_hex in ["0x00", "0x3F"]:
+                            exclude = limits.get("exclude", ["0x00", "0x3F"]) if isinstance(limits, dict) else ["0x00", "0x3F"]
+                            # Fail if in exclude list or 0/63
+                            if code_hex in exclude or f"0x{code_int:X}" in exclude or code_int in [0, 63]:
                                 item_report["status"] = "FAIL"
                             else:
                                 item_report["status"] = "PASS"
 
                     # Item 102 (Current measurement on GPIO8)
                     else:
-                        unit = measure_cfg.get("unit", "uA")
+                        unit = item_spec.get("unit", measure_cfg.get("unit", "uA"))
                         item_report["unit"] = unit
                         val = self.get_real_psf_value(step_time or "1.6m")
                         item_report["measured"] = val

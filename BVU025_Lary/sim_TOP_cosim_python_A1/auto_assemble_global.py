@@ -483,20 +483,93 @@ amsd {{
         ]
         py_bridge_path = find_first_existing(candidate_c) or candidate_c[0]
 
-        # Clean any old/nonexistent py_bridge.c lines from xrunArgs
+        # 14. Configure PSF output database directory (clean stale traces from previous runs)
+        psf_dir = os.path.join(pattern_dir, "psf") if pattern_dir and pattern_dir != netlist_dir else os.path.join(netlist_dir, "psf")
+        if os.path.exists(psf_dir):
+            for item in os.listdir(psf_dir):
+                if item != ".simvision":
+                    item_p = os.path.join(psf_dir, item)
+                    if os.path.isfile(item_p) or os.path.islink(item_p):
+                        try: os.remove(item_p)
+                        except: pass
+                    elif os.path.isdir(item_p):
+                        shutil.rmtree(item_p, ignore_errors=True)
+        os.makedirs(psf_dir, exist_ok=True)
+
+        # --- Detect whether this is being called by ADE L or by run_cosim.py ---
+        # ADE L generates its own -xmsimargs containing -l, -amspartinfo, -name, -top etc.
+        # If we inject our own -xmsimargs into xrunArgs, ADE L gets 'unmatched quote' error.
+        # Strategy: ONLY inject DPI-C compile flags (py_bridge.c + python headers).
+        # For run_cosim.py: also inject psf dir, log path via xmsimargs.
+        is_adel_run = os.environ.get('CDS_INST_DIR', '') != '' or os.environ.get('CDS_MAPI_RUN', '') != ''
+        # More robust: check if xrunArgs already contains -amspartinfo (ADE L puts it there)
+        # If ADE L manages it, -amspartinfo is already inside -xmsimargs so we must NOT add ours.
+        existing_has_amspartinfo_outside_xmsimargs = any(
+            l.strip().startswith('-amspartinfo') and 'xmsimargs' not in l
+            for l in args.splitlines()
+        )
+
+        # Clean any old/broken DPI lines from xrunArgs
         clean_args_lines = []
         for l in args.splitlines():
-            if "py_bridge.c" in l or "-I/usr/include/python" in l or "-lpython" in l or "-L/usr/lib" in l or ".amsbind.scs" in l:
+            s = l.strip()
+            if not s:
                 continue
-            clean_args_lines.append(l)
+            # Always remove old DPI/Python compile flags (we will re-add them)
+            if "py_bridge.c" in s or "-I/usr/include/python" in s or "-lpython" in s or "-L/usr/lib" in s:
+                continue
+            # Remove old xmsimargs ONLY if they are NOT ADE L's generated ones
+            # ADE L's xmsimargs contain -name, -top etc.; ours only have +amsrawdir
+            if s.startswith("-xmsimargs") and "-name" not in s and "-top" not in s:
+                continue
+            # Remove stale log/partinfo lines if they point to a DIFFERENT psf_dir
+            # (don't remove if ADE L put them there in a xmsimargs block)
+            if not s.startswith("-xmsimargs"):
+                if s.startswith("-l ") and psf_dir not in s:
+                    continue
+                if s.startswith("-amspartinfo") and psf_dir not in s:
+                    continue
+            if ".amsbind.scs" in s:
+                continue
+            clean_args_lines.append(s)
 
+        # Only add psf/log args when NOT run under ADE L (i.e. run_cosim.py / bvSim)
+        # ADE L already puts these inside its own -xmsimargs block
+        has_adel_xmsimargs = any("-name" in l and "-xmsimargs" in l for l in clean_args_lines)
+        if not has_adel_xmsimargs and not existing_has_amspartinfo_outside_xmsimargs:
+            clean_args_lines.append(f'-xmsimargs "+amsrawdir {psf_dir} -simcompatible_ams spectre"')
+            clean_args_lines.append(f'-amspartinfo {psf_dir}/partition.info -rnm_partinfo')
+            clean_args_lines.append(f'-l {psf_dir}/xrun.log')
+
+        # Always add DPI-C Python compile flags (required for both ADE L and run_cosim.py)
         clean_args_lines.append(f"{py_bridge_path}")
         clean_args_lines.append("-I/usr/include/python3.10")
         clean_args_lines.append("-L/usr/lib/x86_64-linux-gnu")
         clean_args_lines.append("-lpython3.10")
-        
+
         with open(xrun_args_file, 'w') as f:
             f.write("\n".join(clean_args_lines) + "\n")
+
+        # --- Ensure py_tester.py (Python Master) is always up-to-date in netlist dir ---
+        # Copy the canonical py_tester.py to ensure ADE L finds the correct version
+        py_tester_src = find_first_existing([
+            os.path.join(pattern_dir, "py_tester.py"),
+            os.path.join(netlist_dir, "py_tester.py")
+        ])
+        if py_tester_src and os.path.dirname(py_tester_src) != netlist_dir:
+            import shutil
+            shutil.copy2(py_tester_src, os.path.join(netlist_dir, "py_tester.py"))
+
+        # --- Delete stale __pycache__ (prevents old .pyc from masking updated py_tester.py) ---
+        for pycache_root in [netlist_dir, pattern_dir]:
+            pycache_dir = os.path.join(pycache_root, "__pycache__")
+            if os.path.isdir(pycache_dir):
+                for f_name in os.listdir(pycache_dir):
+                    if "py_tester" in f_name:
+                        try:
+                            os.remove(os.path.join(pycache_dir, f_name))
+                        except Exception:
+                            pass
 
         # 13. Rewrite amsControlSpectre.scs to include AMSD bindings and save ALL voltage and current nodes
         ctrl_final = amsbind_content + f"""\n// Auto-generated amsControlSpectre.scs - Save All Voltages & Currents
@@ -524,19 +597,6 @@ wave_out options rawfmt=sst2
         with open(os.path.join(netlist_dir, 'amsControlSpectre.scs'), 'w') as f:
             f.write(ctrl_final)
 
-        # 14. Configure PSF output database directory (clean stale traces from previous runs)
-        psf_dir = os.path.join(pattern_dir, "psf")
-        if os.path.exists(psf_dir):
-            for item in os.listdir(psf_dir):
-                if item != ".simvision":
-                    item_p = os.path.join(psf_dir, item)
-                    if os.path.isfile(item_p) or os.path.islink(item_p):
-                        try: os.remove(item_p)
-                        except: pass
-                    elif os.path.isdir(item_p):
-                        shutil.rmtree(item_p, ignore_errors=True)
-        os.makedirs(psf_dir, exist_ok=True)
-
         # probe.tcl: probe all voltages and currents across all hierarchy depths
         probe_tcl = f"""
 database -open ams_database -into "{psf_dir}" -default
@@ -557,25 +617,6 @@ save {top_cell}.Board.TOP.I_Bias:all
         if f"{top_cell}.Board.TOP.I_Bias:all" not in sm_content:
             with open(spice_models_file, 'a') as f:
                 f.write(save_stmts)
-
-        # 15. Synchronize xrunArgs to direct all raw outputs and logs strictly to psf_dir
-        xrun_args_path = os.path.join(netlist_dir, "xrunArgs")
-        if os.path.exists(xrun_args_path):
-            with open(xrun_args_path, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            new_lines = []
-            for line in lines:
-                s_line = line.strip()
-                if s_line.startswith("-xmsimargs"):
-                    new_lines.append(f'-xmsimargs "+amsrawdir {psf_dir}"\n')
-                elif s_line.startswith("-l "):
-                    new_lines.append(f'-l {psf_dir}/xrun.log\n')
-                elif s_line.startswith("-amspartinfo "):
-                    new_lines.append(f'-amspartinfo {psf_dir}/partition.info -rnm_partinfo\n')
-                else:
-                    new_lines.append(line)
-            with open(xrun_args_path, "w", encoding="utf-8") as f:
-                f.writelines(new_lines)
 
         # 16. Remove old stray hierarchy directories
         for stray in [os.path.join(pattern_dir, "BVU025_Lary"), os.path.join(pattern_dir, lib_name)]:

@@ -43,7 +43,13 @@
                                 "display": "I(GPIO8)",
                                 "color": "red",
                                 "thickness": "thick",
-                                "stripNumber": 2
+                                "stripNumber": 2,
+                                "yAxis": {
+                                    "min": -10e-6,
+                                    "max": 10e-6,
+                                    "step": 2e-6,
+                                    "unit": "uA"
+                                }
                             }
                         ]
                     }

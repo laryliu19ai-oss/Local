@@ -385,7 +385,32 @@ exit()
         res   = img_settings.get("resolution", 100)
         bg    = img_settings.get("backgroundColor", "white")
 
-        tc = self.top_cell  # e.g. "sim_TOP_cosim_python_A1_ocean"
+        # Parse custom yAxis ranges and step values from wave_cfg
+        y_limit_stmts = []
+        plot_list = wave_cfg.get("plot", [])
+        for p in plot_list:
+            for res_item in p.get("results", []):
+                for sig_info in res_item.get("signals", []):
+                    strip_num = sig_info.get("stripNumber", 1)
+                    y_axis = sig_info.get("yAxis", {})
+                    y_min = y_axis.get("min")
+                    y_max = y_axis.get("max")
+                    y_step = y_axis.get("step")
+                    if y_min is not None and y_max is not None:
+                        y_limit_stmts.append(f"yLimit(list({y_min} {y_max}) ?stripNumber {strip_num})")
+                        y_limit_stmts.append(f"awvSetYLimit(win 1 list({y_min} {y_max}) ?stripNumber {strip_num})")
+                    if y_step is not None:
+                        y_limit_stmts.append(f"awvSetYAxisUseStepValue(win 1 t ?stripNumber {strip_num})")
+                        y_limit_stmts.append(f"awvSetYAxisStepValue(win 1 {y_step} ?stripNumber {strip_num})")
+                        if y_min is not None and y_max is not None:
+                            try:
+                                num_div = int(round((float(y_max) - float(y_min)) / float(y_step)))
+                                y_limit_stmts.append(f"awvSetYAxisMajorDivisions(win 1 {num_div} ?stripNumber {strip_num})")
+                            except Exception:
+                                pass
+
+        y_limits_code = "\n".join(y_limit_stmts)
+        tc = self.top_cell
 
         ocn_code = f"""
 load("/home/lary/skill/bvViva_modules.il")
@@ -434,6 +459,9 @@ win = newWindow()
 if(bus_sig plot(bus_sig ?expr "NvTrmIref[5:0]" ?strip 1))
 if(i_gpio plot(i_gpio ?expr "I(GPIO8)" ?strip 2))
 
+// Apply Y-axis range limits from configuration
+{y_limits_code}
+
 saveGraphImage(?window win ?fileName "{img_file}" ?resolution {res} ?width {width} ?height {height} ?backgroundColor "{bg}" ?saveAllSubwindows t)
 printf("SUCCESS_AUTO_WAVE\\n")
 exit()
@@ -468,9 +496,24 @@ exit()
             print(f"[OneTest Sim] Launching Image Viewer for: {img_path}...")
             try:
                 if sys.platform.startswith("linux"):
-                    disp = os.environ.get("DISPLAY", ":0")
-                    cmd = f"DISPLAY={disp} nohup eog '{img_path}' >/dev/null 2>&1 &"
-                    subprocess.Popen(cmd, shell=True)
+                    clean_env = {
+                        "DISPLAY": ":0",
+                        "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+                        "XAUTHORITY": "/home/lary/.Xauthority",
+                        "HOME": "/home/lary",
+                        "PATH": "/usr/bin:/bin"
+                    }
+                    try:
+                        subprocess.run(["killall", "-q", "eog"], env=clean_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    except Exception:
+                        pass
+                    subprocess.Popen(
+                        ["/usr/bin/eog", img_path],
+                        env=clean_env,
+                        start_new_session=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
                 elif sys.platform.startswith("win"):
                     os.startfile(img_path)
                 elif sys.platform == "darwin":
@@ -545,7 +588,6 @@ exit()
                         if img_path:
                             item_report["waveform_image"] = "images/cosim_waveform.png"
                             item_report["image_path"] = img_path
-                            self.open_image(img_path)
                         item_report["viva_command"] = f"viva -mode xl -results {os.path.join(self.work_dir, 'psf')}"
                         psf_exists = os.path.exists(os.path.join(self.work_dir, "psf")) or os.path.exists(os.path.join(self.work_dir, "ams", "config", "psf"))
                         item_report["status"] = "PASS" if psf_exists else "FAIL (NO_PSF_DATABASE)"
@@ -614,6 +656,12 @@ exit()
         print(json.dumps(report, indent=4))
         print(f"=======================================================")
         print(f"[OneTest Sim] test_report.json generated successfully in {report_file}")
+
+        # Automatically pop up waveform image screenshot in default viewer
+        img_file = os.path.join(self.work_dir, "images", "cosim_waveform.png")
+        if os.path.exists(img_file):
+            self.open_image(img_file)
+
         return report
 
     def generate_fail_report(self, reason="Execution Failed"):

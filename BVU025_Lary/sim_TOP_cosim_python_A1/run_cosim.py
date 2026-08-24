@@ -468,7 +468,9 @@ exit()
             print(f"[OneTest Sim] Launching Image Viewer for: {img_path}...")
             try:
                 if sys.platform.startswith("linux"):
-                    subprocess.Popen(f"nohup eog '{img_path}' >/dev/null 2>&1 &", shell=True)
+                    disp = os.environ.get("DISPLAY", ":0")
+                    cmd = f"DISPLAY={disp} nohup eog '{img_path}' >/dev/null 2>&1 &"
+                    subprocess.Popen(cmd, shell=True)
                 elif sys.platform.startswith("win"):
                     os.startfile(img_path)
                 elif sys.platform == "darwin":
@@ -543,6 +545,7 @@ exit()
                         if img_path:
                             item_report["waveform_image"] = "images/cosim_waveform.png"
                             item_report["image_path"] = img_path
+                            self.open_image(img_path)
                         item_report["viva_command"] = f"viva -mode xl -results {os.path.join(self.work_dir, 'psf')}"
                         psf_exists = os.path.exists(os.path.join(self.work_dir, "psf")) or os.path.exists(os.path.join(self.work_dir, "ams", "config", "psf"))
                         item_report["status"] = "PASS" if psf_exists else "FAIL (NO_PSF_DATABASE)"

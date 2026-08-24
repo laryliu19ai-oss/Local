@@ -18,6 +18,7 @@ void py_init_tester(const char* work_dir) {
                        "    os.getcwd(),\n"
                        "    os.path.abspath(os.path.join(os.getcwd(), '../../..')),\n"
                        "    os.path.abspath(os.path.join(os.getcwd(), '..')),\n"
+                       "    '/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1',\n"
                        "    '/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1',\n"
                        "    '/home/lary/project/BVU025/python/sim_TOP_cosim_python_A1'\n"
                        "]\n"

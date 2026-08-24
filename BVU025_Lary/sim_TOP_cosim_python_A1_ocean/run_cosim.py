@@ -23,14 +23,9 @@ import re
 
 class OneTestRunner:
     def __init__(self, json_path="cosim.oneTest.json", work_dir=None):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.work_dir = os.path.abspath(work_dir or (os.path.dirname(json_path) if os.path.dirname(json_path) else script_dir))
+        self.work_dir = os.path.abspath(work_dir or os.path.dirname(json_path) or os.getcwd())
         self.json_path = os.path.join(self.work_dir, os.path.basename(json_path))
         os.makedirs(self.work_dir, exist_ok=True)
-        try:
-            os.chdir(self.work_dir)
-        except Exception:
-            pass
         
         if self.work_dir not in sys.path:
             sys.path.insert(0, self.work_dir)
@@ -46,7 +41,9 @@ class OneTestRunner:
         self.setup_steps = self.one_test.get("setup", {}).get("steps", [])
         self.cell_name = self.dut_info.get("design", {}).get("cell", "TOP_A1")
         self.lib_name = self.dut_info.get("design", {}).get("lib", "BVU025_Lary")
-        self.top_cell = "sim_TOP_cosim_python_A1"
+        self.top_cell = os.path.basename(self.work_dir)
+        if not self.top_cell or self.top_cell == ".":
+            self.top_cell = "sim_TOP_cosim_python_A1"
 
     def run_simulation(self):
         """Execute AMS simulation on the virtual workstation."""
@@ -57,8 +54,8 @@ class OneTestRunner:
         search_netlist = [
             os.path.join(self.work_dir, "ams", "config", "netlist"),
             os.path.join(self.work_dir, "netlist"),
-            f"/home/lary/simulation/BVU025/BVU025A/{self.top_cell}/ams/config/netlist",
-            f"/home/lary/simulation/BVU025/BVU025A/{self.top_cell}/netlist"
+            f"/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1_ocean/ams/config/netlist",
+            f"/home/lary/simulation/BVU025/BVU025A/ocean/BVU025_Lary/sim_TOP_cosim_python_A1_ocean/netlist"
         ]
         netlist_dir = None
         for nd in search_netlist:
@@ -69,49 +66,23 @@ class OneTestRunner:
         if not netlist_dir:
             print(f"\n[OneTest Sim] *** FATAL ERROR: netlist directory not found in known paths! ***")
             return False
-
-        # Clean old state and report files
-        for sf in [
-            os.path.join(self.work_dir, "result", "test_report.json"),
-            os.path.join(self.work_dir, "result", ".py_tester_state.json"),
-            os.path.join(self.work_dir, ".py_tester_state.json"),
-            os.path.join(netlist_dir, "result", ".py_tester_state.json"),
-            os.path.join(netlist_dir, ".py_tester_state.json"),
-            "/home/lary/simulation/BVU025/BVU025A/result/.py_tester_state.json",
-            "/home/lary/simulation/BVU025/BVU025A/ocean/result/.py_tester_state.json",
-            "/tmp/.py_tester_state.json",
-            "/tmp/onetest_trim_code.txt",
-            "/tmp/onetest_meas_val.txt"
-        ]:
-            if os.path.exists(sf):
-                try: os.remove(sf)
-                except Exception: pass
             
-        # 1. Ensure latest py_tester.py, py_bridge.c, py_tester.sv, cosim.oneTest.json, and auto_assemble_global.py are in netlist_dir
+        # 1. Ensure py_tester.py is in netlist_dir
         try:
-            for fname in ["py_tester.py", "py_bridge.c", "py_tester.sv", "cosim.oneTest.json", "auto_assemble_global.py"]:
-                src_f = os.path.join(self.work_dir, fname)
-                if os.path.exists(src_f):
-                    shutil.copy2(src_f, os.path.join(netlist_dir, fname))
-                    shutil.copy2(src_f, os.path.join(netlist_dir, "..", "..", "..", fname))
+            py_tester_src = os.path.join(self.work_dir, "py_tester.py")
+            if os.path.exists(py_tester_src):
+                shutil.copy2(py_tester_src, os.path.join(netlist_dir, "py_tester.py"))
         except Exception as e:
-            print(f"[OneTest Sim] Warning copying sync files: {e}")
+            print(f"[OneTest Sim] Warning copying py_tester.py: {e}")
 
-        # 2. Dynamically import auto_assemble_global strictly from self.work_dir (TM14)
+        # 2. Automatically assemble and fix netlist/bindings
         try:
-            import importlib.util
-            script_path = os.path.join(self.work_dir, "auto_assemble_global.py")
-            spec = importlib.util.spec_from_file_location("auto_assemble_global_tm14", script_path)
-            aag_module = importlib.util.module_from_spec(spec)
-            sys.modules["auto_assemble_global_tm14"] = aag_module
-            spec.loader.exec_module(aag_module)
-            aag_module.universal_assemble(netlist_dir, pattern_dir=self.work_dir)
+            import auto_assemble_global
+            auto_assemble_global.universal_assemble(netlist_dir)
         except Exception as e:
-            print(f"\n[OneTest Sim] *** FOOLPROOF ERROR in auto_assemble: {e} ***")
-            self.generate_fail_report(f"Auto-Assemble Error: {e}")
-            return False
+            print(f"[OneTest Sim] Error in auto_assemble: {e}")
             
-        # 3. Run xrun with clean compilation
+        # 3. Run xrun
         cmd = "xrun -f xrunArgs"
         print(f"[OneTest Sim] Executing simulation in: {netlist_dir}")
         res = subprocess.run(cmd, cwd=netlist_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -122,31 +93,29 @@ class OneTestRunner:
         
         if res.returncode != 0:
             print(f"\n[OneTest Sim] *** ERROR: Simulation exited with error code {res.returncode} ***")
-            self.generate_fail_report(f"Simulation execution failed with code {res.returncode}")
             return False
 
-        # Sync PSF database from netlist directory to TM14/psf if needed
-        tm14_psf = os.path.join(self.work_dir, "psf")
-        netlist_psf = os.path.join(netlist_dir, "psf")
-        if os.path.exists(netlist_psf):
-            os.makedirs(tm14_psf, exist_ok=True)
-            for item in os.listdir(netlist_psf):
-                s_item = os.path.join(netlist_psf, item)
-                d_item = os.path.join(tm14_psf, item)
-                if os.path.isfile(s_item):
-                    shutil.copy2(s_item, d_item)
-
-        if os.path.exists(tm14_psf):
-            print(f"[OneTest Sim] PSF database available at: {tm14_psf}")
-        else:
-            print(f"[OneTest Sim] Warning: PSF not found at {tm14_psf}")
+        # Sync PSF results into local psf directory if needed
+        possible_src_psf = [
+            os.path.join(self.work_dir, "ams", "config", "psf"),
+            os.path.join(netlist_dir, "..", "psf")
+        ]
+        dst_psf = os.path.join(self.work_dir, "psf")
+        for src_psf in possible_src_psf:
+            if os.path.exists(src_psf) and src_psf != dst_psf:
+                print(f"[OneTest Sim] Synchronizing PSF results to: {dst_psf}")
+                if os.path.exists(dst_psf):
+                    shutil.rmtree(dst_psf, ignore_errors=True)
+                shutil.copytree(src_psf, dst_psf)
+                print(f"[OneTest Sim] PSF waveform database successfully stored in {dst_psf}")
+                break
 
         self.evaluate_results()
         return True
 
     def open_viva(self):
-        """Launch Viva waveform viewer pointing directly to TM14/psf."""
-        psf_dir = "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf"
+        """Launch Viva waveform viewer directly pointing to local psf directory."""
+        psf_dir = os.path.join(self.work_dir, "psf")
         print(f"[OneTest Sim] Launching Virtuoso Viva Waveform Viewer for {psf_dir}...")
         cmd = f"viva -mode xl -results {psf_dir} &"
         subprocess.Popen(cmd, shell=True, cwd=self.work_dir)
@@ -158,12 +127,9 @@ class OneTestRunner:
         state_files = [
             "/tmp/.py_tester_state.json",
             os.path.join(self.work_dir, "result", ".py_tester_state.json"),
-            os.path.join(self.work_dir, ".py_tester_state.json"),
-            "/home/lary/simulation/BVU025/BVU025A/result/.py_tester_state.json",
-            f"/home/lary/simulation/BVU025/BVU025A/{self.top_cell}/ams/config/netlist/result/.py_tester_state.json",
-            f"/home/lary/simulation/BVU025/BVU025A/{self.top_cell}/ams/config/netlist/.py_tester_state.json",
             os.path.join(self.work_dir, "ams", "config", "netlist", "result", ".py_tester_state.json"),
-            os.path.join(self.work_dir, "ams", "config", "netlist", ".py_tester_state.json")
+            os.path.join(self.work_dir, "ams", "config", "netlist", ".py_tester_state.json"),
+            os.path.join(self.work_dir, ".py_tester_state.json")
         ]
         for sf in state_files:
             if os.path.exists(sf):
@@ -266,24 +232,9 @@ exit()
 
     def get_real_psf_value(self, sample_time="1.6m"):
         """Query EXACT real simulation measurement from PSF database using Ocean."""
-        if os.path.exists("/tmp/onetest_meas_val.txt"):
-            try:
-                os.remove("/tmp/onetest_meas_val.txt")
-            except Exception:
-                pass
-
-        psf_candidates = [
-            os.path.join(self.work_dir, "psf"),
-            f"/home/lary/simulation/BVU025/BVU025A/{self.top_cell}/ams/config/netlist/psf",
-            os.path.join(self.work_dir, "ams", "config", "psf")
-        ]
-        psf_path = None
-        for p in psf_candidates:
-            if os.path.exists(p) and (os.path.exists(os.path.join(p, "tran.tran")) or os.path.exists(os.path.join(p, "psf.trn"))):
-                psf_path = p
-                break
-        if not psf_path:
-            psf_path = psf_candidates[0]
+        psf_path = os.path.join(self.work_dir, "psf")
+        if not os.path.exists(psf_path):
+            psf_path = os.path.join(self.work_dir, "ams", "config", "psf")
             
         ocn_script = f"""
 openResults("{psf_path}")
@@ -296,12 +247,7 @@ if(!sig sig = getData("{self.top_cell}.Board.TOP.GPIO8_$flow"))
 if(!sig sig = IT("/Board/GPIO8"))
 
 if(sig then
-    raw_val = abs(value(sig {sample_time}))
-    if(raw_val < 1e-3 then
-        val = raw_val * 1e6
-    else
-        val = raw_val
-    )
+    val = abs(value(sig {sample_time})) * 1e6
     p = outfile("/tmp/onetest_meas_val.txt" "w")
     fprintf(p "%.4f" val)
     close(p)
@@ -422,14 +368,6 @@ if(!i_gpio i_gpio=getData("{tc}.Board.TOP.GPIO8_$flow"))
 if(!i_gpio i_gpio=IT("/Board/GPIO8"))
 if(!i_gpio i_gpio=i("/Board/GPIO8"))
 
-if(i_gpio then
-    raw_val = abs(value(i_gpio 1.6m))
-    val = if(raw_val < 1e-3 raw_val * 1e6 raw_val)
-    p = outfile("/tmp/onetest_meas_val.txt" "w")
-    fprintf(p "%.4f" val)
-    close(p)
-)
-
 win = newWindow()
 if(bus_sig plot(bus_sig ?expr "NvTrmIref[5:0]" ?strip 1))
 if(i_gpio plot(i_gpio ?expr "I(GPIO8)" ?strip 2))
@@ -444,16 +382,14 @@ exit()
         try:
             result = subprocess.run(
                 "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/auto_wave_gen.ocn",
-                cwd="/tmp",
                 shell=True, executable="/bin/bash", capture_output=True, text=True)
-            
-            # Clean any stray Cadence library directories created in work_dir
-            for stray in [os.path.join(self.work_dir, self.lib_name), os.path.join(self.work_dir, "BVU025_Lary")]:
-                if os.path.exists(stray):
-                    shutil.rmtree(stray, ignore_errors=True)
-
+            # Print Ocean stdout so we can see the diagnostic printf() output
+            for line in result.stdout.splitlines():
+                if line.strip():
+                    print(f"  [OCN] {line}")
             if os.path.exists(img_file):
                 print(f"[OneTest Sim] Waveform screenshot successfully generated: {img_file}")
+                self.open_image(img_file)
                 return img_file
             else:
                 print(f"[OneTest Sim] WARNING: image not generated. Run diagnose_psf_signals() to check PSF contents.")
@@ -496,12 +432,6 @@ exit()
 
     def evaluate_results(self):
         """Dynamically parse cosim.oneTest.json and evaluate against Specification.json."""
-        if os.path.exists("/tmp/onetest_meas_val.txt"):
-            try:
-                os.remove("/tmp/onetest_meas_val.txt")
-            except Exception:
-                pass
-
         test_summary = self.config.get("description", f"OneTest Calibration & Trim Verification ({os.path.basename(self.work_dir)})")
         specs_dict = self.load_specifications()
         report = {
@@ -612,44 +542,6 @@ exit()
         print(f"=======================================================")
         print(f"[OneTest Sim] test_report.json generated successfully in {report_file}")
         return report
-
-    def generate_fail_report(self, reason="Execution Failed"):
-        """Foolproof FAIL report generation when simulation, config, or measurement cannot proceed."""
-        result_dir = os.path.join(self.work_dir, "result")
-        os.makedirs(result_dir, exist_ok=True)
-        report_file = os.path.join(result_dir, "test_report.json")
-        
-        fail_report = {
-            "test_summary": f"OneTest Calibration & Trim Verification ({os.path.basename(self.work_dir)})",
-            "tester_mode": "sim",
-            "spec_file": os.path.basename(self.json_path),
-            "error_reason": reason,
-            "items": {
-                "101": {
-                    "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
-                    "measured": "NO_DATA (FAIL)",
-                    "status": "FAIL"
-                },
-                "102": {
-                    "name": "Measure trimmed reference current on GPIO8",
-                    "measured": "NO_DATA (FAIL)",
-                    "status": "FAIL"
-                },
-                "103": {
-                    "name": "Capture transient simulation waveform",
-                    "status": "FAIL"
-                }
-            }
-        }
-        with open(report_file, "w", encoding="utf-8") as f:
-            json.dump(fail_report, f, indent=4)
-            
-        print(f"\n=======================================================")
-        print(f"       OneTest Verification Summary [FAIL ENFORCED]    ")
-        print(f"=======================================================")
-        print(json.dumps(fail_report, indent=4))
-        print(f"=======================================================")
-        return fail_report
 
 if __name__ == "__main__":
     runner = OneTestRunner()

@@ -93,10 +93,7 @@ class PythonVirtualTester:
                 print(f"[Python Virtual Tester @ {time_ns} ns ({time_us:.1f} us)] -> *** SAR Calibration Converged! Optimal Trim Code = {self.current_trim} (0x{self.current_trim:02X}), dDone = 1 ***", flush=True)
                 # Persist state for runner
                 state_dirs = [
-                    "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/result",
-                    "/home/lary/project/BVU025/SCH/cosim/pattern/TM14",
                     os.path.join(self.work_dir, "result"),
-                    self.work_dir,
                     os.path.join(self.work_dir, "..", "..", "result"),
                     os.path.join(self.work_dir, "..", "..", "..", "result"),
                     "/tmp"

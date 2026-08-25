@@ -486,11 +486,26 @@ amsd {{
         ]
         py_bridge_path = find_first_existing(candidate_c) or candidate_c[0]
 
-        # 14. Configure PSF output database directory (clean stale traces from previous runs)
-        psf_dir = os.path.join(pattern_dir, "psf") if pattern_dir and pattern_dir != netlist_dir else os.path.join(netlist_dir, "psf")
+        # 14. Configure PSF output database directory
+        # For ADE L, results must be placed in netlist_dir/../psf so ADE L's ViVA auto-plot can find them.
+        adel_psf_dir = os.path.abspath(os.path.join(netlist_dir, "..", "psf"))
+        if os.path.exists(os.path.abspath(os.path.join(netlist_dir, ".."))) and not os.path.exists(adel_psf_dir):
+            try:
+                os.makedirs(adel_psf_dir, exist_ok=True)
+            except Exception:
+                pass
+
+        if os.path.exists(adel_psf_dir):
+            psf_dir = adel_psf_dir
+        elif pattern_dir and pattern_dir != netlist_dir:
+            psf_dir = os.path.join(pattern_dir, "psf")
+        else:
+            psf_dir = os.path.join(netlist_dir, "psf")
+
         if os.path.exists(psf_dir):
+            preserve_files = {".simvision", "artistLogFile", "runObjFile", "simRunData", "variables_file", ".trynfssync"}
             for item in os.listdir(psf_dir):
-                if item != ".simvision":
+                if item not in preserve_files:
                     item_p = os.path.join(psf_dir, item)
                     if os.path.isfile(item_p) or os.path.islink(item_p):
                         try: os.remove(item_p)

@@ -443,7 +443,11 @@ exit()
             f.write(ocn_script)
             
         try:
-            subprocess.run("export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_meas.ocn", shell=True, executable="/bin/bash", capture_output=True)
+            subprocess.run(
+                "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_meas.ocn < /dev/null",
+                cwd="/tmp",
+                shell=True, executable="/bin/bash", capture_output=True, timeout=25
+            )
             if os.path.exists("/tmp/onetest_meas_val.txt"):
                 val_str = open("/tmp/onetest_meas_val.txt").read().strip()
                 if val_str and "ERROR" not in val_str:
@@ -547,9 +551,9 @@ exit()
 
         try:
             subprocess.run(
-                "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/auto_wave_gen.ocn",
+                "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/auto_wave_gen.ocn < /dev/null",
                 cwd="/tmp",
-                shell=True, executable="/bin/bash", capture_output=True, text=True)
+                shell=True, executable="/bin/bash", capture_output=True, text=True, timeout=30)
             
             # Clean stray Cadence directories
             for stray in [os.path.join(self.work_dir, self.lib_name)]:

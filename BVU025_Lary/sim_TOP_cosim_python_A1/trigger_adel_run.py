@@ -42,11 +42,11 @@ KEYSYM_MAP = {c: ord(c) for c in 'abcdefghijklmnopqrstuvwxyz0123456789 !"#$%&\'(
 for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
     KEYSYM_MAP[c] = ord(c)
 
-CIW_WIN = 0x2e00008
-# CIW geometry: 707x321 at position +1139+792
+CIW_WIN = 0x2a00008
+# CIW geometry: 795x336 at position +1030+734
 # Click in the command input area (bottom of CIW)
-CIW_X = 1139 + 350
-CIW_Y = 792 + 295
+CIW_X = 1030 + 397
+CIW_Y = 734 + 310
 
 def click_at(x, y):
     xtst.XTestFakeMotionEvent(display, -1, x, y, ctypes.c_ulong(0))

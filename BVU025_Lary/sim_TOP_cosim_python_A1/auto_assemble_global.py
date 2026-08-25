@@ -44,10 +44,13 @@ def find_first_existing(path_list):
     return None
 
 def load_onetest_config(netlist_dir, top_cell, pattern_dir=None):
-    """Find and load cosim.oneTest.json dynamically from pattern or netlist directory."""
+    """Find and load run_cosim.oneTest.json / cosim.oneTest.json dynamically from pattern or netlist directory."""
     search_paths = [
+        os.path.join(pattern_dir, "run_cosim.oneTest.json") if pattern_dir else None,
         os.path.join(pattern_dir, "cosim.oneTest.json") if pattern_dir else None,
+        os.path.join(netlist_dir, "run_cosim.oneTest.json"),
         os.path.join(netlist_dir, "cosim.oneTest.json"),
+        os.path.join(os.getcwd(), "run_cosim.oneTest.json"),
         os.path.join(os.getcwd(), "cosim.oneTest.json")
     ]
     for p in search_paths:
@@ -65,7 +68,7 @@ def universal_assemble(netlist_dir, pattern_dir=None):
     """Assemble AMS netlist, subcircuits, and control files using TM14 pattern objects."""
     netlist_dir = os.path.abspath(netlist_dir)
     
-    # Resolve valid pattern directory containing cosim.oneTest.json
+    # Resolve valid pattern directory containing run_cosim.oneTest.json / cosim.oneTest.json
     candidates = [
         pattern_dir,
         os.getcwd(),
@@ -75,7 +78,7 @@ def universal_assemble(netlist_dir, pattern_dir=None):
     ]
     resolved_pattern_dir = None
     for cand in candidates:
-        if cand and os.path.exists(os.path.join(cand, "cosim.oneTest.json")):
+        if cand and (os.path.exists(os.path.join(cand, "run_cosim.oneTest.json")) or os.path.exists(os.path.join(cand, "cosim.oneTest.json"))):
             resolved_pattern_dir = os.path.abspath(cand)
             break
     if not resolved_pattern_dir:
@@ -560,6 +563,15 @@ amsd {{
             import shutil
             shutil.copy2(py_tester_src, os.path.join(netlist_dir, "py_tester.py"))
 
+        # Also sync py_tester.sv and py_bridge.c to netlist dir to ensure ADE L compiles fresh ones!
+        for sf in ["py_tester.sv", "py_bridge.c"]:
+            src_f = find_first_existing([
+                os.path.join(pattern_dir, sf),
+                os.path.join(netlist_dir, sf)
+            ])
+            if src_f and os.path.dirname(src_f) != netlist_dir:
+                shutil.copy2(src_f, os.path.join(netlist_dir, sf))
+
         # --- Delete stale __pycache__ (prevents old .pyc from masking updated py_tester.py) ---
         for pycache_root in [netlist_dir, pattern_dir]:
             pycache_dir = os.path.join(pycache_root, "__pycache__")
@@ -630,4 +642,5 @@ save {top_cell}.Board.TOP.I_Bias:all
 
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
-    universal_assemble(target)
+    pat_dir = sys.argv[2] if len(sys.argv) > 2 else None
+    universal_assemble(target, pattern_dir=pat_dir)

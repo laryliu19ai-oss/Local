@@ -1,14 +1,17 @@
 {
-    "test_summary": "OneTest Calibration & Trim Verification (TM14)",
+    "test_summary": "OneTest Verification (sim_TOP_cosim_python_A1)",
     "tester_mode": "sim",
     "spec_file": "Specification.json",
+    "top_cell": "sim_TOP_cosim_python_A1",
+    "dut": "BVU025_Lary.TOP_A1",
     "items": {
         "101": {
             "name": "Verify SAR Optimal Trim Code on NvTrmIref<5:0>",
             "step_id": "sar_calibration_search",
             "sample_time": "500u",
+            "connection": "NvTrmIref",
             "result_file": "result/test_report.json",
-            "result_path": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/result/test_report.json",
+            "result_path": "c:\\Antgravity\\Local\\BVU025_Lary\\sim_TOP_cosim_python_A1\\result\\test_report.json",
             "limits": {
                 "exclude": [
                     "0x00",
@@ -17,32 +20,28 @@
                 "min": 1,
                 "max": 62
             },
-            "measured": "0x00 (0)",
+            "measured": "0x3F (63)",
             "status": "FAIL"
         },
         "102": {
             "name": "Measure trimmed reference current on GPIO8",
             "step_id": "measure_trimmed_iref",
             "sample_time": "1.6m",
+            "connection": "GPIO8",
             "unit": "uA",
-            "measured": 0.33,
+            "measured": null,
             "result_file": "result/test_report.json",
-            "result_path": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/result/test_report.json",
-            "limits": {
-                "lower": 0.9,
-                "upper": 1.1
-            },
-            "status": "FAIL"
+            "result_path": "c:\\Antgravity\\Local\\BVU025_Lary\\sim_TOP_cosim_python_A1\\result\\test_report.json",
+            "status": "FAIL (NO_SIGNAL_DATA)"
         },
         "103": {
             "name": "Capture transient simulation waveform",
             "step_id": "capture_full_waveform",
             "sample_time": "1.8m",
+            "connection": "VDD_PCB",
             "psf_database": "psf/",
-            "waveform_image": "images/cosim_waveform.png",
-            "image_path": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/images/cosim_waveform.png",
-            "viva_command": "viva -mode xl -results /home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf",
-            "status": "PASS"
+            "viva_command": "viva -mode xl -results c:\\Antgravity\\Local\\BVU025_Lary\\sim_TOP_cosim_python_A1\\psf",
+            "status": "FAIL (NO_PSF_DATABASE)"
         }
     }
 }

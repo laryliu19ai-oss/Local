@@ -1,0 +1,213 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/specification.schema",
+    "version": 1.0,
+    "release": "2026/08/24",
+    "author": "Lary Liu",
+    "title": "OneTest Verification Specifications and Limits",
+    "description": "JSON Schema for OneTest test specifications, PASS/FAIL verification limits, metrics, and sampling conditions.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "URI reference to this schema",
+            "type": "string"
+        },
+        "version": {
+            "description": "Configuration file format version",
+            "type": [
+                "number",
+                "string"
+            ],
+            "default": "1.0"
+        },
+        "release": {
+            "description": "Release date of the specification file. Format is yyyy/mm/dd.",
+            "type": "string",
+            "pattern": "^(?:19|20|2[0-9])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "Author of the specification",
+            "type": "string"
+        },
+        "description": {
+            "description": "General description or notes for the test specifications",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug / verbose verification output",
+            "type": "boolean",
+            "default": false
+        },
+        "specifications": {
+            "description": "Dictionary of test item specifications keyed by item ID or test name",
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9_-]+$": {
+                    "$ref": "#/definitions/testItemSpecification"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "specifications"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "testItemSpecification": {
+            "type": "object",
+            "properties": {
+                "test_item_id": {
+                    "description": "Numeric identifier for the test item (e.g. 101, 102)",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Human-readable test item title or description",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "Classification category of the measurement",
+                    "type": "string",
+                    "enum": [
+                        "digital_measurement",
+                        "current_measurement",
+                        "voltage_measurement",
+                        "waveform_measurement",
+                        "power_measurement",
+                        "timing_measurement",
+                        "frequency_measurement",
+                        "resistance_measurement",
+                        "temperature_measurement",
+                        "generic_measurement"
+                    ]
+                },
+                "metric": {
+                    "description": "Primary measurement metric (e.g. TRIM_CODE, IREF, VOUT, FREQ)",
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "Physical measurement unit (e.g. uA, mA, A, V, mV, us, ms, ns, Hz, MHz, Ohm)",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Data representation format for values and limits",
+                    "type": "string",
+                    "enum": [
+                        "hex",
+                        "binary",
+                        "decimal",
+                        "float",
+                        "scientific",
+                        "boolean",
+                        "string"
+                    ]
+                },
+                "connection": {
+                    "description": "Circuit node, net, terminal, or pin being evaluated (e.g. GPIO8, NvTrmIref)",
+                    "type": "string"
+                },
+                "sample_time": {
+                    "description": "Timestamp at which to evaluate/sample the measurement (e.g. '1.6m', '500u')",
+                    "type": [
+                        "string",
+                        "number"
+                    ]
+                },
+                "limits": {
+                    "$ref": "#/definitions/verificationLimits"
+                },
+                "conditions": {
+                    "description": "Operating conditions under which this specification applies",
+                    "type": "object",
+                    "properties": {
+                        "vdd": {
+                            "description": "Supply voltage in Volts",
+                            "type": "number"
+                        },
+                        "temp_c": {
+                            "description": "Temperature in Celsius",
+                            "type": "number"
+                        },
+                        "corner": {
+                            "description": "Process corner name (e.g. TT, FF, SS)",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "description": {
+                    "description": "Detailed explanation of the test criteria and rationale",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "test_item_id",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "verificationLimits": {
+            "description": "PASS/FAIL bounding limits and exclusion rules",
+            "type": "object",
+            "properties": {
+                "lower": {
+                    "description": "Lower acceptable bound (inclusive)",
+                    "type": "number"
+                },
+                "upper": {
+                    "description": "Upper acceptable bound (inclusive)",
+                    "type": "number"
+                },
+                "min": {
+                    "description": "Minimum acceptable value (alias of lower)",
+                    "type": "number"
+                },
+                "max": {
+                    "description": "Maximum acceptable value (alias of upper)",
+                    "type": "number"
+                },
+                "target": {
+                    "description": "Nominal or target design value",
+                    "type": "number"
+                },
+                "tolerance": {
+                    "description": "Absolute bilateral tolerance (target +/- tolerance)",
+                    "type": "number"
+                },
+                "tolerance_percent": {
+                    "description": "Percentage bilateral tolerance (target +/- tolerance%)",
+                    "type": "number"
+                },
+                "exact": {
+                    "description": "Exact required value for a PASS result",
+                    "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                    ]
+                },
+                "exclude": {
+                    "description": "List of invalid/forbidden boundary values (e.g. ['0x00', '0x3F'])",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number"
+                        ]
+                    }
+                },
+                "include": {
+                    "description": "Explicit whitelist of acceptable values",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number"
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

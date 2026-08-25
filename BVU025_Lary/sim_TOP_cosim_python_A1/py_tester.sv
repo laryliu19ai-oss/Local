@@ -32,15 +32,8 @@ module py_tester (
     export "DPI-C" function sv_get_cmp;
     export "DPI-C" task sv_finish_simulation;
 
-    // Default pin initialization and launch Python master controller
+    // Launch Python master test controller (Initial values are 100% driven by JSON "init" step)
     initial begin
-        TMIRefOn   = 1'b0;
-        TMIRefMeas = 1'b0;
-        CLK        = 1'b0;
-        dDone      = 1'b0;
-        NvTrmIref  = 6'b100000; // Default 0x20 (32)
-
-        // Launch Python master test flow
         c_main_tester();
     end
 

@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../schema/specification.schema.json",
+    "$schema": "../schema/specification.schema.json",
     "version": "1.0",
     "release": "2026/08/24",
     "author": "Lary Liu",

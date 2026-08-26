@@ -1,0 +1,139 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Python-led DPI-C I2C Transaction Schema",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "number"
+        },
+        "i2c_master": {
+            "type": "object",
+            "properties": {
+                "speed_ns": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 5000
+                },
+                "ignore_nack": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "comment": {
+                                "type": "string"
+                            },
+                            "addr": {
+                                "anyOf": [
+                                    { "type": "integer", "minimum": 0, "maximum": 127 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "raw_write",
+                                    "raw_read",
+                                    "reg_write",
+                                    "reg_read",
+                                    "delay",
+                                    "generate_clocks"
+                                ]
+                            },
+                            "rw": {
+                                "type": "integer",
+                                "enum": [0, 1]
+                            },
+                            "subaddr": {
+                                "anyOf": [
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "anyOf": [
+                                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                            ]
+                                        }
+                                    },
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            },
+                            "data": {
+                                "anyOf": [
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "anyOf": [
+                                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                            ]
+                                        }
+                                    },
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            },
+                            "read_len": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "use_global": {
+                                "type": "boolean"
+                            },
+                            "speed_ns": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "ignore_nack": {
+                                "type": "boolean"
+                            },
+                            "delay_ns": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "clocks_count": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "period_ns": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "expect_data": {
+                                "anyOf": [
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "anyOf": [
+                                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                            ]
+                                        }
+                                    },
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "speed_ns",
+                "ignore_nack",
+                "data"
+            ]
+        }
+    },
+    "required": [
+        "version",
+        "i2c_master"
+    ]
+}

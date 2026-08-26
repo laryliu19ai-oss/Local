@@ -1,0 +1,196 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/pdkoption.schema",
+    "version": 1.0,
+    "release": "2025/05/08",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "PDK Patching Procedure",
+    "description": "Define the procedure for applying PDK patches",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the PDK option configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the configuration file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "library": {
+            "description": "Default imported library name. This field will be overridden by the category's library name setting.",
+            "type": [ "string", "null" ],
+            "pattern": "^[A-Za-z0-9_$#]*$"
+        },
+        "database": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string"
+                        },
+                        "backup": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "mask": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "deviceMask": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "deviceRule": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "excludedDevices": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "excludedMasks": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "includedDevices": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "deviceOption": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "description": {
+                                "type": "string"
+                            },
+                            "repository": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "metalScheme",
+                                            "hrPolyRes",
+                                            "mimCap",
+                                            "momCap",
+                                            "techfile",
+                                            "streamMap"
+                                        ]
+                                    },
+                                    "folder": {
+                                        "type": "string"
+                                    },
+                                    "metalScheme": {
+                                        "type": "string",
+                                        "enum": [
+                                            "none",
+                                            "prefix",
+                                            "complete"
+                                        ],
+                                        "default": "complete"
+                                    },
+                                    "root": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "delimiter": {
+                                        "type": "string"
+                                    },
+                                    "filename": {
+                                        "type": "object",
+                                        "properties": {
+                                            "source": {
+                                                "type": "string"
+                                            },
+                                            "target": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "options": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "prefix": {
+                                            "type": "string"
+                                        },
+                                        "suffix": {
+                                            "type": "string"
+                                        },
+                                        "delimiter": {
+                                            "type": "string"
+                                        },
+                                        "option": {
+                                            "type":  [ "array", "string" ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "rules": {
+                                            "type": [ "array", "string", "null" ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

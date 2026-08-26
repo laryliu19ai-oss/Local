@@ -136,7 +136,7 @@ void c_main_tester(void) {
         "    os.path.abspath(os.path.join(os.getcwd(), '../../..')),\n"
         "    os.path.abspath(os.path.join(os.getcwd(), '..')),\n"
         "    '/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1',\n"
-        "    '/home/lary/project/BVU025/SCH/cosim/pattern/TM14',\n"
+        "    '/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15',\n"
         "    '/home/lary/project/BVU025/python/sim_TOP_cosim_python_A1'\n"
         "]\n"
         "for p in search_paths:\n"

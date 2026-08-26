@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvremote.cadence.skill/security.config.schema.json",
+  "title": "bvRemote Security Configuration",
+  "description": "Security configuration schema for bvRemote access control and audit system",
+  "type": "object",
+  "required": ["mode"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["disabled", "whitelist", "blacklist"],
+      "description": "Security mode: disabled (no restrictions), whitelist (only allowed operations), blacklist (forbidden operations blocked)",
+      "default": "disabled"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this configuration"
+    },
+    "allowedFunctions": {
+      "type": "array",
+      "description": "List of SKILL functions allowed in whitelist mode",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "forbiddenFunctions": {
+      "type": "array",
+      "description": "List of SKILL functions forbidden in all modes",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "allowedPaths": {
+      "type": "array",
+      "description": "List of file system paths allowed for file operations (whitelist mode)",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "forbiddenPaths": {
+      "type": "array",
+      "description": "List of file system paths forbidden for file operations (all modes)",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "auditLog": {
+      "type": "boolean",
+      "description": "Enable audit logging of all security checks",
+      "default": false
+    },
+    "auditLogFile": {
+      "type": "string",
+      "description": "Path to audit log file",
+      "default": "/tmp/bvremote_audit.log"
+    },
+    "resourceLimits": {
+      "type": "object",
+      "description": "Resource usage limits to prevent abuse",
+      "properties": {
+        "maxMemory": {
+          "type": "integer",
+          "description": "Maximum memory usage in bytes",
+          "minimum": 0
+        },
+        "maxCPUTime": {
+          "type": "integer",
+          "description": "Maximum CPU time in seconds per operation",
+          "minimum": 0
+        },
+        "maxObjects": {
+          "type": "integer",
+          "description": "Maximum number of remote objects",
+          "minimum": 0
+        },
+        "maxConnections": {
+          "type": "integer",
+          "description": "Maximum number of concurrent connections",
+          "minimum": 1
+        }
+      }
+    },
+    "warningCapture": {
+      "type": "object",
+      "description": "Warning capture system configuration (learned from skillbridge)",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable warning capture during SKILL execution",
+          "default": true
+        },
+        "includeInResponse": {
+          "type": "boolean",
+          "description": "Include warnings in JSON-RPC response",
+          "default": true
+        },
+        "logWarnings": {
+          "type": "boolean",
+          "description": "Log warnings to audit log",
+          "default": false
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Human-readable notes about this configuration",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

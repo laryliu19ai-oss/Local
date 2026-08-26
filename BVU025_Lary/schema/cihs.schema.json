@@ -1,0 +1,265 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/cihs.schema",
+    "version": 1.0,
+    "release": "2026/05/06",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "CIHS Floating Leakage Analysis",
+    "description": "Configuration for CIHS (Current Injection High-impedance Scan) floating leakage analysis. Uses the same simulation/parameters sections as sim.schema.json, plus floatingNodeCheck for CIHS-specific settings.",
+    "type": "object",
+    "required": ["floatingNodeCheck"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "type": "number",
+            "default": 1.0
+        },
+        "release": {
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": { "type": "string" },
+        "debugMode": { "type": "boolean", "default": false },
+        "simulationRef": {
+            "description": "Path to external JSON file (relative to working directory) that contains a 'simulation' key. When present, overrides the inline 'simulation' section. Enables shared simulation configuration across multiple CIHS configs.",
+            "type": "string"
+        },
+        "parametersRef": {
+            "description": "Path to external JSON file that contains a 'parameters' key. When present, overrides the inline 'parameters' section.",
+            "type": "string"
+        },
+        "simulation": {
+            "description": "Spectre simulation environment settings (same format as sim.schema.json). Applied during netlisting (switchView, stopView, temp) and simulation (model files, APS mode).",
+            "type": "object",
+            "properties": {
+                "spectre": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {
+                            "type": "object",
+                            "properties": {
+                                "performance": { "type": "string", "enum": ["APS", "UltraSim", "spectre"] },
+                                "apsplus": { "type": "boolean" }
+                            }
+                        },
+                        "environment": {
+                            "type": "object",
+                            "properties": {
+                                "cmd64bit": { "type": "boolean", "default": true },
+                                "autoDisplay": { "type": "boolean", "default": true },
+                                "switchView": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["spectre", "veriloga", "schematic"]
+                                },
+                                "stopView": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["spectre", "veriloga"]
+                                }
+                            }
+                        },
+                        "model": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["file"],
+                                "properties": {
+                                    "file": { "type": "string" },
+                                    "section": {
+                                        "type": "array",
+                                        "items": { "type": "string" }
+                                    }
+                                }
+                            }
+                        },
+                        "output": {
+                            "type": "object",
+                            "properties": {
+                                "directory": { "type": "string" },
+                                "format": { "type": "string", "enum": ["psf", "psfascii"] }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "description": "Design variables applied via desVar() before netlisting. Same format as sim.schema.json. Accepts number or SI-prefix string evaluated via evalstring() -- e.g. \"5\" or 5 for parVdd, \"2u\" for parW.",
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "number" },
+                        { "type": "boolean" }
+                    ]
+                }
+            }
+        },
+        "floatingNodeCheck": {
+            "description": "CIHS-specific configuration: target testbench, supply net exclusions, injection current, and leakage detection threshold.",
+            "type": "object",
+            "required": ["testbench"],
+            "properties": {
+                "testbench": {
+                    "description": "Target schematic cell and simulation conditions.",
+                    "type": "object",
+                    "required": ["library", "cell", "view"],
+                    "properties": {
+                        "library":     { "type": "string" },
+                        "cell":        { "type": "string" },
+                        "view":        { "type": "string", "default": "schematic" },
+                        "simulator":   { "type": "string", "default": "spectre" },
+                        "temperature": { "type": "number", "default": 27 }
+                    },
+                    "additionalProperties": false
+                },
+                "supply": {
+                    "description": "Net names excluded from leak detection (supply rails and ground).",
+                    "type": "object",
+                    "properties": {
+                        "powerNets": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "default": ["VDD", "vdd!", "VCC"]
+                        },
+                        "groundNets": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "default": ["GND", "gnd!", "VSS", "0"]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "ignoredVoltageThreshold": {
+                    "description": "Simple absolute voltage margin (V) around auto-detected supply rails (Step 3). Shorthand for ignoredVoltage with mode=absolute. Omit or 0 to disable.",
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "ignoredVoltage": {
+                    "description": "Voltage-based supply filtering with explicit mode. Takes precedence over ignoredVoltageThreshold when both are present.",
+                    "type": "object",
+                    "required": ["threshold"],
+                    "properties": {
+                        "mode": {
+                            "description": "absolute: margin in volts; percentage: fraction of detected supply range (VDD_max - VSS_min).",
+                            "type": "string",
+                            "enum": ["absolute", "percentage"],
+                            "default": "absolute"
+                        },
+                        "threshold": {
+                            "description": "Threshold value. For absolute: volts (e.g. 0.1 = 100mV). For percentage: fraction of range (e.g. 0.05 = 5%).",
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "scanMode": {
+                    "description": "Injection scan strategy. \"bulk\" (default): all D/S candidates injected simultaneously in one +I and one -I DC run (3 total). \"perNet\": one +I and one -I DC per candidate (1+2N total, higher resource usage). Use \"perNet\" only for debugging or convergence troubleshooting.",
+                    "type": "string",
+                    "enum": ["bulk", "perNet"],
+                    "default": "bulk"
+                },
+                "injectionCurrent": {
+                    "description": "Injection current magnitude. Accepts number (1e-8) or SI-prefix string -- e.g. \"10n\" = 10nA.",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ],
+                    "default": "10n"
+                },
+                "resistanceThreshold": {
+                    "description": "Minimum impedance to flag as floating leakage (Step 4). Accepts number (1000000) or SI-prefix string -- e.g. \"1M\" = 1 MOhm.",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ],
+                    "default": "1M"
+                },
+                "ignoreInstances": {
+                    "description": "Sub-instances to skip when traversing the schematic hierarchy during baseline net collection (Step 2). Supports object format {libraries, cells} or array format [{library}, {library, cell}]. Object format is auto-converted internally.",
+                    "oneOf": [
+                        {
+                            "description": "Object format: separate lists for libraries and specific cells.",
+                            "type": "object",
+                            "properties": {
+                                "libraries": {
+                                    "description": "Exclude all cells from these libraries (e.g. 'analogLib', 'basic', 'umc18cdmos').",
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["analogLib", "basic"]
+                                },
+                                "cells": {
+                                    "description": "Exclude specific library/cell combinations.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["library", "cell"],
+                                        "properties": {
+                                            "library": { "type": "string" },
+                                            "cell":    { "type": "string" }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    "default": []
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "Array format: each entry is {library} or {libraries} to exclude libraries, or {library, cell} for a specific cell.",
+                            "type": "array",
+                            "items": {
+                                "oneOf": [
+                                    {
+                                        "description": "Exclude a single library, optionally scoped to one cell.",
+                                        "type": "object",
+                                        "required": ["library"],
+                                        "properties": {
+                                            "library": { "type": "string" },
+                                            "cell":    { "type": "string" }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "description": "Exclude multiple libraries in one array entry.",
+                                        "type": "object",
+                                        "required": ["libraries"],
+                                        "properties": {
+                                            "libraries": {
+                                                "type": "array",
+                                                "items": { "type": "string" }
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "analysis": {
+                    "description": "Deprecated -- use resistanceThreshold directly under floatingNodeCheck.",
+                    "type": "object",
+                    "properties": {
+                        "resistanceThreshold": {
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

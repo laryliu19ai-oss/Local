@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvskill.com/schemas/ohmie_subagent_config.schema.json",
+  "title": "Ohmie Sub-Agent Configuration Schema",
+  "description": "Schema for Ohmie sub-agent system configuration",
+  "type": "object",
+  "required": ["ohmie_config"],
+  "properties": {
+    "ohmie_config": {
+      "type": "object",
+      "required": ["version", "main_llm", "sub_agents", "delegation_limits"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$",
+          "description": "Configuration schema version"
+        },
+        "main_llm": {
+          "$ref": "#/definitions/llm_config",
+          "description": "Main LLM configuration"
+        },
+        "sub_agents": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "$ref": "#/definitions/sub_agent_config"
+            }
+          },
+          "description": "Sub-agent configurations keyed by agent ID"
+        },
+        "delegation_limits": {
+          "type": "object",
+          "required": ["max_depth", "max_parallel_agents", "max_total_agents"],
+          "properties": {
+            "max_depth": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Maximum delegation depth"
+            },
+            "max_parallel_agents": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Maximum parallel sub-agents"
+            },
+            "max_total_agents": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Maximum total agents in delegation tree"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "llm_config": {
+      "type": "object",
+      "required": ["model", "provider"],
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": [
+            "gemini-pro",
+            "gemini-flash",
+            "gpt-4",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+            "claude-3-opus",
+            "claude-3-sonnet",
+            "claude-3-haiku"
+          ],
+          "description": "LLM model identifier"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["google", "openai", "anthropic"],
+          "description": "LLM provider"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 32768,
+          "default": 4096,
+          "description": "Maximum tokens per response"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 2.0,
+          "default": 0.7,
+          "description": "Model temperature"
+        },
+        "api_key_env": {
+          "type": "string",
+          "description": "Environment variable name for API key"
+        }
+      }
+    },
+    "sub_agent_config": {
+      "type": "object",
+      "required": [
+        "model",
+        "provider",
+        "role",
+        "allowed_tools",
+        "allowed_sub_agents",
+        "max_iterations",
+        "timeout_seconds",
+        "skills"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "LLM model identifier"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["google", "openai", "anthropic"],
+          "description": "LLM provider"
+        },
+        "role": {
+          "type": "string",
+          "description": "Sub-agent role identifier"
+        },
+        "allowed_tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "List of permitted tool names"
+        },
+        "allowed_sub_agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of sub-agents this agent can delegate to"
+        },
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Maximum iteration count"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 3600,
+          "description": "Timeout for agent execution"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of Claude Skills this agent can use"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 2.0,
+          "default": 0.7,
+          "description": "Model temperature"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 32768,
+          "default": 4096,
+          "description": "Max tokens per response"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "coordinator",
+              "analyst",
+              "simulator",
+              "file_access",
+              "evaluator"
+            ]
+          },
+          "description": "Permission levels for this agent"
+        }
+      }
+    }
+  }
+}

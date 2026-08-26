@@ -1,0 +1,126 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/layout.schema",
+    "version": 1.0,
+    "release": "2025/07/02",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Layout Configuration",
+    "description": "Defines the layers and their parameters for layout",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the layout configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the layout file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode. The default value is false.",
+            "type": "boolean",
+            "default": false
+        },
+        "layout": {
+            "type": "object",
+            "properties": {
+                "techfile": {
+                    "description": "The technology file name.",
+                    "type": "string"
+                },
+                "rule": {
+                    "type": "object",
+                    "properties": {
+                        "numberOfChopSides": {
+                            "description": "The number of sides for chopping polygons. Default is 10.",
+                            "type": "integer",
+                            "minimum": 3,
+                            "default": 10
+                        },
+                        "slotChop": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "layer": {
+                                        "$ref": "#/definitions/layerDef"
+                                    },
+                                    "slotMaskLayer": {
+                                        "$ref": "#/definitions/layerDef"
+                                    }
+                                },
+                                "required": [
+                                    "layer",
+                                    "slotMaskLayer"
+                                ],
+                                "additionalProperties": false
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "slotChop": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "library": {
+                                "$ref": "#/definitions/stringOrStringArray"
+                            },
+                            "cell": {
+                                "$ref": "#/definitions/stringOrStringArray"
+                            },
+                            "view": {
+                                "$ref": "#/definitions/stringOrStringArray"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "required": [
+                "techfile",
+                "rule"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "layerDef": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The name of the layer.",
+                    "type": "string"
+                },
+                "purpose": {
+                    "description": "The purpose of the layer.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "stringOrStringArray": {
+            "type": [ "string", "array" ],
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+}

@@ -1,0 +1,49 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/vscode.schema",
+    "version": 1.0,
+    "release": "2025/05/31",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "SKILL Settings for VSCode",
+    "description": "Define the Cadence SKILL language extension settings for VSCode",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the VSCode environment configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the version of the VSCode configuration",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "skill": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "description": "The version of the SKILL language used in the project.",
+                    "type": "string",
+                    "enum": [
+                        "IC 6.1.8"
+                    ],
+                    "default": "IC 6.1.8"
+                },
+                "searchFolderPath": {
+                    "description": "The search path to the folder containing SKILL files.",
+                    "type": "string",
+                    "default": ".",
+                    "pattern": "^(\\.|\\.?/.*)$"
+                },
+                "autoComplete": {
+                    "description": "Enable or disable the auto-completion feature for SKILL files.",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

@@ -1,0 +1,152 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/runObj.schema",
+    "version": 1.0,
+    "release": "2026/02/10",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "PSF Run Object",
+    "description": "JSON representation of PSF runObjFile for parametric simulation results",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["header", "runs"],
+    "properties": {
+        "$schema": {
+            "description": "JSON schema reference",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "header": {
+            "description": "Run object metadata",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "psfVersion": {
+                    "description": "PSF format version",
+                    "type": "string",
+                    "default": "1.00"
+                },
+                "runGenerator": {
+                    "description": "Generator that created this run object",
+                    "type": "string",
+                    "default": "drlRun rev. 1.0"
+                },
+                "runTimeStamp": {
+                    "description": "Timestamp when run was created",
+                    "type": "string"
+                },
+                "simulator": {
+                    "description": "Simulator name",
+                    "type": "string",
+                    "enum": ["spectre", "hspice", "finesim"]
+                },
+                "netlistDir": {
+                    "description": "Netlist directory path",
+                    "type": "string"
+                }
+            },
+            "required": ["simulator"]
+        },
+        "runs": {
+            "description": "Run objects indexed by run name",
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[a-zA-Z0-9_=.,:-]+$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "logName": {
+                            "description": "Array of log file paths",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": []
+                        },
+                        "parent": {
+                            "description": "Parent run object name (empty string for root)",
+                            "type": "string"
+                        },
+                        "sweepVariable": {
+                            "description": "Array of sweep variable names for this level",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": []
+                        },
+                        "properties": {
+                            "description": "Run properties (parameters, paths, etc.)",
+                            "type": "object",
+                            "additionalProperties": true,
+                            "properties": {
+                                "netlistDir": {
+                                    "description": "Netlist directory for this run",
+                                    "type": "string"
+                                },
+                                "dataDir": {
+                                    "description": "Data directory for this run's results",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "required": ["parent", "sweepVariable"]
+                }
+            }
+        },
+        "runOrder": {
+            "description": "Ordered list of run names as they appear in original PSF file. If provided, serialization will preserve this order. If omitted, topological sorting is used.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
+    "examples": [
+        {
+            "header": {
+                "psfVersion": "1.00",
+                "runGenerator": "drlRun rev. 1.0",
+                "runTimeStamp": "Feb 10 10:47:17 2026",
+                "simulator": "spectre",
+                "netlistDir": "../netlist"
+            },
+            "runs": {
+                "Root": {
+                    "logName": [],
+                    "parent": "",
+                    "sweepVariable": ["temp"],
+                    "properties": {}
+                },
+                "temp=25": {
+                    "logName": [
+                        "../temp=25/psf/logFile",
+                        "../temp=25/psf/artistLogFile"
+                    ],
+                    "parent": "Root",
+                    "sweepVariable": [],
+                    "properties": {
+                        "temp": 25,
+                        "netlistDir": "../netlist",
+                        "dataDir": "../temp=25"
+                    }
+                },
+                "temp=40": {
+                    "logName": [
+                        "../temp=40/psf/logFile",
+                        "../temp=40/psf/artistLogFile"
+                    ],
+                    "parent": "Root",
+                    "sweepVariable": [],
+                    "properties": {
+                        "temp": 40,
+                        "netlistDir": "../netlist",
+                        "dataDir": "../temp=40"
+                    }
+                }
+            },
+            "runOrder": ["Root", "temp=25", "temp=40"]
+        }
+    ]
+}

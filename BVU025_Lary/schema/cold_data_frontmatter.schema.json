@@ -1,0 +1,162 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/cold_data_frontmatter.schema",
+    "version": 1.0,
+    "release": "2026/07/16",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "ContextBox Cold-Data Frontmatter",
+    "description": "YAML frontmatter schema for ContextBox cold-data leaf files (.md documents under platforms/contextBox/cold-data/). Defines required and optional metadata fields for PDF-converted documents.",
+    "type": "object",
+    "properties": {
+        "source_file": {
+            "description": "Filename of the source PDF (e.g., 'calbr_defrev_user.pdf')",
+            "type": "string",
+            "minLength": 1
+        },
+        "source_path": {
+            "description": "Relative path to source PDF in the manual repository (e.g., 'manual/seimens/Calibre/calbr_defrev_user.pdf')",
+            "type": "string",
+            "minLength": 1
+        },
+        "tool": {
+            "description": "Name of the tool/product documented (e.g., 'Mentor Calibre', 'FlexNet Publisher', 'mPower')",
+            "type": "string",
+            "minLength": 1
+        },
+        "tool_family": {
+            "description": "Family/vendor of the tool (e.g., 'MentorGraphics', 'FlexNet', 'SiemensEDA')",
+            "type": "string",
+            "minLength": 1
+        },
+        "version": {
+            "description": "Tool version as string (e.g., '2021.4', '11.16.4'). Must be quoted to preserve leading zeros and decimal points.",
+            "type": "string",
+            "minLength": 1
+        },
+        "doc_type": {
+            "description": "Type of documentation (actual values observed in corpus: user_guide, ref_manual, release_notes, quick_ref, tutorial)",
+            "type": "string",
+            "enum": ["user_guide", "ref_manual", "release_notes", "quick_ref", "quick_start", "tutorial", "reference", "installation", "admin_guide"]
+        },
+        "language": {
+            "description": "Language code (ISO 639-1, e.g., 'en', 'zh')",
+            "type": "string",
+            "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"
+        },
+        "pages": {
+            "description": "Total page count of the source PDF",
+            "type": "integer",
+            "minimum": 1
+        },
+        "sha256": {
+            "description": "SHA256 hash of the source PDF file (lowercase hex, 64 characters)",
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+        },
+        "processed": {
+            "description": "Date this leaf was processed/transcribed. May be ISO date string or YAML date object (stored as string format YYYY-MM-DD).",
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "chapter": {
+            "description": "Chapter title. May contain colons — must be quoted in YAML to avoid parse errors.",
+            "type": "string",
+            "minLength": 1
+        },
+        "chapter_idx": {
+            "description": "Chapter index (1-based sequential number within document)",
+            "type": "integer",
+            "minimum": 1
+        },
+        "section": {
+            "description": "Section title within the chapter. Should be present for all leaves, but currently missing in ~27% of the corpus.",
+            "type": "string",
+            "minLength": 1
+        },
+        "section_pages": {
+            "description": "Page range of this section in the source PDF (e.g., '1-2', '411-411'). Should be string format, not int or list.",
+            "type": "string",
+            "minLength": 1
+        },
+        "images": {
+            "description": "Image metadata for this leaf. Either an object with count/files, or null if no images.",
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Number of images referenced in this leaf",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "files": {
+                    "description": "List of image filenames (relative paths under the document's images/ directory, no ../images/ prefix)",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "required": ["count"],
+            "additionalProperties": false
+        },
+        "chapter_title": {
+            "description": "Alternative/duplicate name for chapter (non-standard field, may appear from some subagent runs)",
+            "type": "string",
+            "minLength": 1
+        },
+        "start_page": {
+            "description": "Page number where this leaf's content begins in the source PDF (non-standard field)",
+            "type": "integer",
+            "minimum": 1
+        },
+        "end_page": {
+            "description": "Page number where this leaf's content ends in the source PDF (non-standard field)",
+            "type": "integer",
+            "minimum": 1
+        },
+        "title": {
+            "description": "Alternative/duplicate name for chapter or section (non-standard field)",
+            "type": "string",
+            "minLength": 1
+        },
+        "source": {
+            "description": "Alternative/duplicate name for source_path (non-standard field)",
+            "type": "string",
+            "minLength": 1
+        },
+        "image_count": {
+            "description": "Alternative/duplicate name for images.count (non-standard field)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "images_used": {
+            "description": "Non-standard field sometimes used instead of images.count",
+            "type": "integer",
+            "minimum": 0
+        },
+        "subsection": {
+            "description": "Non-standard alternative name for section",
+            "type": "string",
+            "minLength": 1
+        },
+        "version_raw": {
+            "description": "Raw version string (non-standard field sometimes present alongside version)",
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "required": [
+        "source_file",
+        "source_path",
+        "tool",
+        "tool_family",
+        "version",
+        "doc_type",
+        "language",
+        "sha256",
+        "processed",
+        "chapter",
+        "chapter_idx"
+    ],
+    "additionalProperties": false
+}

@@ -1,0 +1,510 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/fnode.schema",
+    "version": 1.0,
+    "release": "2026/05/14",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Floating Node Analysis Configuration",
+    "description": "Configuration for bvFloatingNodeAnalysis: full-pipeline floating MOS gate detection. Supports two scan algorithms — CIHS (Current-Injection High-Z Scan, 3 DC runs) and RPHS (Rail-Pull High-Z Scan, 2 DC runs, better convergence). Loaded by bvJsonConfigParse with prefix 'fnode' (file pattern: <name>.fnode.json).",
+    "type": "object",
+    "required": ["floatingNodeCheck"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "type": "number",
+            "default": 1.0
+        },
+        "release": {
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}[-/](?:0[1-9]|1[0-2])[-/](?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": { "type": "string" },
+        "debugMode": { "type": "boolean", "default": false },
+        "simulationRef": {
+            "description": "Path to external JSON file (relative to working directory) that contains a 'simulation' key. When present, overrides the inline 'simulation' section.",
+            "type": "string"
+        },
+        "parametersRef": {
+            "description": "Path to external JSON file that contains a 'parameters' key. When present, overrides the inline 'parameters' section.",
+            "type": "string"
+        },
+        "simulation": {
+            "description": "Spectre simulation environment settings. Applied during netlisting (switchView, stopView, temp) and simulation (model files, APS mode).",
+            "type": "object",
+            "properties": {
+                "spectre": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {
+                            "type": "object",
+                            "properties": {
+                                "performance": { "type": "string", "enum": ["APS", "UltraSim", "spectre"] },
+                                "apsplus": { "type": "boolean" }
+                            }
+                        },
+                        "environment": {
+                            "type": "object",
+                            "properties": {
+                                "cmd64bit":    { "type": "boolean", "default": true },
+                                "autoDisplay": { "type": "boolean", "default": true },
+                                "switchView": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["spectre", "veriloga", "schematic"]
+                                },
+                                "stopView": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["spectre", "veriloga"]
+                                }
+                            }
+                        },
+                        "model": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["file"],
+                                "properties": {
+                                    "file":    { "type": "string" },
+                                    "section": {
+                                        "type": "array",
+                                        "items": { "type": "string" }
+                                    }
+                                }
+                            }
+                        },
+                        "output": {
+                            "type": "object",
+                            "properties": {
+                                "directory": { "type": "string" },
+                                "format":    { "type": "string", "enum": ["psf", "psfascii"] }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "deviceType": {
+            "description": "Custom device type overrides for PDK cells not recognized by bvPsfResolveDevCat. Structure: libName -> cellName -> deviceType string or object. String form: just the device category (e.g. \"diode\"). Object form: {\"type\": \"diode\", \"anode\": \"PLUS\", \"cathode\": \"MINUS\"} -- declares which PDK terminal names map to which roles, allowing the BFS to correctly classify injectable vs. gate terminals for non-standard PDK cells.",
+            "type": "object",
+            "additionalProperties": {
+                "description": "Cell-to-deviceType map for one library (keyed by library name, e.g. \"umc18cdmos\").",
+                "type": "object",
+                "additionalProperties": {
+                    "oneOf": [
+                        {
+                            "description": "String form: device category only.",
+                            "type": "string",
+                            "enum": ["nmos", "pmos", "npn", "pnp", "res", "cap", "ind", "diode", "scr", "switch"]
+                        },
+                        {
+                            "description": "Diode: anode (injectable) + cathode (injectable).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":    { "type": "string", "const": "diode" },
+                                "anode":   { "type": "string", "description": "Anode terminal name -- injectable (e.g. \"PLUS\", \"A\", \"P\")" },
+                                "cathode": { "type": "string", "description": "Cathode terminal name -- injectable (e.g. \"MINUS\", \"K\", \"N\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "NPN / PNP BJT: collector + emitter (injectable), base (gate).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":      { "type": "string", "enum": ["npn", "pnp"] },
+                                "collector": { "type": "string", "description": "Collector terminal name -- injectable (e.g. \"C\")" },
+                                "base":      { "type": "string", "description": "Base terminal name -- gate/control (e.g. \"B\")" },
+                                "emitter":   { "type": "string", "description": "Emitter terminal name -- injectable (e.g. \"E\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "NMOS / PMOS: drain + source (injectable), gate (gate).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":   { "type": "string", "enum": ["nmos", "pmos"] },
+                                "drain":  { "type": "string", "description": "Drain terminal name -- injectable (e.g. \"D\")" },
+                                "gate":   { "type": "string", "description": "Gate terminal name -- gate/control (e.g. \"G\")" },
+                                "source": { "type": "string", "description": "Source terminal name -- injectable (e.g. \"S\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "Resistor / Inductor: plus + minus (both injectable).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":  { "type": "string", "enum": ["res", "ind"] },
+                                "plus":  { "type": "string", "description": "Positive terminal name -- injectable (e.g. \"PLUS\", \"P\")" },
+                                "minus": { "type": "string", "description": "Negative terminal name -- injectable (e.g. \"MINUS\", \"N\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "SCR / Thyristor: anode + cathode (injectable), gate (gate).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":    { "type": "string", "const": "scr" },
+                                "anode":   { "type": "string", "description": "Anode terminal name -- injectable (e.g. \"A\")" },
+                                "cathode": { "type": "string", "description": "Cathode terminal name -- injectable (e.g. \"K\")" },
+                                "gate":    { "type": "string", "description": "Gate terminal name -- gate/control (e.g. \"G\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "Switch: plus + minus (injectable), control (gate).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":    { "type": "string", "const": "switch" },
+                                "plus":    { "type": "string", "description": "Plus terminal name -- injectable (e.g. \"PLUS\")" },
+                                "minus":   { "type": "string", "description": "Minus terminal name -- injectable (e.g. \"MINUS\")" },
+                                "control": { "type": "string", "description": "Control terminal name -- gate/control (e.g. \"NC\", \"POS\")" }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "Capacitor: no terminal mapping (capacitors are not current-carrying devices in leakage analysis).",
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type":  { "type": "string", "const": "cap" },
+                                "plus":  { "type": "string", "description": "Positive plate terminal name (e.g. \"PLUS\", \"P\")" },
+                                "minus": { "type": "string", "description": "Negative plate terminal name (e.g. \"MINUS\", \"M\")" }
+                            },
+                            "additionalProperties": false
+                        }
+                    ]
+                }
+            }
+        },
+        "parameters": {
+            "description": "Design variables applied via desVar() before netlisting. Accepts number or SI-prefix string -- e.g. \"5\" or 5 for parVdd, \"2u\" for parW.",
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "number" },
+                        { "type": "boolean" }
+                    ]
+                }
+            }
+        },
+        "floatingNodeCheck": {
+            "description": "Floating node analysis settings: target testbench, supply net exclusions, scan algorithm selection, and algorithm-specific parameters.",
+            "type": "object",
+            "required": ["testbench"],
+            "properties": {
+                "testbench": {
+                    "description": "Target schematic cell and simulation conditions.",
+                    "type": "object",
+                    "required": ["library", "cell", "view"],
+                    "properties": {
+                        "library":     { "type": "string" },
+                        "cell":        { "type": "string" },
+                        "view":        { "type": "string", "default": "schematic" },
+                        "simulator":   { "type": "string", "default": "spectre" },
+                        "temperature": { "type": "number", "default": 27 }
+                    },
+                    "additionalProperties": false
+                },
+                "supply": {
+                    "description": "Net names excluded from floating node detection (supply rails and ground references).",
+                    "type": "object",
+                    "properties": {
+                        "powerNets": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "default": ["VDD", "vdd!", "VCC"]
+                        },
+                        "groundNets": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "default": ["GND", "gnd!", "VSS", "0"]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "scanAlgorithm": {
+                    "description": "Floating node scan algorithm. String form: single-pass CIHS or RPHS. Object form {first, last}: two-phase scan where Phase 1a runs first and Phase 1b re-scans only floating nets from Phase 1a. Each phase value can be a string (algorithm name) or an object specifying method, mode, injectionCurrent, deltaVThresholdFactor, and (for last) enable.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": ["CIHS", "RPHS"],
+                            "description": "Single-pass scan. \"CIHS\": Current-Injection High-Z Scan. \"RPHS\": Rail-Pull High-Z Scan."
+                        },
+                        {
+                            "type": "object",
+                            "required": ["first", "last"],
+                            "properties": {
+                                "first": {
+                                    "description": "Phase 1a config: string algorithm name or object with per-phase settings.",
+                                    "oneOf": [
+                                        { "type": "string", "enum": ["CIHS", "RPHS"] },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "method": { "type": "string", "enum": ["CIHS", "RPHS"], "description": "Algorithm name." },
+                                                "mode": { "type": "string", "enum": ["bulk", "perNet"], "description": "Scan mode (bulk: 3 DC runs; perNet: 1+2N DC)." },
+                                                "injectionCurrent": {
+                                                    "oneOf": [{ "type": "string" }, { "type": "number" }],
+                                                    "description": "Overrides global injectionCurrent for this phase."
+                                                },
+                                                "deltaVThresholdFactor": { "type": "number", "description": "Overrides global deltaVThresholdFactor for this phase." }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    ]
+                                },
+                                "last": {
+                                    "description": "Phase 1b config: string algorithm name or object with per-phase settings. enable=false skips Phase 1b entirely.",
+                                    "oneOf": [
+                                        { "type": "string", "enum": ["CIHS", "RPHS"] },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "enable": { "type": "boolean", "default": true, "description": "Set false to skip Phase 1b." },
+                                                "method": { "type": "string", "enum": ["CIHS", "RPHS"], "description": "Algorithm name." },
+                                                "mode": { "type": "string", "enum": ["bulk", "perNet"], "description": "Scan mode (bulk: 2-3 DC runs; perNet: 1+2N DC)." },
+                                                "injectionCurrent": {
+                                                    "oneOf": [{ "type": "string" }, { "type": "number" }],
+                                                    "description": "Overrides global injectionCurrent for this phase."
+                                                },
+                                                "deltaVThresholdFactor": { "type": "number", "description": "Overrides global deltaVThresholdFactor for this phase." }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false,
+                            "description": "Two-phase scan to reduce false positives from upstream circuit effects."
+                        }
+                    ],
+                    "default": "CIHS"
+                },
+                "scanMode": {
+                    "description": "CIHS only: injection scan strategy. \"bulk\" (default): all D/S candidates injected simultaneously (3 DC total). \"perNet\": one DC pair per candidate (1+2N DC). Use \"perNet\" only for debugging convergence issues.",
+                    "type": "string",
+                    "enum": ["bulk", "perNet"],
+                    "default": "bulk"
+                },
+                "ignoredVoltageThreshold": {
+                    "description": "Absolute voltage margin (V) around auto-detected supply rails. Nets within this margin of VDD or VSS are excluded as near-rail. Omit or 0 to disable.",
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "ignoredVoltage": {
+                    "description": "Voltage-based supply filtering with explicit mode. Takes precedence over ignoredVoltageThreshold when both are present.",
+                    "type": "object",
+                    "required": ["threshold"],
+                    "properties": {
+                        "mode": {
+                            "description": "absolute: margin in volts; percentage: fraction of (VDD_max - VSS_min).",
+                            "type": "string",
+                            "enum": ["absolute", "percentage"],
+                            "default": "absolute"
+                        },
+                        "threshold": {
+                            "description": "Threshold value. For absolute: volts (e.g. 0.1). For percentage: fraction (e.g. 0.05 = 5%).",
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "seriesResistorMode": {
+                    "description": "Scan algorithm: how the series resistor is computed. \"injectionCurrent\" (default): R = (VDD-VSS) / injectionCurrent, keeping peak pull current at the specified level. \"forcingResistance\": use the explicit forcingResistance value.",
+                    "type": "string",
+                    "enum": ["injectionCurrent", "forcingResistance"],
+                    "default": "injectionCurrent"
+                },
+                "forcingResistance": {
+                    "description": "Scan algorithm: explicit series resistor value used when seriesResistorMode=\"forcingResistance\". Accepts number or SI-prefix string e.g. \"1k\" (1 kOhm).",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ]
+                },
+                "injectionCurrent": {
+                    "description": "CIHS: test current magnitude. RPHS / scan: used when seriesResistorMode=\"injectionCurrent\" to auto-compute pull resistor (R = (VDD-VSS) / injectionCurrent). Accepts number (1e-8) or SI-prefix string e.g. \"10n\".",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ],
+                    "default": "10n"
+                },
+                "resistanceThreshold": {
+                    "description": "CIHS only: minimum effective impedance to classify a net as floating. Accepts number (1000000) or SI-prefix string e.g. \"1M\" = 1 MOhm.",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ],
+                    "default": "1M"
+                },
+                "pullResistance": {
+                    "description": "DEPRECATED: Use seriesResistorMode=\"forcingResistance\" + forcingResistance instead. Kept for backward compatibility: when pullResistance is set and forcingResistance is absent, its value is used as the forcing resistance.",
+                    "oneOf": [
+                        { "type": "number" },
+                        { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                    ]
+                },
+                "deltaVThresholdFactor": {
+                    "description": "RPHS only: fraction of (VDD-VSS) used as the floating decision threshold. A net is floating when deltaV = V_vdd_pull - V_vss_pull > factor * (VDD-VSS). Default 0.9 means > 90% of the rail swing.",
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMaximum": 1,
+                    "default": 0.9
+                },
+                "ignoreInstances": {
+                    "description": "Sub-instances to skip during schematic hierarchy traversal. Supports object format {libraries, cells} or array format [{library}, {libraries}].",
+                    "oneOf": [
+                        {
+                            "description": "Object format: separate lists for libraries and specific cells.",
+                            "type": "object",
+                            "properties": {
+                                "libraries": {
+                                    "description": "Exclude all cells from these libraries (e.g. 'analogLib', 'basic', 'umc18cdmos').",
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["analogLib", "basic"]
+                                },
+                                "cells": {
+                                    "description": "Exclude specific library/cell combinations.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["library", "cell"],
+                                        "properties": {
+                                            "library": { "type": "string" },
+                                            "cell":    { "type": "string" }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    "default": []
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        {
+                            "description": "Array format: each entry is {library} or {libraries} to exclude a library group, or {library, cell} for a specific cell.",
+                            "type": "array",
+                            "items": {
+                                "oneOf": [
+                                    {
+                                        "type": "object",
+                                        "required": ["library"],
+                                        "properties": {
+                                            "library": { "type": "string" },
+                                            "cell":    { "type": "string" }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "type": "object",
+                                        "required": ["libraries"],
+                                        "properties": {
+                                            "libraries": {
+                                                "type": "array",
+                                                "items": { "type": "string" }
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "testAlgorithm": {
+                    "description": "Phase 2 test algorithm settings. Parallel to scanAlgorithm (Phase 1). Opt-in: set enabled=true to activate after Phase 1 floating node scan.",
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable Phase 2 test analysis after Phase 1 scan. Default false (opt-in).",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "method": {
+                            "description": "Phase 2 test algorithm. Currently only \"VPLA\" (Voltage-Perturbation Leakage Analysis) is supported: forces each floating gate to V_inject = (Vmax_ds + Vmin_ds)/2 via forcingResistance, measures chain current sum(|id|), and flags harmful leakage.",
+                            "type": "string",
+                            "enum": ["VPLA"],
+                            "default": "VPLA"
+                        },
+                        "mode": {
+                            "description": "VPLA Phase B simulation grouping strategy. \"perChain\" (default): one simGroup per unique {gateNet-set + voltage}; chains sharing the same floating gate and voltage range are merged. \"intelligent\": all chains merged into ONE simGroup; each floating gate injected at its own per-chain optimized voltage via individual Vvpla sources — minimum Spectre runs, maximum per-gate accuracy. \"bulk\": all chains merged into ONE simGroup (like intelligent) but a single uniform injection voltage (max vInject across all chains) is applied to all floating gates simultaneously — simplest netlist, one Spectre run, conservative (all gates forced to highest relevant voltage).",
+                            "type": "string",
+                            "enum": ["perChain", "intelligent", "bulk"],
+                            "default": "bulk"
+                        },
+                        "seriesResistorMode": {
+                            "description": "VPLA: how the series resistor (Rvpla) is computed. \"injectionCurrent\" (default): R = vInject / injectionCurrent, computed per simGroup so peak gate current is predictable. \"forcingResistance\": use the explicit forcingResistance value (default 100 Ohm).",
+                            "type": "string",
+                            "enum": ["injectionCurrent", "forcingResistance"],
+                            "default": "injectionCurrent"
+                        },
+                        "injectionCurrent": {
+                            "description": "VPLA: injection current magnitude used when seriesResistorMode=\"injectionCurrent\". R is computed as vInject / injectionCurrent per simGroup. Accepts number or SI-prefix string e.g. \"10n\".",
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                            ],
+                            "default": "10n"
+                        },
+                        "forcingResistance": {
+                            "description": "VPLA: series resistance (Ohm) used when seriesResistorMode=\"forcingResistance\". Accepts SI-prefix string e.g. \"100\" (100 Ohm) or \"1k\" (1 kOhm). Default 100 Ohm.",
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                            ],
+                            "default": "100"
+                        },
+                        "leakageThreshold": {
+                            "description": "VPLA: minimum chainCurrent (sum of |id| of all controlled MOS at V_inject) to classify a floating gate as harmful. Accepts SI-prefix string e.g. \"1u\" (1 uA). Default 1 uA.",
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[fpnumkMGT]?$" }
+                            ],
+                            "default": "1u"
+                        },
+                        "sourceFile": {
+                            "description": "Path to Phase 1 results JSON produced by a previous bvFloatingNodeAnalysis run. Required when bvFloatingNodeAnalysis is called with ?scan nil to skip re-running the CIHS/RPHS injection scan. Baseline DC still runs. Output path: {simulation.spectre.output.directory}/{cellName}_phase1.json. JSON structure: { version, algorithm (CIHS|RPHS), timestamp, testbench: {library, cell, view}, nets: [ { psfPath, netName, isFloating, isGateOnly, isSkipped, baseline (V or false), deltaV (RPHS swing or false), rEff (CIHS impedance or false) } ] }. Only nets with isFloating=true are loaded by bvFnodeLoadPhase1Json. SKILL nil serializes as JSON false.",
+                            "type": "string"
+                        },
+                        "ignoreChains": {
+                            "description": "Chains to skip in VPLA Phase B simulation. gate uses AND logic: a chain is skipped only when ALL its floating gates appear in the list. instance uses OR logic: a chain is skipped when ANY of its MOS instances appears in the list. Chain IDs and instance PSF paths are found in the VPLA results JSON at {simulation.spectre.output.directory}/{cellName}_vpla.json. JSON structure: { version, timestamp, testbench, chains: [ { chainId (e.g. sg0_c0), gateNets (PSF paths), status (harmful|safe|mos-cap|ignored), vInject, chainCurrent, isHarmful, isMosCap, skipReason, netlistPath, mosList: [ { instance, type, gateNet, drainNet, sourceNet } ] } ] }.",
+                            "type": "object",
+                            "properties": {
+                                "gate": {
+                                    "description": "PSF paths of floating gate nets. AND logic: ALL gates of a chain must be listed to skip that chain.",
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": []
+                                },
+                                "instance": {
+                                    "description": "PSF paths of MOS instances. OR logic: ANY instance in the list causes the entire chain to be skipped.",
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": []
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

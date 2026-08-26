@@ -7,11 +7,11 @@ echo "[xrun wrapper] Invoked in directory: $CUR_DIR with args: $@" >> /tmp/xrun_
 # Do NOT run during intermediate netlisting (-version, -compile, assembler, etc.)
 if [[ "$*" == *"xrunArgs"* ]]; then
     if [ -d "$CUR_DIR/digital/ihnl" ]; then
-        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14" >> /tmp/xrun_wrapper.log 2>&1
+        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15" >> /tmp/xrun_wrapper.log 2>&1
     elif [ -d "$CUR_DIR/ams/config/netlist/digital/ihnl" ]; then
-        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR/ams/config/netlist" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14" >> /tmp/xrun_wrapper.log 2>&1
+        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR/ams/config/netlist" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15" >> /tmp/xrun_wrapper.log 2>&1
     elif [ -f "$CUR_DIR/netlist.vams" ]; then
-        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14" >> /tmp/xrun_wrapper.log 2>&1
+        python3 /home/lary/bin/auto_assemble.py "$CUR_DIR" "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15" >> /tmp/xrun_wrapper.log 2>&1
     fi
 
     # Ensure symlink between psf/xrun.log and netlist/xrun.log exists
@@ -27,13 +27,13 @@ XRUN_EXIT=$?
 echo "[xrun wrapper] xrun exited with code $XRUN_EXIT" >> /tmp/xrun_wrapper.log
 
 if [ $XRUN_EXIT -eq 0 ]; then
-    # Sync PSF files to TM14 pattern psf directory if running from simulation directory
+    # Sync PSF files to TM14and15 pattern psf directory if running from simulation directory
     if [ -d "$CUR_DIR/../psf" ]; then
-        mkdir -p /home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf
-        cp -u "$CUR_DIR/../psf"/* /home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf/ 2>/dev/null || true
+        mkdir -p /home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/psf
+        cp -u "$CUR_DIR/../psf"/* /home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/psf/ 2>/dev/null || true
     elif [ -d "$CUR_DIR/psf" ]; then
-        mkdir -p /home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf
-        cp -u "$CUR_DIR/psf"/* /home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf/ 2>/dev/null || true
+        mkdir -p /home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/psf
+        cp -u "$CUR_DIR/psf"/* /home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/psf/ 2>/dev/null || true
     fi
 fi
 

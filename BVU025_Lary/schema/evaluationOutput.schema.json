@@ -1,0 +1,244 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "evaluationOutput.schema.json",
+    "title": "bvSim Evaluation Output",
+    "description": "Unified evaluation output format for both ADE L and ADE XL simulation results. ADE L uses a single 'nominal' corner with direct results. ADE XL uses multiple named corners with per-test results. Common scalar params (identical across all corners) are extracted to a top-level 'params' field for readability.",
+    "version": "2.1",
+    "date": "2026-02-22",
+    "type": "object",
+    "required": ["mode", "corners"],
+    "additionalProperties": false,
+    "properties": {
+        "mode": {
+            "description": "Simulation mode that produced this evaluation result.",
+            "type": "string",
+            "enum": ["adel", "adexl"]
+        },
+        "params": {
+            "description": "Common parameter values shared across ALL corners (ADE XL only). Scalar params (temperature, voltage) identical across all corners are extracted here as numbers or strings. Model spec params (corModelSpec) with common sections across all corners are extracted as arrays with common sections only. Absent when no common params exist or when extractCommonParams is disabled.",
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {"type": "number"},
+                    {"type": "string"},
+                    {
+                        "type": "array",
+                        "description": "Common model spec entries. Each entry holds one model file with sections common across ALL corners.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "model": {"type": "string", "description": "Path to the model file"},
+                                "section": {
+                                    "type": "array",
+                                    "description": "Section names common across all corners for this model file",
+                                    "items": {"type": "string"}
+                                }
+                            },
+                            "required": ["model", "section"],
+                            "additionalProperties": false
+                        }
+                    }
+                ]
+            }
+        },
+        "corners": {
+            "description": "Evaluation results organized by corner name. ADE L uses 'nominal' as the single corner key. ADE XL uses actual corner names (e.g. 'Corner_0', 'Corner_1'). When top-level 'params' is present, per-corner params only contain values that differ between corners.",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+                "$ref": "#/definitions/cornerResult"
+            }
+        }
+    },
+    "definitions": {
+        "cornerResult": {
+            "description": "Evaluation results for one corner.",
+            "type": "object",
+            "required": ["params"],
+            "additionalProperties": false,
+            "properties": {
+                "params": {
+                    "description": "Corner parameter values representing the full PVT (Process, Voltage, Temperature) corner. Scalar params (temperature, voltage) are numbers. Process params are normally grouped by model file: same model path shares one entry with sections merged into a list. After deep section extraction with a single model file, corModelSpec becomes a plain string when only one varying section remains, or a flat string array when multiple varying sections remain. When top-level 'params' is present, common params are removed from per-corner params.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "oneOf": [
+                            {"type": "number"},
+                            {"type": "string"},
+                            {
+                                "type": "array",
+                                "description": "Varying section names for single-model corModelSpec when multiple sections vary. Used after deep extraction when only one model file exists and more than one section remains per-corner.",
+                                "items": {"type": "string"}
+                            },
+                            {
+                                "type": "array",
+                                "description": "Process model entries grouped by model file path. Each entry holds one model file with its active (varying) sections. Used when multiple model files exist or before deep extraction.",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "model": {"type": "string", "description": "Path to the model file"},
+                                        "section": {
+                                            "type": "array",
+                                            "description": "Active section names for this model file (e.g. [tt_mos, tt_mim_mom])",
+                                            "items": {"type": "string"}
+                                        }
+                                    },
+                                    "required": ["model", "section"],
+                                    "additionalProperties": false
+                                }
+                            }
+                        ]
+                    }
+                },
+                "results": {
+                    "description": "Expression evaluation results. Used in ADE L mode (no test grouping).",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/exprValue"
+                    }
+                },
+                "tests": {
+                    "description": "Per-test expression evaluation results. Used in ADE XL mode. Keys are test names (e.g. 'test:inv_test:1').",
+                    "type": "object",
+                    "additionalProperties": {
+                        "description": "Expression evaluation results for one test.",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/definitions/exprValue"
+                        }
+                    }
+                }
+            },
+            "oneOf": [
+                {"required": ["results"]},
+                {"required": ["tests"]}
+            ]
+        },
+        "exprValue": {
+            "description": "Value of an evaluated OCEAN expression. Scalar for single-point results, array for waveform results.",
+            "oneOf": [
+                {
+                    "description": "Scalar numeric result",
+                    "type": "number"
+                },
+                {
+                    "description": "String result",
+                    "type": "string"
+                },
+                {
+                    "description": "Null result (evaluation returned nil)",
+                    "type": "null"
+                },
+                {
+                    "description": "Waveform result as array of time-value points",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "examples": [
+        {
+            "comment": "ADE L mode - single nominal corner",
+            "mode": "adel",
+            "corners": {
+                "nominal": {
+                    "params": {},
+                    "results": {
+                        "SwPoint": 0.352,
+                        "Vout_max": 1.8
+                    }
+                }
+            }
+        },
+        {
+            "comment": "ADE XL mode - scalar common params extracted to top-level; per-corner shows only differences",
+            "mode": "adexl",
+            "params": {
+                "parW": "2u"
+            },
+            "corners": {
+                "Corner_0": {
+                    "params": {
+                        "temperature": 25,
+                        "parVdd": 3,
+                        "corModelSpec": [
+                            {"model": "/path/to/model.scs", "section": ["setup_presim", "tt_mos", "tt_mim_mom"]}
+                        ]
+                    },
+                    "tests": {
+                        "test:inv_test:1": {
+                            "SwPoint": 0.352
+                        }
+                    }
+                },
+                "Corner_1": {
+                    "params": {
+                        "temperature": 60,
+                        "parVdd": 3,
+                        "corModelSpec": [
+                            {"model": "/path/to/model.scs", "section": ["setup_presim", "ss_mos", "tt_mim_mom"]}
+                        ]
+                    },
+                    "tests": {
+                        "test:inv_test:1": {
+                            "SwPoint": 0.241
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "comment": "ADE XL mode - deep model spec extraction (single model file, single varying section): per-corner corModelSpec is a plain string",
+            "mode": "adexl",
+            "params": {
+                "parW": "2u",
+                "corModelSpec": [
+                    {"model": "/path/to/model.scs", "section": ["setup_presim", "tt_mim_mom", "tt_res_bip_dio"]}
+                ]
+            },
+            "corners": {
+                "Corner_0": {
+                    "params": {
+                        "temperature": 25,
+                        "parVdd": 3,
+                        "corModelSpec": "tt_mos"
+                    },
+                    "tests": {
+                        "test:inv_test:1": {
+                            "SwPoint": 0.352
+                        }
+                    }
+                },
+                "Corner_1": {
+                    "params": {
+                        "temperature": 25,
+                        "parVdd": 3,
+                        "corModelSpec": "ff_mos"
+                    },
+                    "tests": {
+                        "test:inv_test:1": {
+                            "SwPoint": 0.389
+                        }
+                    }
+                },
+                "Corner_2": {
+                    "params": {
+                        "temperature": 25,
+                        "parVdd": 3,
+                        "corModelSpec": "ss_mos"
+                    },
+                    "tests": {
+                        "test:inv_test:1": {
+                            "SwPoint": 0.241
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

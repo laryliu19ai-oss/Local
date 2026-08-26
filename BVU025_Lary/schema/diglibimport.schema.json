@@ -1,0 +1,617 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/diglibimport.schema",
+    "version": 1.0,
+    "release": "2025/12/22",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Digital Library Import Configuration",
+    "description": "Complete configuration for importing digital library from GDSII and CDL netlist into Cadence database",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema reference for validation.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Configuration file format version",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "Release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "Author of the configuration.",
+            "type": "string"
+        },
+        "workDirectory": {
+            "description": "Working directory for all operations. All relative paths are relative to this directory.",
+            "type": "string"
+        },
+        "gdsImport": {
+            "description": "Configuration for GDSII file import (Phase 1)",
+            "type": "object",
+            "properties": {
+                "gdsFile": {
+                    "description": "Path to GDSII file. Can be absolute or relative to workDirectory.",
+                    "type": "string"
+                },
+                "targetLibrary": {
+                    "description": "Target Cadence library name for imported layout views",
+                    "type": "string"
+                },
+                "techLibrary": {
+                    "description": "Technology library name for attaching tech file",
+                    "type": "string"
+                },
+                "layerMap": {
+                    "description": "Optional layer mapping file path. If null, use default mapping.",
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "logFile": {
+                    "description": "Log file path for strmin execution",
+                    "type": "string",
+                    "default": "strmin.log"
+                },
+                "options": {
+                    "description": "Additional strmin command line options",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": []
+                },
+                "snapToGrid": {
+                    "description": "Enable snap to grid during import",
+                    "type": "boolean",
+                    "default": true
+                },
+                "casePreserve": {
+                    "description": "Preserve case of cell names",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "required": ["gdsFile", "targetLibrary", "techLibrary"],
+            "additionalProperties": false
+        },
+        "padInfo": {
+            "description": "Configuration for PAD information patching (Phase 2)",
+            "type": "object",
+            "properties": {
+                "inputNetlist": {
+                    "description": "Input CDL netlist file path (without PAD info). Can be absolute or relative to workDirectory.",
+                    "type": "string"
+                },
+                "outputNetlist": {
+                    "description": "Output CDL netlist file path (with PININFO comments). If null, will patch in-place with backup.",
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "padinfoConfig": {
+                    "description": "PAD information configuration. Can be inline JSON or external file reference.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "Path to external padinfo.json file"
+                        },
+                        {
+                            "type": "object",
+                            "description": "Inline PAD information configuration (follows padinfo.schema.json)",
+                            "properties": {
+                                "$schema": {
+                                    "type": "string"
+                                },
+                                "version": {
+                                    "type": "number"
+                                },
+                                "release": {
+                                    "type": "string"
+                                },
+                                "author": {
+                                    "type": "string"
+                                },
+                                "padinfo": {
+                                    "description": "PAD information for different cell types",
+                                    "type": "object",
+                                    "patternProperties": {
+                                        "^[*a-zA-Z0-9_]+$": {
+                                            "type": "object",
+                                            "properties": {
+                                                "input": {
+                                                    "type": "array",
+                                                    "items": {"type": "string"}
+                                                },
+                                                "output": {
+                                                    "type": "array",
+                                                    "items": {"type": "string"}
+                                                },
+                                                "bidirectional": {
+                                                    "type": "array",
+                                                    "items": {"type": "string"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "required": ["padinfo"]
+                        }
+                    ]
+                },
+                "createBackup": {
+                    "description": "Create backup of original netlist before patching",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "required": ["inputNetlist", "padinfoConfig"],
+            "additionalProperties": false
+        },
+        "spiceIn": {
+            "description": "Configuration for netlist to schematic conversion (Phase 3)",
+            "type": "object",
+            "properties": {
+                "netlistFile": {
+                    "description": "CDL netlist file to convert (typically the output from padInfo phase). If null, use padInfo.outputNetlist.",
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "outputLib": {
+                    "description": "Output library name. If null, use gdsImport.targetLibrary.",
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "refLibList": {
+                    "description": "Reference library list for symbol lookup",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": ["analogLib", "basic"]
+                },
+                "simName": {
+                    "description": "Simulator name (spectre, hspice, ads, etc.)",
+                    "type": "string",
+                    "enum": ["spectre", "hspice", "ads", "eldo"],
+                    "default": "spectre"
+                },
+                "language": {
+                    "description": "Netlist language",
+                    "type": "string",
+                    "enum": ["CDL", "SPICE", "SPECTRE"],
+                    "default": "CDL"
+                },
+                "conn2schArgs": {
+                    "description": "Arguments for conn2sch tool",
+                    "type": "string",
+                    "default": "+PLACE_ONLY -NOSQUARE +NOXTRSCH -VERBOSE -ASG"
+                },
+                "logFile": {
+                    "description": "SpiceIn log file path",
+                    "type": "string",
+                    "default": "spiceIn.log"
+                },
+                "overwriteCells": {
+                    "description": "Overwrite existing cells policy",
+                    "type": "string",
+                    "enum": ["all", "none", "ask"],
+                    "default": "all"
+                },
+                "viewNames": {
+                    "description": "Output view names configuration",
+                    "type": "object",
+                    "properties": {
+                        "schematic": {
+                            "description": "Schematic view name",
+                            "type": "string",
+                            "default": "schematic"
+                        },
+                        "symbol": {
+                            "description": "Symbol view name",
+                            "type": "string",
+                            "default": "symbol"
+                        }
+                    },
+                    "default": {
+                        "schematic": "schematic",
+                        "symbol": "symbol"
+                    }
+                },
+                "powerGround": {
+                    "description": "Power and ground configuration",
+                    "type": "object",
+                    "properties": {
+                        "powerNet": {
+                            "description": "Power net name",
+                            "type": "string",
+                            "default": "VDD"
+                        },
+                        "groundNet": {
+                            "description": "Ground net name",
+                            "type": "string",
+                            "default": "VSS"
+                        },
+                        "masterCellForGnd": {
+                            "description": "Master cell name for ground",
+                            "type": "string",
+                            "default": "VSS"
+                        },
+                        "powerSymbol": {
+                            "description": "Power symbol reference (library cellName viewName)",
+                            "type": "object",
+                            "properties": {
+                                "library": {"type": "string"},
+                                "cellName": {"type": "string"},
+                                "viewName": {"type": "string"}
+                            },
+                            "default": {
+                                "library": "analogLib",
+                                "cellName": "vdd",
+                                "viewName": "symbol"
+                            }
+                        },
+                        "groundSymbol": {
+                            "description": "Ground symbol reference (library cellName viewName)",
+                            "type": "object",
+                            "properties": {
+                                "library": {"type": "string"},
+                                "cellName": {"type": "string"},
+                                "viewName": {"type": "string"}
+                            },
+                            "default": {
+                                "library": "analogLib",
+                                "cellName": "gnd",
+                                "viewName": "symbol"
+                            }
+                        }
+                    },
+                    "default": {}
+                },
+                "deviceMappings": {
+                    "description": "Device mapping configuration for SPICE primitives to Cadence cells",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "description": "Device type (nfet, pfet, diode, resistor, capacitor, etc.)",
+                                "type": "string",
+                                "enum": ["nfet", "pfet", "diode", "resistor", "capacitor", "inductor", "bjt_npn", "bjt_pnp"]
+                            },
+                            "cellName": {
+                                "description": "Target cell name in the library",
+                                "type": "string"
+                            },
+                            "termOrder": {
+                                "description": "Terminal order for the device",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "propMap": {
+                                "description": "Property mapping from SPICE to Cadence CDF. Each pair maps SPICE parameter to CDF parameter. Format: {\"spiceParam\": \"cdfParam\", ...}. Example: {\"w\": \"effW\", \"l\": \"length\", \"nf\": \"fingers\", \"m\": \"multi\"}. This maps to devmap format: propMap := w effW l length nf fingers m multi",
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "addProp": {
+                                "description": "Additional fixed CDF properties to set. Each pair sets a CDF parameter to a fixed value. Format: {\"cdfParam\": \"value\", ...}. Example: {\"calcMethod\": \"area\", \"l\": \"580n\", \"w\": \"840n\"}. This maps to devmap format: addProp := calcMethod area l 580n w 840n. Values can be strings (e.g., 'area', 'manual') or numeric strings with units (e.g., '580n', '1.5u').",
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": ["string", "number"]
+                                }
+                            }
+                        },
+                        "required": ["type", "cellName"],
+                        "additionalProperties": false
+                    },
+                    "default": []
+                },
+                "conn2sch": {
+                    "description": "conn2sch tool specific configuration",
+                    "type": "object",
+                    "properties": {
+                        "generateTopCellSymbol": {
+                            "description": "Generate symbol for top cell. Boolean value will be converted to 0 (false) or 1 (true) in conn2sch.params.",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "importIfExists": {
+                            "description": "Import even if cells already exist. Boolean value will be converted to 0 (false) or 1 (true) in conn2sch.params.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "sheetSymbol": {
+                            "description": "Sheet symbol to use (none, basic, etc.)",
+                            "type": "string",
+                            "default": "none"
+                        },
+                        "pageRowLimit": {
+                            "description": "Page row limit for schematic. Valid range: 1 to 1024.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1024,
+                            "default": 1024
+                        },
+                        "pageColLimit": {
+                            "description": "Page column limit for schematic. Valid range: 1 to 1024.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1024,
+                            "default": 1024
+                        },
+                        "labelHeight": {
+                            "description": "Label height in schematic. Must be greater than 1. Default 10 equals font height 0.0625.",
+                            "type": "integer",
+                            "minimum": 2,
+                            "default": 10
+                        },
+                        "lineLineSpacing": {
+                            "description": "Spacing between lines. Valid range: 0.125 to 0.625.",
+                            "type": "number",
+                            "minimum": 0.125,
+                            "maximum": 0.625,
+                            "default": 0.2
+                        },
+                        "lineComponentSpacing": {
+                            "description": "Spacing between lines and components. Valid range: 0.125 to 0.625.",
+                            "type": "number",
+                            "minimum": 0.125,
+                            "maximum": 0.625,
+                            "default": 0.5
+                        },
+                        "densityLevel": {
+                            "description": "Density level for component placement. Valid range: 0 to 100.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": 0
+                        },
+                        "generateFastSchematic": {
+                            "description": "Generate fast schematic for large designs. Boolean value will be converted to 0 (false) or 1 (true) in conn2sch.params.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "fastSchematicMaxInst": {
+                            "description": "Maximum instances for fast schematic mode. Only effective when generateFastSchematic is true.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 20000
+                        },
+                        "fastSchematicMaxPort": {
+                            "description": "Maximum ports for fast schematic mode. Only effective when generateFastSchematic is true.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 5000
+                        },
+                        "pinPlacement": {
+                            "description": "Pin placement configuration. Can be simple string or complex array format for per-module control.",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "enum": ["left_and_right_sides", "all_sides"],
+                                    "description": "Simple pin placement mode"
+                                },
+                                {
+                                    "type": "array",
+                                    "description": "Complex pin placement with per-module control. Format: [{moduleName, side, pins: []}]. Example: [{moduleName: 'inv', side: 'left', pins: ['a', 'b']}, {moduleName: 'inv', side: 'top', pins: ['e', 'f']}]",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "moduleName": {
+                                                "description": "Module name to apply pin placement",
+                                                "type": "string"
+                                            },
+                                            "side": {
+                                                "description": "Side to place pins",
+                                                "type": "string",
+                                                "enum": ["left", "right", "top", "bottom"]
+                                            },
+                                            "pins": {
+                                                "description": "List of pin names to place on this side",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "minItems": 1
+                                            }
+                                        },
+                                        "required": ["moduleName", "side", "pins"]
+                                    }
+                                }
+                            ],
+                            "default": "left_and_right_sides"
+                        },
+                        "pinPlacementFile": {
+                            "description": "Optional pin placement file path. If specified, overrides pinPlacement setting.",
+                            "type": ["string", "null"],
+                            "default": null
+                        },
+                        "logFile": {
+                            "description": "Log file path for conn2sch execution",
+                            "type": "string",
+                            "default": "./conn2sch.log"
+                        },
+                        "noconnSymbol": {
+                            "description": "No-connection symbol reference. Format: {library, cellName, viewName}",
+                            "type": "object",
+                            "properties": {
+                                "library": {"type": "string"},
+                                "cellName": {"type": "string"},
+                                "viewName": {"type": "string"}
+                            },
+                            "required": ["library", "cellName", "viewName"],
+                            "default": {
+                                "library": "basic",
+                                "cellName": "noConn",
+                                "viewName": "symbol"
+                            }
+                        },
+                        "powerNets": {
+                            "description": "List of global power net names. These will be treated as power nets in the design.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": ["vdd!"]
+                        },
+                        "groundNets": {
+                            "description": "List of global ground net names. These will be treated as ground nets in the design.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": ["vss!"]
+                        }
+                    },
+                    "default": {}
+                }
+            },
+            "additionalProperties": false
+        },
+        "cdfCallback": {
+            "description": "Configuration for CDF parameter callback (Phase 4)",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "Enable CDF callback processing",
+                    "type": "boolean",
+                    "default": true
+                },
+                "targetLib": {
+                    "description": "Target library for CDF setup. If null, use gdsImport.targetLibrary.",
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "simulators": {
+                    "description": "List of supported simulators",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ["spectre", "hspice", "ads", "eldo"]
+                    },
+                    "default": ["spectre"]
+                },
+                "defaultParams": {
+                    "description": "Default parameter values for all cells",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": ["string", "number"]
+                    },
+                    "default": {}
+                },
+                "cellSpecificParams": {
+                    "description": "Cell-specific parameter configurations",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "cellName": {
+                                "description": "Cell name or pattern (supports wildcards)",
+                                "type": "string"
+                            },
+                            "params": {
+                                "description": "Parameters specific to this cell",
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "default": {
+                                            "description": "Default value",
+                                            "type": ["string", "number"]
+                                        },
+                                        "min": {
+                                            "description": "Minimum value",
+                                            "type": "number"
+                                        },
+                                        "max": {
+                                            "description": "Maximum value",
+                                            "type": "number"
+                                        },
+                                        "type": {
+                                            "description": "Parameter type",
+                                            "type": "string",
+                                            "enum": ["float", "int", "string", "boolean"]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "required": ["cellName", "params"]
+                    },
+                    "default": []
+                },
+                "customCallbacks": {
+                    "description": "Custom callback function configurations",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "cellName": {
+                                "description": "Cell name or pattern",
+                                "type": "string"
+                            },
+                            "functionName": {
+                                "description": "SKILL callback function name",
+                                "type": "string"
+                            },
+                            "trigger": {
+                                "description": "Trigger event (paramChange, cellOpen, etc.)",
+                                "type": "string"
+                            }
+                        },
+                        "required": ["cellName", "functionName", "trigger"]
+                    },
+                    "default": []
+                }
+            },
+            "additionalProperties": false
+        },
+        "execution": {
+            "description": "Execution control configuration",
+            "type": "object",
+            "properties": {
+                "phases": {
+                    "description": "List of phases to execute in order",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": ["gdsImport", "padInfo", "spiceIn", "cdfCallback"]
+                    },
+                    "default": ["gdsImport", "padInfo", "spiceIn", "cdfCallback"]
+                },
+                "stopOnError": {
+                    "description": "Stop execution if any phase fails",
+                    "type": "boolean",
+                    "default": true
+                },
+                "cleanupOnFailure": {
+                    "description": "Cleanup intermediate files on failure",
+                    "type": "boolean",
+                    "default": false
+                },
+                "verboseLogging": {
+                    "description": "Enable verbose logging",
+                    "type": "boolean",
+                    "default": true
+                },
+                "parallelExecution": {
+                    "description": "Enable parallel execution where possible (future feature)",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "default": {}
+        }
+    },
+    "required": ["version", "workDirectory"],
+    "additionalProperties": false
+}

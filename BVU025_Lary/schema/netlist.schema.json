@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvskill.com/schemas/netlist.schema.json",
+  "title": "Netlist Schema",
+  "description": "JSON netlist format output from bvGetNetlist function",
+  "type": "object",
+  "required": ["database"],
+  "properties": {
+    "debugMode": {
+      "type": "boolean",
+      "description": "Enable debug mode for detailed output",
+      "default": false
+    },
+    "database": {
+      "type": "object",
+      "required": ["topCell", "netlist"],
+      "properties": {
+        "techConfigs": {
+          "type": "array",
+          "description": "Technology configuration files (load order matters)",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["../tech/umc18cdmos.tech.json"],
+            ["../tech/basic.tech.json", "../tech/analogLib.tech.json", "../tech/umc18cdmos.tech.json"]
+          ]
+        },
+        "topCell": {
+          "type": "string",
+          "description": "Top-level cell name",
+          "examples": ["INV", "CS_AMP", "BGR"]
+        },
+        "netlist": {
+          "type": "object",
+          "description": "Circuit definitions (key: circuit name, value: circuit definition)",
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/circuitDefinition"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "circuitDefinition": {
+      "type": "object",
+      "required": ["instances"],
+      "properties": {
+        "ports": {
+          "type": "array",
+          "description": "Circuit ports (order matters for SPICE subcircuit)",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["VDD", "VSS", "Y", "A"],
+            ["VDD", "VSS", "IN", "OUT"]
+          ]
+        },
+        "params": {
+          "type": "object",
+          "description": "Subcircuit parameters with default values",
+          "additionalProperties": true,
+          "examples": [
+            {"W": "1u", "L": "180n"},
+            {"IBIAS": "10u", "VCM": "0.9"}
+          ]
+        },
+        "instances": {
+          "type": "array",
+          "description": "Device instances in this circuit",
+          "items": {
+            "$ref": "#/definitions/deviceInstance"
+          }
+        },
+        "groups": {
+          "type": "object",
+          "description": "Functional groups for flat design (AI agent assisted organization)",
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/functionalGroup"
+            }
+          }
+        }
+      }
+    },
+    "functionalGroup": {
+      "type": "object",
+      "required": ["instances"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Group description",
+          "examples": ["Bias current generation", "Core bandgap circuit", "Startup circuit"]
+        },
+        "instances": {
+          "type": "array",
+          "description": "Instance names in this group",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["M1", "M2", "R1"],
+            ["Q1", "Q2", "R2", "R3"]
+          ]
+        }
+      }
+    },
+    "deviceInstance": {
+      "type": "object",
+      "required": ["name", "type", "cell", "nets", "parameters"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Instance name",
+          "examples": ["MP1", "MN1", "M1", "R1", "C1"]
+        },
+        "type": {
+          "type": "string",
+          "description": "Device type",
+          "enum": ["nmos", "pmos", "res", "cap", "ind", "diode", "bjt", "vsource", "isource"]
+        },
+        "cell": {
+          "type": "string",
+          "description": "Cell name from tech config",
+          "examples": ["N_50_CDMOS_G3", "P_50_CDMOS_G3", "PNPPO_TG_CDMOS_G3"]
+        },
+        "nets": {
+          "type": "object",
+          "description": "Net connections (port name -> net name)",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {"D": "Y", "G": "A", "S": "VSS", "B": "VSS"},
+            {"PLUS": "VDD", "MINUS": "Y"}
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Device parameters",
+          "additionalProperties": true,
+          "examples": [
+            {"w": "2u", "l": "0.5u"},
+            {"w": "4u", "l": "2u", "m": 2, "nf": 4},
+            {"w": "10u", "l": "0.4u", "r": "2k"}
+          ]
+        }
+      }
+    }
+  }
+}

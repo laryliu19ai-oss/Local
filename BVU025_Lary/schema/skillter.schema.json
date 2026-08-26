@@ -1,0 +1,634 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chaojenhung/bvSkill/skillter/skillter.schema.json",
+  "title": "SKILLTER - SKILL Test Configuration Schema",
+  "description": "Schema for SKILLTER test case configuration files used by the skillter test platform",
+  "type": "object",
+  "required": ["test_name", "files", "commands"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation"
+    },
+    "test_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable name of the test case",
+      "examples": ["YAML Deserializer Test", "PDK Patch Test", "Simulation Test"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Detailed description of what this test case validates",
+      "examples": ["測試 YAML 反序列化器的記憶體版本和串流版本"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Test case version in semantic versioning format",
+      "examples": ["1.0.0", "2.1", "1.5.2"]
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Author or maintainer of this test case",
+      "examples": ["Chao-Jen Huang", "Test Team"]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]+$"
+      },
+      "uniqueItems": true,
+      "maxItems": 10,
+      "description": "Tags for categorizing and filtering test cases",
+      "examples": [["yaml", "deserializer", "core"], ["pdk", "patch", "database"]]
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 300,
+      "description": "List of files to upload to the server before running tests",
+      "items": {
+        "type": "object",
+        "required": ["local_path", "destination"],
+        "additionalProperties": false,
+        "properties": {
+          "local_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path to the local file relative to the test case directory",
+            "examples": ["skillter.il", "testcase.yaml", "config/settings.json"]
+          },
+          "destination": {
+            "type": "string",
+            "enum": ["work", "skill", "skillpython", "upload"],
+            "description": "Target directory on the server: 'work' (/home/ephoton/cds), 'skill' (~skill), 'skillpython' (~skillpython), 'upload' (/tmp/skill_uploads)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Human-readable description of the file's purpose",
+            "examples": ["主要測試腳本", "測試用 YAML 檔案", "Configuration file"]
+          },
+          "optional": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this file is optional (test continues if file doesn't exist)"
+          },
+          "encoding": {
+            "type": "string",
+            "enum": ["utf-8", "ascii", "binary"],
+            "default": "utf-8",
+            "description": "File encoding for text files"
+          }
+        }
+      }
+    },
+    "virtuoso": {
+      "type": "object",
+      "description": "Standardized Virtuoso execution configuration",
+      "additionalProperties": false,
+      "properties": {
+        "execution": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "default": "skillter.il",
+          "description": "SKILL file to execute with -restore option",
+          "examples": ["skillter.il", "test_script.il", "main.il"]
+        },
+        "log": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "default": "skillter.log",
+          "description": "Log file for Virtuoso execution",
+          "examples": ["skillter.log", "virtuoso.log", "execution.log"]
+        },
+        "cdsinit": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use cdsinit file (true) or -nocdsinit option (false)"
+        },
+        "workdir": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "default": "/home/ephoton/cds",
+          "description": "Working directory for Virtuoso execution",
+          "examples": ["/home/ephoton/cds", "/tmp/skill_workspace", "~/virtuoso_work"]
+        },
+        "autoTerminateOnError": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically terminate Virtuoso process when error patterns detected in stdout or stderr"
+        },
+        "errorPatterns": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Simple array format (treated as 'common' patterns for both stdout and stderr)"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "common": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": "Patterns to check in both stdout and stderr"
+                },
+                "stdout": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": "Patterns to check only in stdout"
+                },
+                "stderr": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": "Patterns to check only in stderr"
+                }
+              },
+              "description": "Advanced format with separate patterns for stdout, stderr, and common"
+            }
+          ],
+          "default": {
+            "common": ["*Error*"]
+          },
+          "description": "Error patterns for automatic termination. Supports glob wildcards or regex depending on errorPatternType"
+        },
+        "errorPatternType": {
+          "type": "string",
+          "enum": ["glob", "regex"],
+          "default": "glob",
+          "description": "Pattern matching type: 'glob' for shell wildcard matching (*Error*), 'regex' for regular expressions (^Error:)"
+        },
+        "gracefulTimeout": {
+          "type": "number",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 60,
+          "description": "Timeout in seconds for graceful shutdown (SIGTERM) before force kill (SIGKILL)"
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "description": "List of commands to execute on the server",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Unique identifier for this command step",
+            "examples": ["run_skillter", "compile_library", "run_simulation", "run_virtuoso"]
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Shell command to execute (optional for 'run_virtuoso' commands which use virtuoso config)",
+            "examples": ["virtuoso -nograph -restore skillter.il", "make clean && make", "python3 analyze_results.py"]
+          },
+          "working_dir": {
+            "type": "string",
+            "default": "/home/ephoton/cds",
+            "description": "Working directory for command execution",
+            "examples": ["/home/ephoton/cds", "/tmp/skill_workspace", "~/project"]
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600,
+            "default": 60,
+            "description": "Command timeout in seconds (1-3600)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Human-readable description of what this command does",
+            "examples": ["執行 SKILL 測試腳本", "Compile the design library", "Run waveform analysis"]
+          },
+          "continue_on_error": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to continue test execution if this command fails"
+          },
+          "environment": {
+            "type": "object",
+            "patternProperties": {
+              "^[A-Z_][A-Z0-9_]*$": {
+                "type": "string"
+              }
+            },
+            "maxProperties": 20,
+            "description": "Environment variables to set for this command",
+            "examples": [{"CDS_LIC_FILE": "/path/to/license", "DISPLAY": ":0.0"}]
+          }
+        }
+      }
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "uniqueItems": true,
+      "maxItems": 120,
+      "description": "List of expected output strings for validation",
+      "examples": [["SUCCESS: Memory deserializer worked", "=== Test completed ==="]]
+    },
+    "unexpected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "uniqueItems": true,
+      "maxItems": 20,
+      "description": "List of unexpected output patterns that should NOT appear in output (error detection)",
+      "examples": [["ERROR:", "FATAL:", "Segmentation fault", "*Error*"]]
+    },
+    "result_files": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "File name (recommended format)"
+          },
+          {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "description": "File name"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "File description (legacy format)"
+              },
+              "required": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether this file is required (legacy format)"
+              }
+            },
+            "description": "File object (legacy format for backward compatibility)"
+          }
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 100,
+      "description": "List of files expected to be generated by the test. Supports both string array (recommended) and object array (legacy) formats.",
+      "examples": [
+        ["testcase.json", "testcase_stream.json", "simulation.log"],
+        [{"name": "result.json", "description": "Test result", "required": true}]
+      ]
+    },
+    "download_files": {
+      "type": "array",
+      "maxItems": 100,
+      "description": "List of files to download from server after test completion",
+      "items": {
+        "type": "object",
+        "required": ["remote_path", "local_path"],
+        "additionalProperties": false,
+        "properties": {
+          "remote_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Path to file on server (supports wildcards like *.log)",
+            "examples": ["testcase.json", "results/*.log", "/tmp/skill_results/output.txt"]
+          },
+          "local_path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Local path to save the file (directories will be created automatically)",
+            "examples": ["results/testcase.json", "logs/", "output/analysis.txt"]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Human-readable description of the file's content",
+            "examples": ["記憶體版本反序列化結果", "Test execution logs", "Waveform analysis results"]
+          },
+          "optional": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this file is optional (test succeeds even if file doesn't exist)"
+          },
+          "max_size_mb": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "description": "Maximum file size in MB (0 = no limit)",
+            "examples": [10, 50, 100]
+          }
+        }
+      }
+    },
+    "pre_commands": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "Commands to run before main test commands (setup phase)",
+      "items": {
+        "$ref": "#/properties/commands/items"
+      }
+    },
+    "post_commands": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "Commands to run after main test commands (cleanup phase)",
+      "items": {
+        "$ref": "#/properties/commands/items"
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Test execution requirements and constraints",
+      "properties": {
+        "virtuoso_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Required Virtuoso version",
+          "examples": ["6.1.8", "22.1"]
+        },
+        "python_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Required Python version",
+          "examples": ["3.8", "3.9.0"]
+        },
+        "disk_space_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Required disk space in MB",
+          "examples": [100, 500, 1000]
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Required memory in MB",
+          "examples": [512, 1024, 2048]
+        },
+        "max_runtime_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60,
+          "description": "Maximum expected test runtime in minutes",
+          "examples": [5, 10, 30]
+        }
+      }
+    },
+    "changed_skill_sync": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Synchronization configuration for SKILL files that are currently being developed or modified. This syncs LOCAL changed files to the test server, NOT a dependency analysis system. Use this to keep test environment in sync with your development changes.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic synchronization of modified SKILL files to test server"
+        },
+        "check_method": {
+          "type": "string",
+          "enum": ["hash", "timestamp", "always"],
+          "default": "hash",
+          "description": "Change detection method: hash (MD5), timestamp (mtime), or always (force sync)"
+        },
+        "destination": {
+          "type": "string",
+          "enum": ["work", "skill", "upload"],
+          "default": "skill",
+          "description": "Default upload destination directory for base_files"
+        },
+        "base_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^.*\\.ils?$"
+          },
+          "description": "List of SKILL files being developed/modified that need to be synced (relative to project root). All files share the same destination specified at changed_skill_sync level.",
+          "examples": [["skill/bvBasicFunction.il", "skill/bvJsonDeserialize.il"]]
+        },
+        "additional_files": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "required": ["local_path", "destination"],
+            "additionalProperties": false,
+            "properties": {
+              "local_path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "description": "Path to the local file relative to the project root (supports any file type)",
+                "examples": ["skill/python/remote/bridge_server.py", "data/test_input.yaml", "scripts/analyze.sh"]
+              },
+              "destination": {
+                "type": "string",
+                "enum": ["work", "skill", "upload"],
+                "description": "Target base directory on the server: 'work' (/home/ephoton/cds), 'skill' (~skill), 'upload' (/tmp/skill_uploads)"
+              },
+              "subpath": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_/-]+$",
+                "maxLength": 200,
+                "description": "Optional subdirectory path relative to destination (e.g., 'python/remote' → skill/python/remote/). Must not contain '..' or start with '/'.",
+                "examples": ["python/remote", "modules/viva", "testdata", "scripts"]
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Human-readable description of the file's purpose",
+                "examples": ["Python Bridge Server", "Test data file", "Analysis script"]
+              },
+              "optional": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether this file is optional (sync continues if file doesn't exist)"
+              }
+            }
+          },
+          "description": "List of additional files to sync with individual destination control. Provides full flexibility like --upload CLI command (destination + subpath).",
+          "examples": [
+            [
+              {
+                "local_path": "skill/python/remote/bridge_server.py",
+                "destination": "skill",
+                "subpath": "python/remote",
+                "description": "Python Bridge Server"
+              },
+              {
+                "local_path": "testdata/input.yaml",
+                "destination": "work",
+                "subpath": "testdata",
+                "description": "Test input data"
+              }
+            ]
+          ]
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "loader", "module_dir"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Module name identifier",
+                "examples": ["viva", "remote", "waveform"]
+              },
+              "loader": {
+                "type": "string",
+                "pattern": "^.*\\.ils?$",
+                "description": "Loader script path (relative to project root)",
+                "examples": ["skill/bvViva_modules.il", "skill/bvRemote_modules.il"]
+              },
+              "module_dir": {
+                "type": "string",
+                "description": "Module directory path (relative to project root)",
+                "examples": ["skill/modules/viva", "skill/modules/remote"]
+              },
+              "check_method": {
+                "type": "string",
+                "enum": ["hash", "timestamp", "always"],
+                "default": "hash",
+                "description": "Change detection method: hash (MD5), timestamp (mtime), or always (force sync)"
+              },
+              "destination": {
+                "type": "string",
+                "enum": ["work", "skill", "upload"],
+                "default": "skill",
+                "description": "Upload destination directory"
+              }
+            }
+          },
+          "description": "List of SKILL module groups to synchronize (structured modules in skill/modules/)"
+        },
+        "auto_detect_dependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect and resolve SKILL dependencies"
+        },
+        "cache_file": {
+          "type": "string",
+          "default": ".skillter_skill_cache.json",
+          "description": "Cache file name for tracking SKILL file sync status"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata for test case management",
+      "properties": {
+        "created_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Test case creation date",
+          "examples": ["2025-01-15"]
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp",
+          "examples": ["2025-01-15T10:30:00Z"]
+        },
+        "test_category": {
+          "type": "string",
+          "enum": ["unit", "integration", "regression", "performance", "validation"],
+          "description": "Category of test case"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"],
+          "default": "medium",
+          "description": "Test priority level"
+        },
+        "expected_duration_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Expected test duration in seconds",
+          "examples": [30, 120, 300]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$schema": "./skillter.schema.json",
+      "test_name": "YAML Deserializer Test",
+      "description": "測試 YAML 反序列化器的記憶體版本和串流版本",
+      "version": "1.0.0",
+      "author": "Chao-Jen Huang",
+      "tags": ["yaml", "deserializer", "core"],
+      "files": [
+        {
+          "local_path": "skillter.il",
+          "destination": "work",
+          "description": "主要測試腳本"
+        }
+      ],
+      "commands": [
+        {
+          "name": "run_skillter",
+          "command": "virtuoso -nograph -restore skillter.il",
+          "working_dir": "/home/ephoton/cds",
+          "timeout": 120,
+          "description": "執行 SKILL 測試腳本"
+        }
+      ],
+      "expected_outputs": [
+        "SUCCESS: Memory deserializer worked",
+        "SUCCESS: Stream deserializer worked"
+      ],
+      "download_files": [
+        {
+          "remote_path": "testcase.json",
+          "local_path": "results/testcase.json",
+          "description": "記憶體版本反序列化結果"
+        }
+      ]
+    }
+  ]
+}

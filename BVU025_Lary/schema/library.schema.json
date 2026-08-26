@@ -1,0 +1,160 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/library.schema",
+    "version": 1.0,
+    "release": "2025/12/21",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Library Creation",
+    "description": "The schema validates the minimum requirements for a library",
+    "type": "object",
+    "properties": {
+        "version": {
+            "description": "Define the library file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the library",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the library",
+            "type": "string"
+        },
+        "library": {
+            "description": "Default imported library name. This field will overwrite the cellview's library name.",
+            "type": [ "string", "object" ],
+            "pattern": "^[A-Za-z0-9_$#]*$",
+            "properties": {
+                "source": {
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
+                },
+                "techfile": {
+                    "type": "string"
+                },
+                "copiedViewTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "copiedViewNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "removeViews": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            }
+        },
+        "searchDir": {
+            "description": "The search field defines the file path of cellview configurations that the imported library searches for. Can be a string (backward compatible) or an object with 'database' and 'libpatch' fields.",
+            "oneOf": [
+                {
+                    "type": "string",
+                    "description": "Single directory path for both database configurations and libpatch searchDirectory (backward compatible)"
+                },
+                {
+                    "type": "object",
+                    "description": "Separate directory paths for database and libpatch configurations",
+                    "properties": {
+                        "database": {
+                            "type": "string",
+                            "description": "Directory path for searching database item configuration files (*.libpatch.json, *.cellview.json, etc.)"
+                        },
+                        "libpatch": {
+                            "type": "string",
+                            "description": "Directory path to override libpatch.searchDirectory when loading *.libpatch.json files"
+                        }
+                    },
+                    "required": ["database"]
+                }
+            ]
+        },
+        "database": {
+            "description": "Defines the cellview files contained in library.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "comment": {
+                        "description": "A cellview configurate description",
+                        "type": "string"
+                    },
+                    "configurate": {
+                        "description": "A configurate file path of cellview creations.",
+                        "type": "string"
+                    },
+                    "filter": {
+                        "description": "The filter field supports PCRE syntax, and the cell name will be imported into the library only if it matches the filter syntax.",
+                        "type": "string"
+                    },
+                    "import": {
+                        "description": "Defines whether this cellview configurate should be imported into the library. (Default is false)",
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "configurate"
+                ]
+            }
+        },
+        "category": {
+            "description": "Define categories of the library.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Define category name.",
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_\\-$#]*$"
+                    },
+                    "filter": {
+                        "description": "Cells or categories that meet the filter definition will be added to the category.",
+                        "type": "object",
+                        "properties": {
+                            "cell": {
+                                "description": "This filter field supports PCRE syntax. Cells that meet the filter definition will be added to the category.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "category": {
+                                "description": "This filter field supports PCRE syntax. Categories that meet the filter definition will be added to the category.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "filter"
+                ]
+            }
+        }
+    },
+    "required": [
+        "version",
+        "library",
+        "searchDir",
+        "database"
+    ]
+}

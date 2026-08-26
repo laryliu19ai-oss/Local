@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flask Server Configuration",
+  "description": "Configuration schema for bvRemote Flask REST API Server",
+  "type": "object",
+  "properties": {
+    "server": {
+      "type": "object",
+      "description": "Server configuration",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Server host address",
+          "default": "0.0.0.0",
+          "examples": ["0.0.0.0", "127.0.0.1", "localhost"]
+        },
+        "port": {
+          "type": "integer",
+          "description": "Server port number",
+          "default": 8000,
+          "minimum": 1024,
+          "maximum": 65535
+        },
+        "debug": {
+          "type": "boolean",
+          "description": "Enable debug mode",
+          "default": false
+        },
+        "threaded": {
+          "type": "boolean",
+          "description": "Enable multi-threading",
+          "default": true
+        }
+      }
+    },
+    "cors": {
+      "type": "object",
+      "description": "CORS configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable CORS support",
+          "default": true
+        },
+        "origins": {
+          "description": "Allowed origins (* for all)",
+          "oneOf": [
+            {"type": "string", "enum": ["*"]},
+            {"type": "array", "items": {"type": "string"}}
+          ],
+          "default": "*"
+        },
+        "methods": {
+          "type": "array",
+          "description": "Allowed HTTP methods",
+          "items": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+          },
+          "default": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        },
+        "allow_headers": {
+          "type": "array",
+          "description": "Allowed request headers",
+          "items": {"type": "string"},
+          "default": ["Content-Type", "X-API-Key", "Authorization"]
+        },
+        "max_age": {
+          "type": "integer",
+          "description": "Preflight cache duration in seconds",
+          "default": 3600,
+          "minimum": 0
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "description": "Logging configuration",
+      "properties": {
+        "level": {
+          "type": "string",
+          "description": "Log level",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+          "default": "INFO"
+        },
+        "file": {
+          "type": ["string", "null"],
+          "description": "Log file path (null for stderr only)",
+          "default": null
+        },
+        "format": {
+          "type": "string",
+          "description": "Log message format",
+          "default": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        },
+        "request_logging": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "log_request_body": {
+              "type": "boolean",
+              "description": "Log request body content",
+              "default": false
+            },
+            "log_response_body": {
+              "type": "boolean",
+              "description": "Log response body content",
+              "default": false
+            },
+            "log_headers": {
+              "type": "boolean",
+              "description": "Log request headers",
+              "default": false
+            },
+            "excluded_paths": {
+              "type": "array",
+              "description": "Paths to exclude from logging",
+              "items": {"type": "string"},
+              "default": ["/health"]
+            }
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "description": "Security configuration",
+      "properties": {
+        "enable_auth": {
+          "type": "boolean",
+          "description": "Enable authentication globally",
+          "default": false
+        },
+        "api_keys": {
+          "type": "array",
+          "description": "Valid API keys",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "rate_limit": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "requests_per_minute": {
+              "type": "integer",
+              "default": 60,
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "ipc": {
+      "type": "object",
+      "description": "IPC communication configuration",
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "description": "Enable real IPC (false for standalone/mock mode)",
+          "default": false
+        },
+        "timeout": {
+          "type": "number",
+          "description": "IPC request timeout in seconds",
+          "default": 30.0,
+          "minimum": 0.1
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

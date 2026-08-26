@@ -1,0 +1,3692 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/waveform.schema",
+    "version": 1.0,
+    "release": "2026/03/06",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Waveform Plot",
+    "description": "Plot the waveform in the waveform window.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "description": "The schema of the waveform plot configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the configuration file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "description": {
+            "description": "The description of the configuration.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode. The default value is false.",
+            "type": "boolean",
+            "default": false
+        },
+        "$comment": {
+            "description": "Comment field for documentation purposes.",
+            "type": "string"
+        },
+        "$architecture_notes": {
+            "description": "Architecture notes for documentation purposes."
+        },
+        "simResultDb": {
+            "description": "Simulation result database path (legacy/debug field).",
+            "type": "string"
+        },
+        "simResultDir": {
+            "description": "Simulation result directory path (legacy/debug field).",
+            "type": "string"
+        },
+        "testbenchName": {
+            "description": "Testbench name (legacy/debug field).",
+            "type": "string"
+        },
+        "waveform": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "viva"
+                    ],
+                    "default": "viva"
+                },
+                "imageSavePath": {
+                    "description": "The save path of the waveform image. Optional - auto-generated from simResultDir when called from bvSim/bvParamSim.",
+                    "type": "string"
+                },
+                "simResultDb": {
+                    "description": "Simulation result database path (legacy/debug field).",
+                    "type": "string"
+                },
+                "simResultDir": {
+                    "description": "Simulation result directory path (legacy/debug field).",
+                    "type": "string"
+                },
+                "database": {
+                    "description": "Database configuration. Supports PSF (type=psf) and RDB (type=rdb). Optional - auto-injected by bvSim/bvSimulationXL.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "patternProperties": {
+                        "^[a-zA-Z0-9_-]+$": {
+                            "$ref": "#/definitions/database_entry"
+                        }
+                    }
+                },
+                "imageSettings": {
+                    "type": "object",
+                    "$ref": "#/definitions/plot_baseImageSettings"
+                },
+                "plot": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "enable": {
+                                "description": "Enable the waveform plot and capture.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "closeAfterCapture": {
+                                "description": "Close the waveform window after all capture operations complete.",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "results": {
+                                "description": "The results to be displayed in the waveform image.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/plot_result"
+                                }
+                            },
+                            "capture": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "enable": {
+                                        "description": "Enable the waveform capture.",
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "filename": {
+                                        "type": "string"
+                                    },
+                                    "imageSavePath": {
+                                        "description": "The save path of the waveform image.",
+                                        "type": "string"
+                                    },
+                                    "imageSettings": {
+                                        "description": "The settings of the waveform capture.",
+                                        "type": "object",
+                                        "$ref": "#/definitions/plot_baseImageSettings"
+                                    },
+                                    "delayCapture": {
+                                        "type": [
+                                            "number",
+                                            "integer"
+                                        ],
+                                        "default": 0
+                                    },
+                                    "captureImages": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/plot_captureImage"
+                                        }
+                                    },
+                                    "closeAfterCapture": {
+                                        "description": "Close the waveform window after capture completes.",
+                                        "type": "boolean",
+                                        "default": false
+                                    }
+                                },
+                                "required": [
+                                    "filename"
+                                ]
+                            },
+                            "captureWorkflow": {
+                                "description": "Workflow-based capture with marker/zoom/bookmark commands",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/workflow_step"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "plot"
+            ]
+        }
+    },
+    "definitions": {
+        "w3colorList": {
+            "enum": [
+                "aliceblue",
+                "antiquewhite",
+                "aqua",
+                "aquamarine",
+                "azure",
+                "beige",
+                "bisque",
+                "black",
+                "blanchedalmond",
+                "blue",
+                "blueviolet",
+                "brown",
+                "burlywood",
+                "cadetblue",
+                "chartreuse",
+                "chocolate",
+                "coral",
+                "cornflowerblue",
+                "cornsilk",
+                "crimson",
+                "cyan",
+                "darkblue",
+                "darkcyan",
+                "darkgoldenrod",
+                "darkgray",
+                "darkgreen",
+                "darkgrey",
+                "darkkhaki",
+                "darkmagenta",
+                "darkolivegreen",
+                "darkorange",
+                "darkorchid",
+                "darkred",
+                "darksalmon",
+                "darkseagreen",
+                "darkslateblue",
+                "darkslategray",
+                "darkslategrey",
+                "darkturquoise",
+                "darkviolet",
+                "deeppink",
+                "deepskyblue",
+                "dimgray",
+                "dimgrey",
+                "dodgerblue",
+                "firebrick",
+                "floralwhite",
+                "forestgreen",
+                "fuchsia",
+                "gainsboro",
+                "ghostwhite",
+                "gold",
+                "goldenrod",
+                "gray",
+                "green",
+                "greenyellow",
+                "grey",
+                "honeydew",
+                "hotpink",
+                "indianred",
+                "indigo",
+                "ivory",
+                "khaki",
+                "lavender",
+                "lavenderblush",
+                "lawngreen",
+                "lemonchiffon",
+                "lightblue",
+                "lightcoral",
+                "lightcyan",
+                "lightgoldenrodyellow",
+                "lightgray",
+                "lightgreen",
+                "lightgrey",
+                "lightpink",
+                "lightsalmon",
+                "lightseagreen",
+                "lightskyblue",
+                "lightslategray",
+                "lightslategrey",
+                "lightsteelblue",
+                "lightyellow",
+                "lime",
+                "limegreen",
+                "linen",
+                "magenta",
+                "maroon",
+                "mediumaquamarine",
+                "mediumblue",
+                "mediumorchid",
+                "mediumpurple",
+                "mediumseagreen",
+                "mediumslateblue",
+                "mediumspringgreen",
+                "mediumturquoise",
+                "mediumvioletred",
+                "midnightblue",
+                "mintcream",
+                "mistyrose",
+                "moccasin",
+                "navajowhite",
+                "navy",
+                "oldlace",
+                "olive",
+                "olivedrab",
+                "orange",
+                "orangered",
+                "orchid",
+                "palegoldenrod",
+                "palegreen",
+                "paleturquoise",
+                "palevioletred",
+                "papayawhip",
+                "peachpuff",
+                "peru",
+                "pink",
+                "plum",
+                "powderblue",
+                "purple",
+                "red",
+                "rosybrown",
+                "royalblue",
+                "saddlebrown",
+                "salmon",
+                "sandybrown",
+                "seagreen",
+                "seashell",
+                "sienna",
+                "silver",
+                "skyblue",
+                "slateblue",
+                "slategray",
+                "slategrey",
+                "snow",
+                "springgreen",
+                "steelblue",
+                "tan",
+                "teal",
+                "thistle",
+                "tomato",
+                "turquoise",
+                "violet",
+                "wheat",
+                "white",
+                "whitesmoke",
+                "yellow",
+                "yellowgreen"
+            ]
+        },
+        "plot_baseImageSettings": {
+            "type": "object",
+            "properties": {
+                "msOptimize": {
+                    "description": "Enables the image to be imported in the Microsoft office application.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "width": {
+                    "description": "Sets the width of the image.",
+                    "type": [
+                        "number",
+                        "integer"
+                    ],
+                    "minimum": 0,
+                    "default": 800
+                },
+                "height": {
+                    "description": "Sets the height of the image.",
+                    "type": [
+                        "number",
+                        "integer"
+                    ],
+                    "minimum": 0,
+                    "default": 600
+                },
+                "units": {
+                    "description": "Sets the units for the width and height of the image.",
+                    "type": "string",
+                    "enum": [
+                        "inch",
+                        "cm",
+                        "mm",
+                        "picas",
+                        "pixels",
+                        "points"
+                    ],
+                    "default": "pixels"
+                },
+                "resolution": {
+                    "description": "Sets the image resolution. This option works only for the bmp, jpeg, png, ppm, tiff, and xpm file formats.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 96
+                },
+                "resolutionUnits": {
+                    "description": "Sets the units for image resolution. This option works only for the bmp, jpeg, png, ppm, tif, and xpm file formats.",
+                    "type": "string",
+                    "enum": [
+                        "pixels/in",
+                        "pixels/cm"
+                    ],
+                    "default": "pixels/in"
+                },
+                "aspectRatio": {
+                    "description": "Enables the aspect ratio, which is the ratio of the width of the image to its height.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "enableTitle": {
+                    "description": "Displays the trace title in the graph image.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "enableLegend": {
+                    "description": "Displays the trace legend in the graph image.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "enableAxes": {
+                    "description": "Displays the axes in the graph image.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "enableGrids": {
+                    "description": "Displays the grid in the graph image.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "backgroundColor": {
+                    "description": "Specify the background color.",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "default": null,
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/w3colorList"
+                        },
+                        {
+                            "pattern": "^#[0-9A-Fa-f]{6}$"
+                        }
+                    ]
+                },
+                "legendWidth": {
+                    "description": "Global default signal name (legend) column width in pixels, applied to all subwindows that do not specify their own legendWidth. Passed to awvSetLegendWidth. Requires legend position to be set to left.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "expandParamGroups": {
+                    "description": "Global default for whether group/family traces are expanded (true) or collapsed (false) in plot windows. Applied via envSetVal before window creation. Applies to method=all and method=group. Per-result expandParamGroups overrides this value. Default: false (collapsed).",
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "plot_component": {
+            "description": "Plot option for the waveform. This option is ignored unless display mode is set to strip or composite.",
+            "type": "string",
+            "enum": [
+                "magnitude",
+                "dB10",
+                "dB20",
+                "dBm",
+                "phaseDeg",
+                "phaseRad",
+                "wrappedPhaseDeg",
+                "wrappedPhaseRad",
+                "real",
+                "imaginary"
+            ],
+            "default": "real"
+        },
+        "plot_lineType": {
+            "description": "Line type for the waveform display.",
+            "type": "string",
+            "enum": [
+                "line",
+                "bar",
+                "scatterPlot",
+                "poleZero"
+            ],
+            "default": "line"
+        },
+        "plot_graphType": {
+            "description": "Graph coordinate system type.",
+            "type": "string",
+            "enum": [
+                "rectangular",
+                "polar",
+                "impedance",
+                "admittance",
+                "immittance"
+            ],
+            "default": "rectangular"
+        },
+        "plot_color": {
+            "description": "Color for the waveform. Supports: W3C color names, Viva color codes (y1-y66), hex RGB (#RRGGBB or 0xRRGGBB), or 'auto'.",
+            "type": "string",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/w3colorList"
+                },
+                {
+                    "pattern": "^(?:auto|#[0-9A-Fa-f]{6}|0[xX][0-9A-Fa-f]{6}|y(?:[1-9]|[1-5][0-9]|6[0-6]))$"
+                }
+            ]
+        },
+        "plot_lineThickness": {
+            "description": "Line thickness of the waveform.",
+            "type": "string",
+            "enum": [
+                "fine",
+                "medium",
+                "thick",
+                "extraThick"
+            ],
+            "default": "fine"
+        },
+        "plot_lineStyle": {
+            "description": "Line style of the waveform.",
+            "type": "string",
+            "enum": [
+                "solid",
+                "dash",
+                "dot",
+                "dashDot",
+                "dashDotDot"
+            ],
+            "default": "solid"
+        },
+        "plot_symbol": {
+            "description": "Symbol displayed for the waveform.",
+            "type": "object",
+            "properties": {
+                "enable": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "plus",
+                        "dot",
+                        "cross",
+                        "box",
+                        "circle",
+                        "square",
+                        "upArrow",
+                        "downArrow"
+                    ],
+                    "default": "circle"
+                }
+            }
+        },
+        "plot_stripNumber": {
+            "description": "List of integers identifying the strips.",
+            "type": [
+                "integer",
+                "null"
+            ],
+            "default": 1,
+            "minimum": 0
+        },
+        "plot_showSymbols": {
+            "description": "Show symbols on the waveform data points.",
+            "type": ["boolean", "null"],
+            "default": null
+        },
+        "plot_dataSymbol": {
+            "description": "Type of symbol to display on data points. Integer 0-16 or string name. Reference: 1=dot, 4/14/16=circle, 2=cross, 3=box, 5=square, 7=upArrow, 8=downArrow.",
+            "oneOf": [
+                {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "plus",
+                        "dot",
+                        "cross",
+                        "box",
+                        "circle",
+                        "square",
+                        "upArrow",
+                        "downArrow"
+                    ]
+                }
+            ],
+            "default": 1
+        },
+        "plot_barBase": {
+            "description": "Base value for bar chart (only valid when lineType='bar').",
+            "type": "integer",
+            "default": 0
+        },
+        "plot_barWidth": {
+            "description": "Width of bars in bar chart (only valid when lineType='bar').",
+            "type": "integer",
+            "default": 1
+        },
+        "plot_barShift": {
+            "description": "Horizontal shift offset for bars (only valid when lineType='bar').",
+            "type": "integer",
+            "default": 0
+        },
+        "child_signal_config": {
+            "description": "Configuration for a single child signal in expression plotting (base config for appendExpression, simplePlotExpression)",
+            "type": "object",
+            "properties": {
+                "display": {
+                    "type": "string",
+                    "description": "Waveform display name (required)"
+                },
+                "color": {
+                    "$ref": "#/definitions/plot_color",
+                    "description": "Color (optional, uses defaultSettings if not specified)"
+                },
+                "lineType": {
+                    "$ref": "#/definitions/plot_lineType",
+                    "description": "Line type (optional)"
+                },
+                "lineStyle": {
+                    "$ref": "#/definitions/plot_lineStyle",
+                    "description": "Line style (optional)"
+                },
+                "lineThickness": {
+                    "$ref": "#/definitions/plot_lineThickness",
+                    "description": "Line thickness (optional)"
+                },
+                "showSymbols": {
+                    "type": "boolean",
+                    "description": "Whether to show data point symbols (optional)"
+                },
+                "dataSymbol": {
+                    "$ref": "#/definitions/plot_dataSymbol",
+                    "description": "Data point symbol type (optional)"
+                },
+                "barBase": {
+                    "$ref": "#/definitions/plot_barBase",
+                    "description": "Bar chart base value (optional, only valid when lineType='bar')"
+                },
+                "barWidth": {
+                    "$ref": "#/definitions/plot_barWidth",
+                    "description": "Bar chart width (optional, only valid when lineType='bar')"
+                },
+                "barShift": {
+                    "$ref": "#/definitions/plot_barShift",
+                    "description": "Bar chart horizontal shift (optional, only valid when lineType='bar')"
+                }
+            },
+            "required": ["display"],
+            "additionalProperties": false
+        },
+        "child_signal_config_plotExpression": {
+            "description": "Configuration for a single child signal in plotExpression (includes position control: waveIndex, stripNumber, yNumber)",
+            "type": "object",
+            "properties": {
+                "display": {
+                    "type": "string",
+                    "description": "Waveform display name (required)"
+                },
+                "color": {
+                    "$ref": "#/definitions/plot_color",
+                    "description": "Color (optional, uses defaultSettings if not specified)"
+                },
+                "lineType": {
+                    "$ref": "#/definitions/plot_lineType",
+                    "description": "Line type (optional)"
+                },
+                "lineStyle": {
+                    "$ref": "#/definitions/plot_lineStyle",
+                    "description": "Line style (optional)"
+                },
+                "lineThickness": {
+                    "$ref": "#/definitions/plot_lineThickness",
+                    "description": "Line thickness (optional)"
+                },
+                "showSymbols": {
+                    "type": "boolean",
+                    "description": "Whether to show data point symbols (optional)"
+                },
+                "dataSymbol": {
+                    "$ref": "#/definitions/plot_dataSymbol",
+                    "description": "Data point symbol type (optional)"
+                },
+                "barBase": {
+                    "$ref": "#/definitions/plot_barBase",
+                    "description": "Bar chart base value (optional, only valid when lineType='bar')"
+                },
+                "barWidth": {
+                    "$ref": "#/definitions/plot_barWidth",
+                    "description": "Bar chart width (optional, only valid when lineType='bar')"
+                },
+                "barShift": {
+                    "$ref": "#/definitions/plot_barShift",
+                    "description": "Bar chart horizontal shift (optional, only valid when lineType='bar')"
+                },
+                "waveIndex": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Target waveform index (overwrites existing waveform if specified)"
+                },
+                "stripNumber": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Target strip number (required for plotExpression)"
+                },
+                "yNumber": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target Y-axis number (1-4, required for plotExpression)"
+                }
+            },
+            "required": ["display"],
+            "additionalProperties": false
+        },
+        "default_settings": {
+            "description": "Global default styles (properties not specified in childSignals will use these defaults)",
+            "type": "object",
+            "properties": {
+                "color": {
+                    "$ref": "#/definitions/plot_color",
+                    "default": "y6",
+                    "description": "Default color"
+                },
+                "lineType": {
+                    "$ref": "#/definitions/plot_lineType",
+                    "default": "line",
+                    "description": "Default line type"
+                },
+                "lineStyle": {
+                    "$ref": "#/definitions/plot_lineStyle",
+                    "default": "solid",
+                    "description": "Default line style"
+                },
+                "lineThickness": {
+                    "$ref": "#/definitions/plot_lineThickness",
+                    "default": "fine",
+                    "description": "Default line thickness"
+                },
+                "showSymbols": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Default show symbols setting"
+                },
+                "dataSymbol": {
+                    "$ref": "#/definitions/plot_dataSymbol",
+                    "description": "Default data point symbol"
+                },
+                "barBase": {
+                    "$ref": "#/definitions/plot_barBase",
+                    "description": "Default bar chart base value (only valid when lineType='bar')"
+                },
+                "barWidth": {
+                    "$ref": "#/definitions/plot_barWidth",
+                    "description": "Default bar chart width (only valid when lineType='bar')"
+                },
+                "barShift": {
+                    "$ref": "#/definitions/plot_barShift",
+                    "description": "Default bar chart horizontal shift (only valid when lineType='bar')"
+                }
+            },
+            "additionalProperties": false
+        },
+        "signal_analog2digital": {
+            "type": "object",
+            "properties": {
+                "display": {
+                    "description": "The waveform name to be displayed in the trace legend.",
+                    "type": "string"
+                },
+                "threshold": {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "description": "Type of logic threshold.",
+                            "type": "string",
+                            "enum": [
+                                "highLow",
+                                "center"
+                            ],
+                            "default": "center"
+                        },
+                        "high": {
+                            "description": "High threshold value.",
+                            "type": [
+                                "string",
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "low": {
+                            "description": "Low threshold value.",
+                            "type": [
+                                "string",
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "timeX": {
+                            "description": "The minimum duration of analog signal between high threshold and low threshold. It is used to determine the logic X.",
+                            "type": [
+                                "string",
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "center": {
+                            "description": "Central threshold value.",
+                            "type": [
+                                "string",
+                                "number",
+                                "integer"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "highLow"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "high",
+                            "low",
+                            "timeX"
+                        ]
+                    },
+                    "else": {
+                        "required": [
+                            "center"
+                        ]
+                    }
+                },
+                "releaseMemory": {
+                    "description": "Specifies whether to internally release the memory of the analog waveform after converting it into a digital waveform.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "color": {
+                    "$ref": "#/definitions/plot_color"
+                },
+                "thickness": {
+                    "$ref": "#/definitions/plot_lineThickness"
+                },
+                "style": {
+                    "$ref": "#/definitions/plot_lineStyle"
+                },
+                "symbol": {
+                    "$ref": "#/definitions/plot_symbol"
+                },
+                "stripNumber": {
+                    "$ref": "#/definitions/plot_stripNumber"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "Visible the waveform signal. The default value is true.",
+                    "default": true
+                }
+            },
+            "additionalProperties": false
+        },
+        "signal_threshold": {
+            "description": "Analog to digital conversion threshold settings",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "Type of logic threshold.",
+                    "type": "string",
+                    "enum": [
+                        "highLow",
+                        "center"
+                    ],
+                    "default": "center"
+                },
+                "high": {
+                    "description": "High threshold value.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "low": {
+                    "description": "Low threshold value.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "timeX": {
+                    "description": "The minimum duration of analog signal between high threshold and low threshold.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "center": {
+                    "description": "Central threshold value.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "highLow"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "high",
+                    "low"
+                ]
+            },
+            "else": {
+                "required": [
+                    "center"
+                ]
+            }
+        },
+        "plot_signal": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Signal description (replaces comment field)",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "voltage",
+                        "current",
+                        "expression"
+                    ],
+                    "default": "voltage"
+                },
+                "signalType": {
+                    "description": "Signal processing and display type. Default is 'analog' for backward compatibility.",
+                    "type": "string",
+                    "enum": [
+                        "analog",
+                        "digital",
+                        "digitalBus"
+                    ],
+                    "default": "analog"
+                },
+                "signal": {
+                    "description": "Signal path - string for single signal, array for bus signal",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1
+                        }
+                    ]
+                },
+                "display": {
+                    "description": "The waveform name to be displayed in the trace legend.",
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "variable": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "component": {
+                    "$ref": "#/definitions/plot_component"
+                },
+                "lineType": {
+                    "$ref": "#/definitions/plot_lineType"
+                },
+                "graphType": {
+                    "$ref": "#/definitions/plot_graphType"
+                },
+                "showSymbols": {
+                    "$ref": "#/definitions/plot_showSymbols"
+                },
+                "dataSymbol": {
+                    "$ref": "#/definitions/plot_dataSymbol"
+                },
+                "barBase": {
+                    "$ref": "#/definitions/plot_barBase"
+                },
+                "barWidth": {
+                    "$ref": "#/definitions/plot_barWidth"
+                },
+                "barShift": {
+                    "$ref": "#/definitions/plot_barShift"
+                },
+                "color": {
+                    "$ref": "#/definitions/plot_color"
+                },
+                "thickness": {
+                    "$ref": "#/definitions/plot_lineThickness"
+                },
+                "style": {
+                    "$ref": "#/definitions/plot_lineStyle"
+                },
+                "symbol": {
+                    "$ref": "#/definitions/plot_symbol"
+                },
+                "stripNumber": {
+                    "$ref": "#/definitions/plot_stripNumber"
+                },
+                "database": {
+                    "description": "The signal database selection of the waveform. If not specified, default is all databases.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "threshold": {
+                    "description": "Analog to digital conversion threshold (for signalType='digital' or 'digitalBus')",
+                    "$ref": "#/definitions/signal_threshold"
+                },
+                "busFormat": {
+                    "description": "Digital bus display format (for signalType='digitalBus'). Maps to Viva API radix parameter.",
+                    "type": "string",
+                    "enum": [
+                        "Binary",
+                        "Octal",
+                        "Ascii",
+                        "Hexadecimal",
+                        "Signed Decimal",
+                        "Unsigned Decimal"
+                    ],
+                    "default": "Unsigned Decimal"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "Visible the waveform signal. The default value is true.",
+                    "default": true
+                },
+                "analog2digital": {
+                    "description": "Analog to digital conversion settings for this signal.",
+                    "$ref": "#/definitions/signal_analog2digital"
+                },
+                "nameTemplate": {
+                    "description": "Optional display name template for this signal. Supports {{varName}} placeholders. Available variables: {{signal}} (resolved display name or signal path), {{cornerLabel}} (corner identifier, e.g. '[3]' for group/single method), {{index}} (integer index as string). When specified, overrides the auto-append corner label behavior. Example: '{{signal}} [corner {{cornerLabel}}]'.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "type"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "expression"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "expression"
+                        ]
+                    },
+                    "else": {
+                        "required": [
+                            "signal"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "lineType": {
+                                "not": {
+                                    "const": "bar"
+                                }
+                            }
+                        },
+                        "required": ["lineType"]
+                    },
+                    "then": {
+                        "not": {
+                            "anyOf": [
+                                {"required": ["barBase"]},
+                                {"required": ["barWidth"]},
+                                {"required": ["barShift"]}
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "plot_result": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enable": {
+                    "description": "Enable the waveform plot section.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "select": {
+                    "type": "string",
+                    "enum": [
+                        "dc",
+                        "ac",
+                        "tran",
+                        "stb",
+                        "evaluation",
+                        "histogram"
+                    ]
+                },
+                "method": {
+                    "description": "PSF database selection method for XL simulation results (applies to tran/dc/ac/stb plots). 'all': use combined PSF (database[psf], all MC runs and corners merged). 'group': use per-corner group PSF (database[psf_mc_N]); without index selects all corners, with index selects specific corner N. 'single': use single corner PSF (database[psf_run_N], all MC runs for that corner). Omit to use all available databases (backward compatible).",
+                    "type": "string",
+                    "enum": ["all", "group", "single"]
+                },
+                "index": {
+                    "description": "Corner/sweep selection for method 'group', 'single', or 'evaluation'. Supports multiple formats:\n  Integer: 1-based corner number (e.g., 1). For 'group'/'single': selects specific corner.\n  Array of integers: multiple corners (e.g., [1, 2, 3]).\n  Spec object: named sweep dimension filter (e.g., {\"corner\": \"tt_mos\", \"temperature\": 25}). For 'single' evaluation mode: keys are sweep dimension names, values are match criteria. 'corner' key uses substring matching against ADE XL modelFiles strings. Other keys use exact value matching. All unspecified dimensions are unconstrained (all values included).\n  Array of spec objects: multiple named selections plotted as separate curves (e.g., [{\"corner\": \"tt_mos\", \"temperature\": 25}, {\"corner\": \"ff_mos\", \"temperature\": 60}]).",
+                    "oneOf": [
+                        {
+                            "description": "Single integer corner index (1-based)",
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "description": "Array of integer corner indices (1-based)",
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "minItems": 1
+                        },
+                        {
+                            "description": "Named sweep spec object: keys are sweep dimension names (corner, temperature, parVdd, etc.), values are match criteria. 'corner' key matches ADE XL modelFiles by substring. Numeric values match by equality (with float tolerance). Object values {model, section} match structured corner specs.",
+                            "type": "object",
+                            "minProperties": 1,
+                            "patternProperties": {
+                                ".*": {
+                                    "oneOf": [
+                                        {
+                                            "description": "String match: exact or substring match (corner uses substring)",
+                                            "type": "string"
+                                        },
+                                        {
+                                            "description": "Numeric match: exact value (float tolerance applied)",
+                                            "type": "number"
+                                        },
+                                        {
+                                            "description": "Structured corner spec: {model, section} for unambiguous PDK library/section selection",
+                                            "type": "object",
+                                            "properties": {
+                                                "model": {
+                                                    "type": "string",
+                                                    "description": "PDK library name substring to match in modelFiles"
+                                                },
+                                                "section": {
+                                                    "type": "string",
+                                                    "description": "Corner section name to match in modelFiles"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "description": "Array of named sweep spec objects: each object selects one set of curves. Used to plot multiple specific corner/parameter combinations.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "minProperties": 1,
+                                "patternProperties": {
+                                    ".*": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "model": {
+                                                        "type": "string"
+                                                    },
+                                                    "section": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "minItems": 1
+                        }
+                    ]
+                },
+                "group": {
+                    "description": "Data source group for this result. PSF entries use db/suffix/prefix/color; RDB histogram entries use db/test/expression/corner/id/auto.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/group_entry"
+                    }
+                },
+                "runObj": {
+                    "description": "RunObj configuration for MC waveform overlay (auto-generate runObjFile from RDB).",
+                    "$ref": "#/definitions/runObj_config"
+                },
+                "bins": {
+                    "description": "Number of histogram bins (select=histogram only).",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 10
+                },
+                "style": {
+                    "description": "histogram2D style parameter (select=histogram only).",
+                    "type": "string",
+                    "default": "standard"
+                },
+                "statistic": {
+                    "description": "Statistic to display on histogram (select=histogram only).",
+                    "type": "string",
+                    "enum": ["stddev", "mean", "variance", "skewness", "kurtosis"],
+                    "default": "stddev"
+                },
+                "databaseGroup": {
+                    "type": "array",
+                    "description": "Deprecated: use group instead. The database group to be displayed in the waveform.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "description": "The title of the waveform.",
+                    "type": "string"
+                },
+                "displayMode": {
+                    "description": "The display mode of the waveform.",
+                    "type": "string",
+                    "enum": [
+                        "composite",
+                        "smith",
+                        "strip"
+                    ],
+                    "default": "strip"
+                },
+                "signals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/plot_signal"
+                    }
+                },
+                "legendWidth": {
+                    "description": "Signal name (legend) column width in pixels for this subwindow. Passed to awvSetLegendWidth to prevent signal names from being truncated. Requires legend position to be set to left.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "expandParamGroups": {
+                    "description": "Whether group/family traces are expanded (true) or collapsed (false) for this plot window. Applied via envSetVal before window creation. Overrides the global imageSettings.expandParamGroups. Applies to method=all and method=group. Default: false (collapsed).",
+                    "type": "boolean",
+                    "default": false
+                },
+                "variables": {
+                    "description": "Variables for template substitution in evaluation expressions. Values can be strings or numbers.",
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "type": [
+                                "string",
+                                "number"
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "expressions": {
+                    "description": "Evaluation expressions to plot. Each expression is template-substituted with variables and prior named expressions.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/evaluation_expression"
+                    },
+                    "minItems": 1
+                },
+                "evaluation": {
+                    "description": "Reference to external evaluation config file. Auto-appends .evaluation.json if no .json extension. Expressions can use {{evaluation.ExprName}} to reference evaluation expressions.",
+                    "type": "string"
+                },
+                "markers": {
+                    "description": "Marker configuration for the waveform plot",
+                    "$ref": "#/definitions/markers_config"
+                },
+                "bookmarks": {
+                    "description": "List of bookmarks for the waveform plot",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bookmark"
+                    }
+                }
+            },
+            "required": [
+                "select"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "select": { "const": "evaluation" } }
+                    },
+                    "then": {
+                        "required": ["expressions"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "select": { "const": "histogram" } }
+                    },
+                    "then": {
+                        "required": ["group"]
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "properties": { "select": { "enum": ["evaluation", "histogram"] } }
+                        }
+                    },
+                    "then": {
+                        "required": ["signals"]
+                    }
+                }
+            ]
+        },
+        "database_entry": {
+            "description": "A single database entry. type=psf for PSF files, type=rdb for RDB files.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "description": "Database type: psf or rdb.",
+                    "type": "string",
+                    "enum": ["psf", "rdb"],
+                    "default": "psf"
+                },
+                "file": {
+                    "description": "File path to the database.",
+                    "type": "string"
+                },
+                "prefix": {
+                    "description": "Default signal legend prefix for this database.",
+                    "type": "string"
+                },
+                "suffix": {
+                    "description": "Default signal legend suffix for this database.",
+                    "type": "string"
+                },
+                "defaultSignalColor": {
+                    "description": "Default signal color for this database.",
+                    "type": "string"
+                }
+            },
+            "required": ["file"]
+        },
+        "group_entry": {
+            "description": "A data source entry in a result group. PSF entries reference a database key with optional display attributes. RDB histogram entries reference a database key with test/expression/corner/id.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "db": {
+                    "description": "Key referencing an entry in the database object.",
+                    "type": "string"
+                },
+                "test": {
+                    "description": "RDB test name (e.g. 'test:inv_test:1'). Required for histogram select.",
+                    "type": "string"
+                },
+                "expression": {
+                    "description": "Expression name or prefix. Combined with corner+id to form full name when auto=true.",
+                    "type": "string"
+                },
+                "corner": {
+                    "description": "Corner key (e.g. 'MC'). Combined as {expression}_{corner}_{id}.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Corner index (0-based). Combined as {expression}_{corner}_{id}.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "auto": {
+                    "description": "Auto-append wildcard for missing corner/id (default true). When false, missing parts are omitted.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "suffix": {
+                    "description": "Signal legend suffix for PSF group entries.",
+                    "type": "string"
+                },
+                "prefix": {
+                    "description": "Signal legend prefix for PSF group entries.",
+                    "type": "string"
+                },
+                "color": {
+                    "description": "Default signal color for this PSF database entry.",
+                    "$ref": "#/definitions/plot_color"
+                }
+            },
+            "required": ["db"]
+        },
+        "runObj_config": {
+            "description": "RunObj configuration for MC waveform overlay.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "autoGenerate": {
+                    "description": "Auto-generate runObjFile by collecting all MC sample PSF paths from RDB.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "outputFile": {
+                    "description": "Output runObjFile path (relative to xlHistoryDir).",
+                    "type": "string"
+                }
+            },
+            "required": ["autoGenerate"]
+        },
+        "evaluation_expression": {
+            "type": "object",
+            "description": "An evaluation expression item for plotting. Supports {{variable}} template substitution.",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "description": "Optional name for this expression. The substituted expression string becomes available as {{name}} in subsequent expressions.",
+                    "type": "string"
+                },
+                "display": {
+                    "description": "Display name shown in the trace legend.",
+                    "type": "string"
+                },
+                "expression": {
+                    "description": "SKILL expression string with {{variable}} placeholders.",
+                    "type": "string"
+                },
+                "signalType": {
+                    "description": "Signal processing and display type. Default is 'analog' for backward compatibility.",
+                    "type": "string",
+                    "enum": [
+                        "analog",
+                        "digital",
+                        "digitalBus"
+                    ],
+                    "default": "analog"
+                },
+                "component": {
+                    "$ref": "#/definitions/plot_component"
+                },
+                "lineType": {
+                    "$ref": "#/definitions/plot_lineType"
+                },
+                "graphType": {
+                    "$ref": "#/definitions/plot_graphType"
+                },
+                "showSymbols": {
+                    "$ref": "#/definitions/plot_showSymbols"
+                },
+                "dataSymbol": {
+                    "$ref": "#/definitions/plot_dataSymbol"
+                },
+                "barBase": {
+                    "$ref": "#/definitions/plot_barBase"
+                },
+                "barWidth": {
+                    "$ref": "#/definitions/plot_barWidth"
+                },
+                "barShift": {
+                    "$ref": "#/definitions/plot_barShift"
+                },
+                "color": {
+                    "$ref": "#/definitions/plot_color"
+                },
+                "thickness": {
+                    "$ref": "#/definitions/plot_lineThickness"
+                },
+                "style": {
+                    "$ref": "#/definitions/plot_lineStyle"
+                },
+                "stripNumber": {
+                    "$ref": "#/definitions/plot_stripNumber"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "Visible the waveform signal. The default value is true.",
+                    "default": true
+                },
+                "nameTemplate": {
+                    "description": "Optional display name template for this evaluation expression. Supports {{varName}} placeholders. Available variables: {{signal}} (resolved display name or expression string), {{cornerLabel}} (corner label, e.g. '(tt_mos, temp=25)' for spec-based or '[N]' for integer-index), {{index}} (integer index as string, empty for spec-based). When specified, overrides the auto-append corner label behavior. Example: '{{signal}} @ {{cornerLabel}}'.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "expression"
+            ]
+        },
+        "plot_capture": {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "filename": {
+                        "type": "string"
+                    },
+                    "filenameSuffix": {
+                        "type": "string"
+                    },
+                    "delayCapture": {
+                        "type": [
+                            "number",
+                            "integer"
+                        ],
+                        "default": 0
+                    },
+                    "command": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "XMarker",
+                                        "YMarker"
+                                    ]
+                                },
+                                "location": {
+                                    "type": [
+                                        "string",
+                                        "number",
+                                        "integer"
+                                    ]
+                                },
+                                "label": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "type",
+                                "location"
+                            ],
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "oneOf": [
+                                            {
+                                                "const": "XMarker"
+                                            },
+                                            {
+                                                "const": "YMarker"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "location"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "required": [
+                            "filename"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "filenameSuffix"
+                        ]
+                    }
+                ]
+            }
+        },
+        "plot_captureImage": {
+            "type": "object",
+            "properties": {
+                "fileSuffix": {
+                    "description": "The file name of the waveform image.",
+                    "type": "string"
+                },
+                "delayCapture": {
+                    "description": "The delay time in seconds before capturing the waveform.",
+                    "type": [
+                        "number",
+                        "integer"
+                    ],
+                    "default": 0
+                },
+                "imageSettings": {
+                    "$ref": "#/definitions/plot_baseImageSettings"
+                }
+            },
+            "required": [
+                "fileSuffix"
+            ]
+        },
+        "xMarker": {
+            "description": "X-axis marker configuration",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Marker name (optional)",
+                    "type": "string"
+                },
+                "position": {
+                    "description": "X-axis position (time value, supports engineering notation like '50n')",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow number (default 1)",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "position"
+            ]
+        },
+        "yMarker": {
+            "description": "Y-axis marker configuration",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Marker name (optional)",
+                    "type": "string"
+                },
+                "traceIndex": {
+                    "description": "Trace index (1-based)",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "position": {
+                    "description": "Y-axis position value",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow number (default 1)",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "traceIndex",
+                "position"
+            ]
+        },
+        "abMarker": {
+            "description": "A/B marker pair configuration (for delta measurements)",
+            "type": "object",
+            "properties": {
+                "enable": {
+                    "description": "Enable A/B marker pair",
+                    "type": "boolean",
+                    "default": true
+                },
+                "markerA": {
+                    "description": "A marker position",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "markerB": {
+                    "description": "B marker position",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow number (default 1)",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "markerA",
+                "markerB"
+            ]
+        },
+        "bookmark": {
+            "description": "Waveform view bookmark configuration",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Bookmark name (required)",
+                    "type": "string"
+                },
+                "xrange": {
+                    "description": "X-axis range [start, end]",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "yrange": {
+                    "description": "Y-axis range [start, end]",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "xval": {
+                    "description": "X-axis value (for cursor position)",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yval": {
+                    "description": "Y-axis value (for cursor position)",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow number (default 1)",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "name"
+            ]
+        },
+        "markers_config": {
+            "description": "Complete markers configuration",
+            "type": "object",
+            "properties": {
+                "xMarkers": {
+                    "description": "List of X-axis markers",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/xMarker"
+                    }
+                },
+                "yMarkers": {
+                    "description": "List of Y-axis markers",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/yMarker"
+                    }
+                },
+                "abMarker": {
+                    "description": "A/B marker pair configuration",
+                    "$ref": "#/definitions/abMarker"
+                }
+            },
+            "additionalProperties": false
+        },
+        "workflow_step": {
+            "description": "Single workflow step with commands and capture",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Workflow step name (unique identifier)",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description of this workflow step",
+                    "type": "string"
+                },
+                "commands": {
+                    "description": "List of commands to execute in this step",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/workflow_command"
+                    }
+                },
+                "filename": {
+                    "description": "Output image filename for this step",
+                    "type": "string"
+                },
+                "delayCapture": {
+                    "description": "Delay in seconds before capturing image",
+                    "type": [
+                        "number",
+                        "integer"
+                    ],
+                    "minimum": 0,
+                    "default": 0.5
+                },
+                "closeAfterCapture": {
+                    "description": "Close the waveform window after this step's capture completes.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": [
+                "name",
+                "commands",
+                "filename"
+            ],
+            "additionalProperties": false
+        },
+        "workflow_command": {
+            "description": "Command for marker/zoom/bookmark operations",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "Command type",
+                    "type": "string",
+                    "enum": [
+                        "marker",
+                        "zoom",
+                        "bookmark",
+                        "axis",
+                        "label",
+                        "plotWaveform",
+                        "waveformOption",
+                        "deleteWaveform",
+                        "subwindow",
+                        "expression"
+                    ]
+                },
+                "operation": {
+                    "description": "Operation name",
+                    "type": "string"
+                },
+                "subwindow": {
+                    "description": "Subwindow number",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "marker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/marker_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "zoom"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/zoom_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "bookmark"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/bookmark_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "axis"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/axis_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "label"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/label_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "plotWaveform"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/plotWaveform_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "waveformOption"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/waveformOption_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "deleteWaveform"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/deleteWaveform_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "subwindow"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/subwindow_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "expression"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/expression_command"
+                    }
+                }
+            ]
+        },
+        "marker_command": {
+            "description": "Marker command properties - use specific schema based on operation type",
+            "type": "object",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeXMarker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeXMarker_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeYMarker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeYMarker_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeAMarker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeAMarker_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeBMarker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeBMarker_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "deleteMarker"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/deleteMarker_command"
+                    }
+                }
+            ]
+        },
+        "placeXMarker_command": {
+            "description": "Place X marker (vertical line) at specified X position",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "placeXMarker"
+                },
+                "position": {
+                    "description": "X coordinate (supports unit strings like '100n', '1u')",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "name": {
+                    "description": "Marker name/label for tracking",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "operation",
+                "position"
+            ]
+        },
+        "placeYMarker_command": {
+            "description": "Place Y marker (horizontal line) at specified Y position on a strip",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "placeYMarker"
+                },
+                "position": {
+                    "description": "Y coordinate (voltage/current value)",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "stripNumber": {
+                    "description": "Strip number (trace index) where the marker will be placed",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "traceIndex": {
+                    "description": "Trace index (alias for stripNumber)",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "Marker name/label for tracking",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "operation",
+                "position"
+            ]
+        },
+        "placeAMarker_command": {
+            "description": "Place A marker (reference point) at specified (X, Y) on a strip. Auto-detects positionMode: only xPosition='x', only yPosition='y', both='xy'",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "placeAMarker"
+                },
+                "stripNumber": {
+                    "description": "Strip number (trace index) where the marker will be placed",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "xPosition": {
+                    "description": "X coordinate (supports unit strings like '100n', '1u'). Required unless only yPosition is provided.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yPosition": {
+                    "description": "Y coordinate (voltage/current value). Required unless only xPosition is provided.",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "positionMode": {
+                    "description": "Position mode (auto-detected if not specified): 'x' = snap to trace at xPosition (auto if only xPosition), 'y' = snap to trace at yPosition (auto if only yPosition), 'xy' = exact position (auto if both provided)",
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y",
+                        "xy"
+                    ]
+                },
+                "name": {
+                    "description": "Marker name/label for tracking",
+                    "type": "string"
+                },
+                "position": {
+                    "description": "X position alias (shorthand for xPosition)",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                }
+            },
+            "required": [
+                "operation"
+            ],
+            "anyOf": [
+                { "required": ["xPosition"] },
+                { "required": ["yPosition"] },
+                { "required": ["position"] }
+            ]
+        },
+        "placeBMarker_command": {
+            "description": "Place B marker (reference point) at specified (X, Y) on a strip. Auto-detects positionMode: only xPosition='x', only yPosition='y', both='xy'",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "placeBMarker"
+                },
+                "stripNumber": {
+                    "description": "Strip number (trace index) where the marker will be placed",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "xPosition": {
+                    "description": "X coordinate (supports unit strings like '100n', '1u'). Required unless only yPosition is provided.",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yPosition": {
+                    "description": "Y coordinate (voltage/current value). Required unless only xPosition is provided.",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "positionMode": {
+                    "description": "Position mode (auto-detected if not specified): 'x' = snap to trace at xPosition (auto if only xPosition), 'y' = snap to trace at yPosition (auto if only yPosition), 'xy' = exact position (auto if both provided)",
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y",
+                        "xy"
+                    ]
+                },
+                "name": {
+                    "description": "Marker name/label for tracking",
+                    "type": "string"
+                },
+                "position": {
+                    "description": "X position alias (shorthand for xPosition)",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                }
+            },
+            "required": [
+                "operation"
+            ],
+            "anyOf": [
+                { "required": ["xPosition"] },
+                { "required": ["yPosition"] },
+                { "required": ["position"] }
+            ]
+        },
+        "deleteMarker_command": {
+            "description": "Delete markers by name",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "deleteMarker"
+                },
+                "markerNames": {
+                    "description": "List of marker names to delete",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "operation",
+                "markerNames"
+            ]
+        },
+        "zoom_command": {
+            "description": "Zoom command properties",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "enum": [
+                        "fit",
+                        "setXLimit",
+                        "setYLimit",
+                        "zoomGraphX",
+                        "zoomGraphY",
+                        "zoomGraphXY",
+                        "setXScale"
+                    ]
+                },
+                "xmin": {
+                    "description": "X-axis minimum value",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "xmax": {
+                    "description": "X-axis maximum value",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "ymin": {
+                    "description": "Y-axis minimum value",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "ymax": {
+                    "description": "Y-axis maximum value",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "xStart": {
+                    "description": "X-axis zoom start value",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "xStop": {
+                    "description": "X-axis zoom stop value",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yStart": {
+                    "description": "Y-axis zoom start value",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yStop": {
+                    "description": "Y-axis zoom stop value",
+                    "type": [
+                        "number",
+                        "integer"
+                    ]
+                },
+                "yAxisNumber": {
+                    "description": "Y-axis number (1-4) for setYLimit",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "default": 1
+                },
+                "stripNumber": {
+                    "description": "Strip number for strip mode operations",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "scale": {
+                    "description": "Scale for setXScale operation",
+                    "type": "string",
+                    "enum": [
+                        "linear",
+                        "log",
+                        "auto"
+                    ]
+                }
+            }
+        },
+        "axis_command": {
+            "description": "Axis configuration command properties",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "enum": [
+                        "logXAxis",
+                        "logYAxis",
+                        "setXAxisMajorDivisions",
+                        "setXAxisMinorDivisions",
+                        "setXAxisStepValue",
+                        "setXAxisUseStepValue",
+                        "setYAxisMajorDivisions",
+                        "setYAxisMinorDivisions",
+                        "setYAxisStepValue",
+                        "setYAxisUseStepValue",
+                        "setOrigin"
+                    ]
+                },
+                "state": {
+                    "description": "State for logXAxis/logYAxis operations (true=logarithmic, false=linear)",
+                    "type": "boolean"
+                },
+                "majorDivisions": {
+                    "description": "Number of major divisions for axis (must be positive)",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "minorDivisions": {
+                    "description": "Number of minor divisions for axis (must be non-negative)",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "stepValue": {
+                    "description": "Step value for axis ticks (supports unit strings like '1n', '10u')",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer"
+                    ]
+                },
+                "useStepValue": {
+                    "description": "Whether to use step value for axis ticks",
+                    "type": "boolean"
+                },
+                "xOrigin": {
+                    "description": "X-axis origin position (supports unit strings like '0', '100n')",
+                    "type": [
+                        "string",
+                        "number",
+                        "integer",
+                        "null"
+                    ]
+                },
+                "yOrigin": {
+                    "description": "Y-axis origin position",
+                    "type": [
+                        "number",
+                        "integer",
+                        "null"
+                    ]
+                },
+                "yAxisNumber": {
+                    "description": "Y-axis number (1-4) for Y-axis operations",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "default": 1
+                },
+                "stripNumber": {
+                    "description": "Strip number for strip mode operations",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "bookmark_command": {
+            "description": "Bookmark command properties - use specific schema based on operation type",
+            "type": "object",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "place"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeBookmark_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "delete"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/deleteBookmark_command"
+                    }
+                }
+            ]
+        },
+        "placeBookmark_command": {
+            "description": "Place bookmark with explicit type or auto-inference. Auto-inferred: xrange+yrange=region, xrange=xrange, yrange=yrange, point=point",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "place"
+                },
+                "name": {
+                    "description": "Bookmark tracking name for deletion (required for tracking)",
+                    "type": "string"
+                },
+                "bookmarkName": {
+                    "description": "Bookmark name/label (alias for name)",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Bookmark description/label displayed in UI (maps to awvPlaceBookmark ?description)",
+                    "type": "string"
+                },
+                "bookmarkType": {
+                    "description": "Explicit bookmark type (optional). If specified, takes priority over auto-inference.",
+                    "type": "string",
+                    "enum": [
+                        "region",
+                        "xrange",
+                        "yrange",
+                        "point"
+                    ]
+                },
+                "region": {
+                    "description": "Region coordinates [xStart, yStart, xEnd, yEnd] for region bookmark",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                },
+                "xrange": {
+                    "description": "X-axis range [start, end]. When combined with yrange (without bookmarkType), auto-creates region",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "yrange": {
+                    "description": "Y-axis range [start, end]. When combined with xrange (without bookmarkType), auto-creates region",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "point": {
+                    "description": "Point coordinates [x, y] for point bookmark",
+                    "type": "array",
+                    "items": {
+                        "type": [
+                            "string",
+                            "number",
+                            "integer"
+                        ]
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "waveIndex": {
+                    "description": "Wave index for bookmark placement",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "visible": {
+                    "description": "Bookmark visibility",
+                    "type": "boolean",
+                    "default": true
+                },
+                "properties": {
+                    "description": "Bookmark visual properties (fillColor, foreground, lineStyle, font, defaultLabel, etc.)",
+                    "type": "object",
+                    "properties": {
+                        "fillColor": {
+                            "description": "Fill color for bookmark region/range. Default: blue",
+                            "type": "string"
+                        },
+                        "foreground": {
+                            "description": "Foreground color for bookmark border/line",
+                            "type": "string"
+                        },
+                        "lineStyle": {
+                            "description": "Line style. Default: solid (region), dash (xrange/yrange)",
+                            "type": "string",
+                            "enum": [
+                                "solid",
+                                "dash",
+                                "dot",
+                                "dashDot",
+                                "dashDotDot"
+                            ]
+                        },
+                        "font": {
+                            "description": "Font for bookmark label",
+                            "type": "string",
+                            "enum": [
+                                "euroStyle",
+                                "gothic",
+                                "math",
+                                "roman",
+                                "script",
+                                "stick",
+                                "fixed",
+                                "swedish",
+                                "milSpec"
+                            ]
+                        },
+                        "defaultLabel": {
+                            "description": "Custom label for bookmark. Default: BM<number>",
+                            "type": "string"
+                        },
+                        "significantDigits": {
+                            "description": "Number of significant digits. Default: 4",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 15
+                        },
+                        "zoomScaleFactor": {
+                            "description": "Zoom scale factor. Default: 1.5",
+                            "type": "number",
+                            "minimum": 0.1,
+                            "maximum": 10.0
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "operation"
+            ],
+            "anyOf": [
+                {
+                    "required": [
+                        "region"
+                    ]
+                },
+                {
+                    "required": [
+                        "xrange"
+                    ]
+                },
+                {
+                    "required": [
+                        "yrange"
+                    ]
+                },
+                {
+                    "required": [
+                        "point"
+                    ]
+                }
+            ]
+        },
+        "deleteBookmark_command": {
+            "description": "Delete bookmarks by name using awvDeleteMarker",
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "const": "delete"
+                },
+                "bookmarkNames": {
+                    "description": "List of bookmark names to delete",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "operation",
+                "bookmarkNames"
+            ]
+        },
+        "label_command": {
+            "description": "Label command properties - use specific schema based on operation type",
+            "type": "object",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeWindowLabel"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeWindowLabel_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "placeWaveformLabel"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/placeWaveformLabel_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "deleteLabel"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/deleteLabel_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "setGrid"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/setGrid_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "setWindowTitle"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/setWindowTitle_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "setSubwindowTitle"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/setSubwindowTitle_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "removeWindowTitle"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/removeWindowTitle_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "removeSubwindowTitle"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/removeSubwindowTitle_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "setLegendPos"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/setLegendPos_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "setLegendWidth"
+                            }
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/setLegendWidth_command"
+                    }
+                }
+            ]
+        },
+        "placeWindowLabel_command": {
+            "description": "Place window label at absolute coordinates (0-1)",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "placeWindowLabel"
+                },
+                "name": {
+                    "description": "Label tracking name for deletion",
+                    "type": "string"
+                },
+                "text": {
+                    "description": "Label display text",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "Label location with absolute coordinates (0-1). Supports object format {x, y} or array format [x, y]",
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "x": {
+                                    "description": "X coordinate (0-1)",
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                },
+                                "y": {
+                                    "description": "Y coordinate (0-1)",
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                }
+                            },
+                            "required": [
+                                "x",
+                                "y"
+                            ],
+                            "additionalProperties": false
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                        }
+                    ]
+                },
+                "color": {
+                    "description": "Label color",
+                    "$ref": "#/definitions/plot_color"
+                },
+                "justify": {
+                    "description": "Text justification",
+                    "type": "string",
+                    "enum": [
+                        "lowerLeft",
+                        "centerLeft",
+                        "upperLeft",
+                        "lowerCenter",
+                        "centerCenter",
+                        "upperCenter",
+                        "lowerRight",
+                        "centerRight",
+                        "upperRight"
+                    ]
+                },
+                "fontStyle": {
+                    "description": "Font style",
+                    "type": "string",
+                    "enum": [
+                        "stick",
+                        "fixed",
+                        "euroStyle",
+                        "gothic",
+                        "math",
+                        "roman",
+                        "script",
+                        "swedish",
+                        "milSpec"
+                    ]
+                },
+                "height": {
+                    "description": "Label height",
+                    "type": "string",
+                    "enum": [
+                        "small",
+                        "medium",
+                        "large"
+                    ]
+                },
+                "orient": {
+                    "description": "Label orientation",
+                    "type": "string",
+                    "enum": [
+                        "R0",
+                        "R90"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow number",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "name",
+                "text",
+                "location"
+            ],
+            "additionalProperties": false
+        },
+        "placeWaveformLabel_command": {
+            "description": "Place waveform label (marker mode uses data coordinates, graph mode uses relative 0-1)",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "placeWaveformLabel"
+                },
+                "labelMode": {
+                    "description": "Label mode: 'marker' (data coordinates) or 'graph' (relative 0-1)",
+                    "type": "string",
+                    "enum": [
+                        "marker",
+                        "graph"
+                    ]
+                },
+                "waveIndex": {
+                    "description": "Waveform index (1-based)",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "Label tracking name for deletion",
+                    "type": "string"
+                },
+                "text": {
+                    "description": "Label display text",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "Label location (marker mode: data coordinates, graph mode: relative 0-1). Supports object format {x, y} or array format [x, y]",
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "x": {
+                                    "description": "X coordinate (marker: time with units like '5u', graph: 0-1)",
+                                    "type": [
+                                        "string",
+                                        "number"
+                                    ]
+                                },
+                                "y": {
+                                    "description": "Y coordinate (marker: voltage/current value, graph: 0-1)",
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "x",
+                                "y"
+                            ],
+                            "additionalProperties": false
+                        },
+                        {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "description": "X coordinate (marker: time with units like '5u', graph: 0-1)",
+                                    "type": [
+                                        "string",
+                                        "number"
+                                    ]
+                                },
+                                {
+                                    "description": "Y coordinate (marker: voltage/current value, graph: 0-1)",
+                                    "type": "number"
+                                }
+                            ],
+                            "minItems": 2,
+                            "maxItems": 2
+                        }
+                    ]
+                },
+                "color": {
+                    "description": "Label color",
+                    "$ref": "#/definitions/plot_color"
+                },
+                "justify": {
+                    "description": "Text justification",
+                    "type": "string",
+                    "enum": [
+                        "lowerLeft",
+                        "centerLeft",
+                        "upperLeft",
+                        "lowerCenter",
+                        "centerCenter",
+                        "upperCenter",
+                        "lowerRight",
+                        "centerRight",
+                        "upperRight"
+                    ]
+                },
+                "fontStyle": {
+                    "description": "Font style",
+                    "type": "string",
+                    "enum": [
+                        "stick",
+                        "fixed",
+                        "euroStyle",
+                        "gothic",
+                        "math",
+                        "roman",
+                        "script",
+                        "swedish",
+                        "milSpec"
+                    ]
+                },
+                "height": {
+                    "description": "Label height",
+                    "type": "string",
+                    "enum": [
+                        "small",
+                        "medium",
+                        "large"
+                    ]
+                },
+                "orient": {
+                    "description": "Label orientation",
+                    "type": "string",
+                    "enum": [
+                        "R0",
+                        "R90"
+                    ]
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "labelMode",
+                "waveIndex",
+                "name",
+                "text",
+                "location"
+            ],
+            "additionalProperties": false
+        },
+        "deleteLabel_command": {
+            "description": "Delete labels by tracking names",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "deleteLabel"
+                },
+                "labelNames": {
+                    "description": "List of label tracking names to delete",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "labelNames"
+            ],
+            "additionalProperties": false
+        },
+        "setGrid_command": {
+            "description": "Show or hide grid in subwindow",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "setGrid"
+                },
+                "enable": {
+                    "description": "Enable (true) or disable (false) grid display",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "enable"
+            ],
+            "additionalProperties": false
+        },
+        "setWindowTitle_command": {
+            "description": "Set window title",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "setWindowTitle"
+                },
+                "title": {
+                    "description": "Window title text",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "title"
+            ],
+            "additionalProperties": false
+        },
+        "setSubwindowTitle_command": {
+            "description": "Set subwindow title",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "setSubwindowTitle"
+                },
+                "title": {
+                    "description": "Subwindow title text",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "title"
+            ],
+            "additionalProperties": false
+        },
+        "removeWindowTitle_command": {
+            "description": "Remove window title",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "removeWindowTitle"
+                }
+            },
+            "required": [
+                "type",
+                "operation"
+            ],
+            "additionalProperties": false
+        },
+        "removeSubwindowTitle_command": {
+            "description": "Remove subwindow title",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "removeSubwindowTitle"
+                }
+            },
+            "required": [
+                "type",
+                "operation"
+            ],
+            "additionalProperties": false
+        },
+        "setLegendPos_command": {
+            "description": "Set legend position in subwindow",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "setLegendPos"
+                },
+                "position": {
+                    "description": "Legend position",
+                    "type": "string",
+                    "enum": [
+                        "above",
+                        "inside",
+                        "left"
+                    ]
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "position"
+            ],
+            "additionalProperties": false
+        },
+        "setLegendWidth_command": {
+            "description": "Set legend width (only effective when position is 'left')",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "label"
+                },
+                "operation": {
+                    "const": "setLegendWidth"
+                },
+                "width": {
+                    "description": "Legend width in pixels",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "width"
+            ],
+            "additionalProperties": false
+        },
+        "plotWaveform_command": {
+            "description": "Dynamically plot new waveforms in captureWorkflow",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "plotWaveform"
+                },
+                "operation": {
+                    "description": "Operation type",
+                    "type": "string",
+                    "enum": [
+                        "addWaveform"
+                    ]
+                },
+                "signals": {
+                    "description": "List of signals to plot",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/plot_signal"
+                    },
+                    "minItems": 1
+                },
+                "subwindow": {
+                    "description": "Subwindow ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "signals"
+            ],
+            "additionalProperties": false
+        },
+        "waveformOption_command": {
+            "description": "Modify waveform plotting options (component)",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "waveformOption"
+                },
+                "operation": {
+                    "description": "Operation type",
+                    "type": "string",
+                    "enum": [
+                        "setPlotOption"
+                    ]
+                },
+                "waveIndex": {
+                    "description": "Waveform index number",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "plotOption": {
+                    "description": "Plot option (component)",
+                    "$ref": "#/definitions/plot_component"
+                },
+                "subwindow": {
+                    "description": "Subwindow ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "waveIndex",
+                "plotOption"
+            ],
+            "additionalProperties": false
+        },
+        "deleteWaveform_command": {
+            "description": "Delete waveforms from subwindow",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "deleteWaveform"
+                },
+                "operation": {
+                    "description": "Operation type",
+                    "type": "string",
+                    "enum": [
+                        "deleteWaveform",
+                        "deleteAllWaveforms"
+                    ]
+                },
+                "waveIndex": {
+                    "description": "Waveform index to delete (single integer or array of integers). Required for 'deleteWaveform', not used for 'deleteAllWaveforms'.",
+                    "oneOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "minItems": 1
+                        }
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {
+                                "const": "deleteWaveform"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "waveIndex"
+                        ]
+                    }
+                }
+            ]
+        },
+        "subwindow_command": {
+            "description": "Subwindow management commands",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "subwindow"
+                },
+                "operation": {
+                    "description": "Operation type",
+                    "type": "string",
+                    "enum": [
+                        "deleteSubwindow"
+                    ]
+                },
+                "subwindow": {
+                    "description": "Subwindow ID to delete",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "subwindow"
+            ],
+            "additionalProperties": false
+        },
+        "expression_command": {
+            "description": "Expression command dispatcher - routes to specific expression command based on operation",
+            "type": "object",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {"const": "appendExpression"}
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/appendExpression_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {"const": "plotExpression"}
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/plotExpression_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {"const": "simpleExpression"}
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/simpleExpression_command"
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "operation": {"const": "simplePlotExpression"}
+                        }
+                    },
+                    "then": {
+                        "$ref": "#/definitions/simplePlotExpression_command"
+                    }
+                }
+            ]
+        },
+        "appendExpression_command": {
+            "description": "Append expression waveforms (inherits reference waveform position, auto-assigns waveIndex). Maps to awvAppendExpression().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "expression"
+                },
+                "operation": {
+                    "const": "appendExpression"
+                },
+                "expression": {
+                    "type": "string",
+                    "description": "SKILL expression string (inline mode)"
+                },
+                "expressionFile": {
+                    "type": "string",
+                    "description": "External expression file path (.il file)"
+                },
+                "context": {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "Data context (usually null)"
+                },
+                "waveIndex": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "minItems": 1,
+                            "description": "Reference waveform index list (new waveforms will be on same strip/y-axis)"
+                        },
+                        {
+                            "type": "null",
+                            "description": "No reference waveform, new waveforms automatically placed at bottom of subwindow"
+                        }
+                    ],
+                    "default": null
+                },
+                "subwindow": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Subwindow number"
+                },
+                "defaultSettings": {
+                    "$ref": "#/definitions/default_settings",
+                    "description": "Global default styles"
+                },
+                "childSignals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/child_signal_config"
+                    },
+                    "minItems": 1,
+                    "description": "Child signal configuration list (required)"
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "childSignals"
+            ],
+            "anyOf": [
+                {"required": ["expression"]},
+                {"required": ["expressionFile"]}
+            ],
+            "additionalProperties": false
+        },
+        "plotExpression_command": {
+            "description": "Full control expression waveform placement (waveIndex, strip, y-axis specified in childSignals). Overwrites existing waveforms. Maps to awvPlotExpression().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "expression"
+                },
+                "operation": {
+                    "const": "plotExpression"
+                },
+                "expression": {
+                    "type": "string",
+                    "description": "SKILL expression string"
+                },
+                "expressionFile": {
+                    "type": "string",
+                    "description": "External expression file path"
+                },
+                "context": {
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "subwindow": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "defaultSettings": {
+                    "$ref": "#/definitions/default_settings"
+                },
+                "childSignals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/child_signal_config_plotExpression"
+                    },
+                    "minItems": 1,
+                    "description": "Child signal configuration list (required, each child must specify stripNumber and yNumber, waveIndex is optional)"
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "childSignals"
+            ],
+            "anyOf": [
+                {"required": ["expression"]},
+                {"required": ["expressionFile"]}
+            ],
+            "additionalProperties": false
+        },
+        "simpleExpression_command": {
+            "description": "High-level expression plotting (eye diagrams, polar plots). No style list support, global settings only. Maps to awvPlotSimpleExpression().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "expression"
+                },
+                "operation": {
+                    "const": "simpleExpression"
+                },
+                "expression": {
+                    "type": "string",
+                    "description": "SKILL expression string"
+                },
+                "expressionFile": {
+                    "type": "string",
+                    "description": "External expression file path"
+                },
+                "plotStyle": {
+                    "type": "string",
+                    "enum": [
+                        "Append",
+                        "Replace",
+                        "New Window",
+                        "New Subwindow"
+                    ],
+                    "default": "Append",
+                    "description": "Plot style (applies to all result waveforms)"
+                },
+                "graphType": {
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "Default",
+                        "Rectangular",
+                        "Polar",
+                        "Impedance",
+                        "Admittance",
+                        "Immittance",
+                        "RealvsImag"
+                    ],
+                    "default": "Default",
+                    "description": "Graph type (coordinate system). Empty string equals 'Default'."
+                },
+                "graphModifier": {
+                    "type": "string",
+                    "enum": [
+                        "Magnitude",
+                        "Phase",
+                        "WPhase",
+                        "Real",
+                        "Imaginary",
+                        "dB10",
+                        "dB20"
+                    ],
+                    "default": "Magnitude",
+                    "description": "Y-axis modifier (for complex signals)"
+                },
+                "waveType": {
+                    "type": ["string", "null"],
+                    "enum": [
+                        "YvsY",
+                        null
+                    ],
+                    "default": null,
+                    "description": "Waveform type: YvsY=Y vs Y plot, null=normal X vs Y plot"
+                }
+            },
+            "required": [
+                "type",
+                "operation"
+            ],
+            "anyOf": [
+                {"required": ["expression"]},
+                {"required": ["expressionFile"]}
+            ],
+            "additionalProperties": false
+        },
+        "simplePlotExpression_command": {
+            "description": "Simplified expression plotting (replace control). Supports full style lists. Maps to awvSimplePlotExpression().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "expression"
+                },
+                "operation": {
+                    "const": "simplePlotExpression"
+                },
+                "expression": {
+                    "type": "string",
+                    "description": "SKILL expression string"
+                },
+                "expressionFile": {
+                    "type": "string",
+                    "description": "External expression file path"
+                },
+                "context": {
+                    "type": ["string", "null"],
+                    "default": null
+                },
+                "replace": {
+                    "type": "boolean",
+                    "description": "true = overwrite existing waveforms, false = append waveforms (required, no default value)"
+                },
+                "subwindow": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "defaultSettings": {
+                    "$ref": "#/definitions/default_settings"
+                },
+                "childSignals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/child_signal_config"
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": [
+                "type",
+                "operation",
+                "replace",
+                "childSignals"
+            ],
+            "anyOf": [
+                {"required": ["expression"]},
+                {"required": ["expressionFile"]}
+            ],
+            "additionalProperties": false
+        }
+    }
+}

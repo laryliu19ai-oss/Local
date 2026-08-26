@@ -77,16 +77,24 @@ def type_cmd(text, wait=0.5):
             kc = xlib.XKeysymToKeycode(display, ctypes.c_ulong(KEYSYM_MAP[ch]))
             press_key(kc, shift=(ch in SHIFT_CHARS))
     press_key(enter_code)
-    time.sleep(wait)
+res = subprocess.run(["xwininfo", "-root", "-tree"], env={"DISPLAY": ":0", "HOME": "/home/lary"}, capture_output=True, text=True)
+ciw_id = None
+for l in res.stdout.splitlines():
+    if "Log:" in l or "CDS.log" in l:
+        try:
+            ciw_id = int(l.strip().split()[0], 16)
+            break
+        except Exception:
+            pass
 
-ciw_id = 0x2a00008
+print(f"Detected CIW ID: {hex(ciw_id) if ciw_id else 'None'}")
 
 # 1. Focus and clear CIW input line
 if ciw_id:
     xlib.XRaiseWindow(display, ctypes.c_ulong(ciw_id))
     xlib.XFlush(display)
     time.sleep(0.3)
-    click_at(1030 + 200, 734 + 325)
+    click_at(663 + 200, 926 + 250)
     time.sleep(0.2)
     press_key(u_code, ctrl=True)
     press_key(esc_code)
@@ -97,7 +105,7 @@ if ciw_id:
 
 # 2. Write bvSim call to /tmp/test_bvsim.il
 skill_content = """
-bvSim("/home/lary/project/BVU025/SCH/cosim/pattern/TM14/run_cosim.oneTest.json")
+bvSim("/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/run_cosim.oneTest.json")
 """
 with open('/tmp/test_bvsim.il', 'w') as f:
     f.write(skill_content)

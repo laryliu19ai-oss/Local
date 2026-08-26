@@ -1,0 +1,247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ephoton/bvSkill/schema/evaop.schema.json",
+  "title": "bvEvaluateOpPoint Configuration",
+  "description": "Configuration schema for operating point evaluation (DC or transient) with filtering rules",
+  "type": "object",
+  "required": ["evaluationOpPoint"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for IDE support"
+    },
+    "debugMode": {
+      "type": "boolean",
+      "description": "Enable detailed debug output using bvDebugMsg()",
+      "default": false
+    },
+    "evaluationOpPoint": {
+      "type": "object",
+      "required": ["testbench", "psfFile", "mode", "filterRules"],
+      "properties": {
+        "testbench": {
+          "type": "object",
+          "required": ["library", "cell"],
+          "properties": {
+            "library": {
+              "type": "string",
+              "description": "Library name containing the testbench",
+              "minLength": 1
+            },
+            "cell": {
+              "type": "string",
+              "description": "Cell name of the testbench",
+              "minLength": 1
+            },
+            "view": {
+              "type": "string",
+              "description": "View name (default: schematic)",
+              "default": "schematic",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "psfFile": {
+          "type": "string",
+          "description": "Absolute path to PSF simulation results directory",
+          "minLength": 1,
+          "pattern": "^/"
+        },
+        "mode": {
+          "type": "string",
+          "description": "PSF result type to select for evaluation",
+          "enum": ["dcOpInfo", "tranOp", "tranOpTimed"]
+        },
+        "time": {
+          "type": "string",
+          "description": "Time point for tranOpTimed evaluation (e.g., \"2u\", \"1.5n\"). Required when mode is \"tranOpTimed\".",
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[afpnumkKMGT]?$",
+          "minLength": 1
+        },
+        "filterRules": {
+          "type": "array",
+          "description": "Array of filter rules for instance selection",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/filterRule"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "mode": { "const": "tranOpTimed" }
+        }
+      },
+      "then": {
+        "required": ["time"]
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "filterRule": {
+      "type": "object",
+      "required": ["ruleName", "masterCell"],
+      "properties": {
+        "ruleName": {
+          "type": "string",
+          "description": "Rule name for identification (ASCII only)",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional rule description (ASCII only)"
+        },
+        "masterCell": {
+          "type": "object",
+          "required": ["library", "cell"],
+          "properties": {
+            "library": {
+              "type": "string",
+              "description": "Library name containing the master cell",
+              "minLength": 1
+            },
+            "cell": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Single master cell name",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "description": "Array of master cell names",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ]
+            },
+            "subDevice": {
+              "type": "string",
+              "description": "Sub-device name within subckt model (e.g. \"q2\" for internal BJT, \"d1\" for internal diode). When specified, PSF lookup uses \"{instName}.{subDevice}\" dot-notation instead of \"/{instName}\".",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "instanceName": {
+          "type": "array",
+          "description": "Sequential filter for instance names (optional)",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/sequentialFilter"
+          }
+        },
+        "connection": {
+          "type": "object",
+          "description": "Terminal connection filters (AND logic across terminals)",
+          "patternProperties": {
+            "^[A-Za-z_][A-Za-z0-9_]*$": {
+              "type": "array",
+              "description": "Sequential filter for terminal net name",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/sequentialFilter"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Operating point parameter conditions (AND logic). Parameter names as keys, comparison conditions as values.",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[A-Za-z_][A-Za-z0-9_]*$": {
+              "$ref": "#/definitions/comparison"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "sequentialFilter": {
+      "type": "object",
+      "required": ["type", "mode", "name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["include", "exclude"],
+          "description": "Filter type: include (whitelist) or exclude (blacklist)"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["pcre", "glob"],
+          "description": "Pattern matching mode: pcre (regex) or glob (wildcard)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Pattern to match",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "comparison": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["mode", "value"],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["less_than", "less_equal", "greater_than", "greater_equal", "equal", "not_equal"],
+              "description": "Comparison mode"
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "description": "Numeric value (e.g., 0.2, -750e-9)"
+                },
+                {
+                  "type": "string",
+                  "description": "Value with engineering unit suffix (e.g., \"750n\", \"-1.5u\", \"2.5m\")",
+                  "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[afpnumkKMGT]?$"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["mode", "min", "max"],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "between",
+              "description": "Between comparison mode"
+            },
+            "min": {
+              "oneOf": [
+                {"type": "number"},
+                {"type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[afpnumkKMGT]?$"}
+              ],
+              "description": "Minimum value (inclusive)"
+            },
+            "max": {
+              "oneOf": [
+                {"type": "number"},
+                {"type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?[afpnumkKMGT]?$"}
+              ],
+              "description": "Maximum value (inclusive)"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

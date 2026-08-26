@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvskill.com/schemas/ohmie_message.schema.json",
+  "title": "Ohmie Inter-Agent Message Schema",
+  "description": "Schema for messages exchanged between Ohmie agents",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "message_id",
+    "timestamp",
+    "sender",
+    "receiver",
+    "message_type",
+    "payload"
+  ],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Protocol version"
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique message identifier (UUID v4)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Message timestamp (ISO 8601)"
+    },
+    "sender": {
+      "$ref": "#/definitions/agent_identifier",
+      "description": "Sender agent information"
+    },
+    "receiver": {
+      "$ref": "#/definitions/agent_identifier",
+      "description": "Receiver agent information"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "delegation_request",
+        "delegation_response",
+        "status_update",
+        "error_report",
+        "iteration_request",
+        "skill_invocation",
+        "skill_result"
+      ],
+      "description": "Type of message"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Message payload (structure depends on message_type)"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "default": "medium"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Task deadline (ISO 8601)"
+        },
+        "parent_task_id": {
+          "type": "string",
+          "description": "Parent task identifier"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "agent_identifier": {
+      "type": "object",
+      "required": ["agent_id", "agent_type"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "Agent identifier"
+        },
+        "agent_type": {
+          "type": "string",
+          "enum": ["main", "sub_agent"],
+          "description": "Agent type"
+        }
+      }
+    },
+    "delegation_request_payload": {
+      "type": "object",
+      "required": ["task", "expected_deliverables"],
+      "properties": {
+        "task": {
+          "type": "string",
+          "description": "Task description"
+        },
+        "context": {
+          "type": "object",
+          "description": "Task context and parameters"
+        },
+        "expected_deliverables": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Expected deliverables"
+        },
+        "constraints": {
+          "type": "object",
+          "description": "Task constraints"
+        }
+      }
+    },
+    "delegation_response_payload": {
+      "type": "object",
+      "required": ["status", "results"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["completed", "in_progress", "failed"],
+          "description": "Task status"
+        },
+        "results": {
+          "type": "object",
+          "description": "Task results"
+        },
+        "deliverables": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Completed deliverables"
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "execution_time_seconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "iterations_used": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sub_agents_invoked": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "next_action": {
+          "type": "string",
+          "enum": ["iterate", "report", "escalate"],
+          "description": "Recommended next action"
+        }
+      }
+    },
+    "error_report_payload": {
+      "type": "object",
+      "required": ["error_type", "error_message"],
+      "properties": {
+        "error_type": {
+          "type": "string",
+          "enum": [
+            "timeout",
+            "tool_failure",
+            "constraint_violation",
+            "delegation_limit",
+            "model_error",
+            "resource_exhaustion"
+          ],
+          "description": "Error type"
+        },
+        "error_message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "error_context": {
+          "type": "object",
+          "description": "Additional error context"
+        },
+        "recovery_suggestions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Suggested recovery actions"
+        }
+      }
+    }
+  }
+}

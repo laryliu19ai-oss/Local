@@ -1,15 +1,15 @@
 {
-    "$schema": "../../../schema/waveform.2schema.json",
+    "$schema": "../schema/waveform.2schema.json",
     "version": 1.0,
     "release": "2026/08/24",
     "author": "Antigravity",
     "debugMode": true,
     "waveform": {
         "type": "viva",
-        "imageSavePath": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/images",
+        "imageSavePath": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/images",
         "database": {
             "sim_TOP_cosim_python_A1": {
-                "file": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf"
+                "file": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/psf"
             }
         },
         "imageSettings": {

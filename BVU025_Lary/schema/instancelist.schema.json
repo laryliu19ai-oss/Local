@@ -1,0 +1,161 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/instancelist.schema",
+    "version": 1.0,
+    "release": "2025/05/08",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Design Instance List",
+    "description": "Device list for circuit design.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The JSON schema of the configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the configuration version",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "output": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "description": "The output file name of the instance list.",
+                    "type": "string"
+                },
+                "details": {
+                    "description": "Output the details of the instance list.",
+                    "type": [ "boolean", "string", "array", "object" ],
+                    "default": false,
+                    "items": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "library": {
+                            "$ref": "#/definitions/arrayString"
+                        },
+                        "cell": {
+                            "$ref": "#/definitions/arrayString"
+                        }
+                    },
+                    "anyOf": [
+                        {
+                            "required": [ "library" ]
+                        },
+                        {
+                            "required": [ "cell" ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "file"
+            ]
+        },
+        "database": {
+            "type": "object",
+            "properties": {
+                "design": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "library": {
+                                "type": "string"
+                            },
+                            "cell": {
+                                "$ref": "#/definitions/arrayString"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "library",
+                            "cell"
+                        ]
+                    }
+                },
+                "ignore": {
+                    "$ref": "#/definitions/list"
+                },
+                "prohibit": {
+                    "$ref": "#/definitions/list"
+                },
+                "instanceList": {
+                    "$ref": "#/definitions/instanceList"
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "design",
+                "instanceList"
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "output",
+        "database"
+    ],
+    "definitions": {
+        "list": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "library": {
+                        "$ref": "#/definitions/arrayString"
+                    },
+                    "cell": {
+                        "$ref": "#/definitions/arrayString"
+                    }
+                },
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "required": [ "library" ]
+                    },
+                    {
+                        "required": [ "cell" ]
+                    }
+                ]
+            }
+        },
+        "instanceList": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "library": {
+                        "$ref": "#/definitions/arrayString"
+                    },
+                    "cell": {
+                        "$ref": "#/definitions/arrayString"
+                    },
+                    "exclude": {
+                        "$ref": "#/definitions/arrayString"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "arrayString": {
+            "type": [ "array", "string" ],
+            "items": {
+                "type": "string"
+            },
+            "minimum": 1
+        }
+    }
+}

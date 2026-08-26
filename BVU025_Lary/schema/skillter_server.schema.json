@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chaojenhung/bvSkill/schema/skillter_server.schema.json",
+  "title": "SKILLTER - SKILL Test Server Configuration Schema",
+  "description": "Schema for SKILLTER test server configuration used by both skillter_service.py and skillter_simple.py",
+  "type": "object",
+  "required": ["directories", "server", "virtuoso"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Configuration version in semantic versioning format",
+      "examples": ["1.0.0", "2.1", "1.5.2"]
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["development", "production", "testing"],
+      "default": "production",
+      "description": "Server environment configuration"
+    },
+    "directories": {
+      "type": "object",
+      "required": ["skill", "work", "upload", "results"],
+      "additionalProperties": false,
+      "description": "Server directory paths configuration",
+      "properties": {
+        "skill": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Directory containing SKILL files",
+          "examples": ["/home/ephoton/skill", "~/skill", "/opt/cadence/skill"]
+        },
+        "skillpython": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Directory containing SKILL Python integration files",
+          "examples": ["/home/ephoton/skillpython", "~/skillpython", "/opt/skillpython"]
+        },
+        "work": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Working directory for command execution",
+          "examples": ["/home/ephoton/cds", "~/workspace", "/tmp/work"]
+        },
+        "upload": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Directory for uploaded files",
+          "examples": ["/tmp/skill_uploads", "~/uploads", "/var/uploads"]
+        },
+        "results": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Directory for test results and outputs",
+          "examples": ["/tmp/skill_results", "~/results", "/var/results"]
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "required": ["port"],
+      "additionalProperties": false,
+      "description": "Web server configuration",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 65535,
+          "default": 8000,
+          "description": "Server listening port"
+        },
+        "host": {
+          "type": "string",
+          "default": "",
+          "description": "Server binding host address (empty for all interfaces)",
+          "examples": ["", "127.0.0.1", "0.0.0.0", "192.168.1.100"]
+        },
+        "max_file_size_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 10,
+          "description": "Maximum upload file size in MB"
+        },
+        "allowed_extensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[a-zA-Z0-9]+$"
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "description": "Allowed file extensions for uploads",
+          "examples": [[".il", ".yaml", ".yml", ".json", ".txt", ".log"]]
+        },
+        "auth_tokens": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 10
+          },
+          "uniqueItems": true,
+          "description": "Valid authentication tokens (Bearer tokens)",
+          "examples": [["skillter_2025", "ephoton_dev", "test_token_123"]]
+        },
+        "cors_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CORS headers for cross-origin requests"
+        }
+      }
+    },
+    "virtuoso": {
+      "type": "object",
+      "required": ["command", "args"],
+      "additionalProperties": false,
+      "description": "Virtuoso execution configuration",
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "default": "virtuoso",
+          "description": "Virtuoso executable command",
+          "examples": ["virtuoso", "/tools/cadence/ICADVM/tools/bin/virtuoso", "virtuoso.exe"]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Default Virtuoso command line arguments",
+          "examples": [["-nograph", "-restore"], ["-nograph", "-nocdsinit", "-restore"]]
+        },
+        "default_timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "default": 300,
+          "description": "Default timeout for Virtuoso execution in seconds"
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["debug", "info", "warning", "error"],
+          "default": "info",
+          "description": "Virtuoso execution log level"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Security configuration settings",
+      "properties": {
+        "enable_authentication": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Bearer token authentication"
+        },
+        "allowed_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Whitelist of allowed command patterns (regex)",
+          "examples": [["^ls", "^pwd", "^cd", "^virtuoso", "^python3"]]
+        },
+        "blocked_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Blacklist of blocked command patterns (regex)",
+          "examples": [["^rm -rf", "^dd ", "^mkfs", "^format"]]
+        },
+        "max_execution_time": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7200,
+          "default": 600,
+          "description": "Maximum command execution time in seconds"
+        },
+        "path_whitelist": {
+          "type": "array",
+          "description": "Whitelist of allowed file system paths for upload/download operations",
+          "items": {
+            "type": "object",
+            "required": ["path", "permission"],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "File system path (supports environment variables like ${HOME})",
+                "examples": ["${HOME}/skill", "/tmp/skillter_server", "/home/ephoton/cds"]
+              },
+              "permission": {
+                "type": "string",
+                "enum": ["upload", "download", "both"],
+                "description": "Allowed operations: 'upload' (write only), 'download' (read only), or 'both' (read/write)"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Human-readable description of this path entry",
+                "examples": ["SKILL source code directory", "Upload directory (upload only)"]
+              }
+            }
+          },
+          "examples": [
+            [
+              {
+                "path": "${HOME}/skill",
+                "permission": "both",
+                "description": "SKILL source code directory"
+              },
+              {
+                "path": "/tmp/skill_uploads",
+                "permission": "upload",
+                "description": "Upload directory (upload only)"
+              },
+              {
+                "path": "/tmp/skill_results",
+                "permission": "download",
+                "description": "Results directory (download only)"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Logging configuration",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+          "default": "INFO",
+          "description": "Log level for server operations"
+        },
+        "file": {
+          "type": "string",
+          "description": "Log file path (optional, logs to console if not specified)",
+          "examples": ["/var/log/skillter.log", "~/logs/server.log"]
+        },
+        "max_size_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50,
+          "description": "Maximum log file size in MB before rotation"
+        },
+        "backup_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 5,
+          "description": "Number of backup log files to keep"
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Performance tuning settings",
+      "properties": {
+        "max_concurrent_jobs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10,
+          "description": "Maximum number of concurrent test jobs"
+        },
+        "job_cleanup_interval": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 3600,
+          "description": "Job cleanup interval in seconds (1 hour default)"
+        },
+        "temp_file_retention": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30,
+          "default": 7,
+          "description": "Number of days to retain temporary files"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$schema": "../schema/skillter_server.schema.json",
+      "version": "1.0.0",
+      "environment": "production",
+      "directories": {
+        "skill": "/home/ephoton/skill",
+        "skillpython": "/home/ephoton/skillpython",
+        "work": "/home/ephoton/cds",
+        "upload": "/tmp/skill_uploads",
+        "results": "/tmp/skill_results"
+      },
+      "server": {
+        "port": 8000,
+        "host": "",
+        "max_file_size_mb": 10,
+        "allowed_extensions": [".il", ".yaml", ".yml", ".json", ".txt", ".log"],
+        "auth_tokens": ["skillter_2025", "ephoton_dev"],
+        "cors_enabled": true
+      },
+      "virtuoso": {
+        "command": "virtuoso",
+        "args": ["-nograph", "-restore"],
+        "default_timeout": 300,
+        "log_level": "info"
+      }
+    }
+  ]
+}

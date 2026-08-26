@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../schema/oneTest2.schema.json",
+    "$schema": "../schema/oneTest2.schema.json",
     "version": 1.0,
     "release": "2026/08/24",
     "author": "Lary Liu",
@@ -37,8 +37,8 @@
             "cell": "sim_TOP_cosim_python_A1",
             "view": "config",
             "simulator": "ams",
-            "plotWaveform": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/cosim.waveform.json",
-            "oneTestConfig": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/run_cosim.oneTest.json",
+            "plotWaveform": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/cosim.waveform.json",
+            "oneTestConfig": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/run_cosim.oneTest.json",
             "temperature": 25,
             "analysis": [
                 {

@@ -83,7 +83,7 @@ time.sleep(0.6)
 click_at(CIW_X, CIW_Y)
 time.sleep(0.4)
 
-IMG = "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/images/cosim_waveform.png"
+IMG = "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15/images/cosim_waveform.png"
 print("Opening waveform image via sh()...")
 type_cmd(f'sh("/home/lary/bin/open_waveform.py \\"{IMG}\\"")', wait=2.0)
 

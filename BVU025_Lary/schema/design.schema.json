@@ -1,0 +1,272 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "design.schema.json",
+    "version": 1.0,
+    "release": "2025/09/11",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "bvAutoTerminalWiring Design Configuration Schema",
+    "description": "Schema for automatic terminal wiring configuration in schematic view",
+    "type": "object",
+    "required": [
+        "version",
+        "release",
+        "author",
+        "database"
+    ],
+    "properties": {
+        "$schema": {
+            "description": "The schema of the cellview replacement configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the cellview file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the cellview. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the cellview.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode for detailed logging",
+            "type": "boolean",
+            "default": false
+        },
+        "database": {
+            "type": "object",
+            "required": [
+                "schematic",
+                "design"
+            ],
+            "properties": {
+                "schematic": {
+                    "type": "object",
+                    "required": [
+                        "instances"
+                    ],
+                    "properties": {
+                        "drawingProperties": {
+                            "type": "object",
+                            "description": "Default drawing properties for wires and labels",
+                            "properties": {
+                                "netNameFont": {
+                                    "type": "string",
+                                    "default": "stick",
+                                    "description": "Font name for net labels"
+                                },
+                                "netNameHeight": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0.05,
+                                    "description": "Net label font height"
+                                },
+                                "netNameOffset": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0.05,
+                                    "description": "Net label offset distance"
+                                },
+                                "snapSpace": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0.0625,
+                                    "description": "Grid snap spacing"
+                                },
+                                "wireLength": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0.25,
+                                    "description": "Default wire length"
+                                },
+                                "wireWidth": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "default": 0.0,
+                                    "description": "Wire width (0 for default)"
+                                }
+                            }
+                        },
+                        "instances": {
+                            "type": "array",
+                            "description": "Instance terminal configuration definitions",
+                            "items": {
+                                "type": "object",
+                                "required": [
+                                    "views"
+                                ],
+                                "properties": {
+                                    "library": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "description": "Single library name"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "minItems": 1,
+                                                "description": "Multiple library names"
+                                            }
+                                        ],
+                                        "description": "Library name(s) to match. If not specified, matches all libraries"
+                                    },
+                                    "cell": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "description": "Single cell name"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "minItems": 1,
+                                                "description": "Multiple cell names"
+                                            }
+                                        ],
+                                        "description": "Cell name(s) to match. If not specified, matches all cells"
+                                    },
+                                    "views": {
+                                        "type": "array",
+                                        "description": "View-specific terminal configurations",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "terminals"
+                                            ],
+                                            "properties": {
+                                                "viewName": {
+                                                    "oneOf": [
+                                                        {
+                                                            "type": "string",
+                                                            "description": "Single view name"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            },
+                                                            "minItems": 1,
+                                                            "description": "Multiple view names"
+                                                        }
+                                                    ],
+                                                    "description": "View name(s) this configuration applies to. If not specified, applies to all views"
+                                                },
+                                                "terminals": {
+                                                    "type": "object",
+                                                    "description": "Terminal name to wire direction mapping",
+                                                    "patternProperties": {
+                                                        "^[A-Za-z_][A-Za-z0-9_]*$": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "up",
+                                                                "down",
+                                                                "left",
+                                                                "right"
+                                                            ],
+                                                            "description": "Wire drawing direction for this terminal"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "design": {
+                    "type": "array",
+                    "description": "Target design configurations for wire creation",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "library",
+                            "cell",
+                            "terminalConnections"
+                        ],
+                        "properties": {
+                            "library": {
+                                "type": "string",
+                                "description": "Target library name"
+                            },
+                            "cell": {
+                                "type": "string",
+                                "description": "Target cell name"
+                            },
+                            "hierarchy": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Whether to process hierarchy recursively"
+                            },
+                            "terminalConnections": {
+                                "type": "object",
+                                "description": "Terminal to net label mapping",
+                                "patternProperties": {
+                                    "^[A-Za-z_][A-Za-z0-9_]*$": {
+                                        "type": "string",
+                                        "description": "Net label for this terminal. Empty string for wire without label"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "minProperties": 1
+                            },
+                            "ignore": {
+                                "type": "array",
+                                "description": "Ignore rules for hierarchy processing",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "library": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "minItems": 1,
+                                            "description": "Library names to ignore"
+                                        },
+                                        "cell": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "minItems": 1,
+                                            "description": "Cell names to ignore"
+                                        }
+                                    },
+                                    "anyOf": [
+                                        {
+                                            "required": [
+                                                "library"
+                                            ]
+                                        },
+                                        {
+                                            "required": [
+                                                "cell"
+                                            ]
+                                        }
+                                    ],
+                                    "description": "Ignore rule: can specify library only, cell only, or both"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

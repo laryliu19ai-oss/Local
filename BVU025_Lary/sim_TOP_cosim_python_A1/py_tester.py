@@ -71,8 +71,8 @@ def find_config_json() -> str:
         ".",
         "..",
         "../..",
-        "../../../pattern/TM14",
-        "../pattern/TM14"
+        "../../../pattern/TM14and15",
+        "../pattern/TM14and15"
     ]
     for d in candidate_dirs:
         for fname in candidate_names:

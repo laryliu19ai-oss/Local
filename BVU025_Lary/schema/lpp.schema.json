@@ -1,0 +1,134 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/layout.schema",
+    "version": 1.0,
+    "release": "2026/01/25",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Layer-Purpose Pair Configuration",
+    "description": "Defines the layers and their parameters for layer-purpose pair",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the layer-purpose pair configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the layer-purpose pair file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode. The default value is false.",
+            "type": "boolean",
+            "default": false
+        },
+        "lpp": {
+            "type": "object",
+            "properties": {
+                "layoutChange": {
+                    "type": "object",
+                    "properties": {
+                        "hierChangeAndSave": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "layers": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "from": {
+                                        "$ref": "#/definitions/layerDef"
+                                    },
+                                    "to": {
+                                        "$ref": "#/definitions/layerDef"
+                                    }
+                                },
+                                "required": [
+                                    "from",
+                                    "to"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "ignore": {
+                            "$ref": "#/definitions/list"
+                        },
+                        "prohibit": {
+                            "$ref": "#/definitions/list"
+                        }
+                    },
+                    "required": [
+                        "layers"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "layoutChange"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "layerDef": {
+            "type": "object",
+            "properties": {
+                "layerName": {
+                    "description": "The name of the layer.",
+                    "type": "string"
+                },
+                "purpose": {
+                    "description": "The purpose of the layer.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "layerName"
+            ],
+            "additionalProperties": false
+        },
+        "list": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "library": {
+                        "$ref": "#/definitions/arrayString"
+                    },
+                    "cell": {
+                        "$ref": "#/definitions/arrayString"
+                    }
+                },
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "required": [ "library" ]
+                    },
+                    {
+                        "required": [ "cell" ]
+                    }
+                ]
+            }
+        },
+        "arrayString": {
+            "type": [ "array", "string" ],
+            "items": {
+                "type": "string"
+            },
+            "minimum": 1
+        }
+    }
+}

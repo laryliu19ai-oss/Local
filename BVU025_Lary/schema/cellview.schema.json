@@ -1,0 +1,3597 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/cellview.schema",
+    "version": 1.0,
+    "release": "2025/11/25",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Cellview Creation",
+    "description": "The schema validates the minimum requirements for cell view",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the cellview replacement configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the cellview file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the cellview. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the cellview.",
+            "type": "string"
+        },
+        "library": {
+            "description": "Default imported library name. This field will be overridden by the category's library name setting.",
+            "type": [ "string", "null" ],
+            "pattern": "^[A-Za-z0-9_$#]*$"
+        },
+        "debugMode": {
+            "description": "Enable debug mode. The default value is false.",
+            "type": "boolean",
+            "default": false
+        },
+        "database": {
+            "description": "Define how a cellview is created.",
+            "type": [ "array", "object" ],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "cell": {
+                        "description": "Define cell name. The cell name can be combined with # symbol to create different designs.",
+                        "type": [ "string", "null" ],
+                        "pattern": "^[A-Za-z0-9_$#]*$"
+                    },
+                    "schematic": {
+                        "$ref": "#/definitions/creation_schematicView"
+                    },
+                    "schematicSymbol": {
+                        "$ref": "#/definitions/creation_symbolView"
+                    },
+                    "maskLayout": {
+                        "$ref": "#/definitions/creation_layoutView"
+                    },
+                    "veriloga": {
+                        "type": "object",
+                        "properties": {
+                            "searchDir": {
+                                "description": "Specify the relative or absolute path to the folder where VerilogA files are stored. Used when each cell has its own .va file (e.g., cellName.va).",
+                                "type": "string"
+                            },
+                            "moduleFile": {
+                                "description": "Specify a single VerilogA file to be used for all cells. When specified, this overrides the searchDir behavior. The file path can be relative or absolute.",
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "config": {
+                        "$ref": "#/definitions/creation_config_view"
+                    },
+                    "cdf": {
+                        "type": "object",
+                        "properties": {
+                            "deleteParameter": {
+                                "description": "List of CDF parameter names to be deleted when method is 'update'. Parameters are deleted before new parameters are created or updated.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "uniqueItems": true
+                            },
+                            "parameterOrder": {
+                                "description": "Specify the order of CDF parameters. Supports three formats: simple array (full order mode), explicit full order mode, or insertion mode.",
+                                "oneOf": [
+                                    {
+                                        "description": "Simple array format for full order mode (backward compatible). Parameters are ordered as listed, unlisted parameters are appended at the end.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1,
+                                        "uniqueItems": true
+                                    },
+                                    {
+                                        "description": "Full order mode (explicit format). Complete control over parameter order.",
+                                        "type": "object",
+                                        "properties": {
+                                            "mode": {
+                                                "type": "string",
+                                                "const": "full",
+                                                "description": "Specifies full order mode"
+                                            },
+                                            "order": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "minItems": 1,
+                                                "uniqueItems": true,
+                                                "description": "List of parameter names in desired order"
+                                            }
+                                        },
+                                        "required": ["mode", "order"],
+                                        "additionalProperties": false
+                                    },
+                                    {
+                                        "description": "Insertion mode. Only reposition specified parameters, others maintain original order.",
+                                        "type": "object",
+                                        "properties": {
+                                            "mode": {
+                                                "type": "string",
+                                                "const": "insertion",
+                                                "description": "Specifies insertion mode"
+                                            },
+                                            "positions": {
+                                                "type": "object",
+                                                "description": "Map of parameter names to insertion positions",
+                                                "patternProperties": {
+                                                    "^[A-Za-z_][A-Za-z0-9_]*$": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "after": {
+                                                                "description": "Insert after this parameter name. Use null to insert at beginning.",
+                                                                "oneOf": [
+                                                                    {
+                                                                        "type": "string"
+                                                                    },
+                                                                    {
+                                                                        "type": "null"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["after"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "minProperties": 1,
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "required": ["mode", "positions"],
+                                        "additionalProperties": false
+                                    }
+                                ]
+                            },
+                            "parameter": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user": {
+                                            "description": "Define whether it is a user CDF parameter. The default value is false.",
+                                            "type": "boolean",
+                                            "default": false
+                                        },
+                                        "name": {
+                                            "description": "Define the CDF parameter name.",
+                                            "type": "string"
+                                        },
+                                        "prompt": {
+                                            "description": "Define the CDF parameter prompt.",
+                                            "type": "string"
+                                        },
+                                        "units": {
+                                            "description": "Define the unit to be displayed when the CDF parameter is a string type.",
+                                            "type": "string",
+                                            "enum": [
+                                                "resistance",
+                                                "capacitance",
+                                                "inductance",
+                                                "conductance",
+                                                "time",
+                                                "frequency",
+                                                "power",
+                                                "powerDB",
+                                                "lengthMetric",
+                                                "lengthEnglish",
+                                                "angle",
+                                                "voltage",
+                                                "current",
+                                                "temperature",
+                                                ""
+                                            ],
+                                            "default": ""
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "string",
+                                                "int",
+                                                "float",
+                                                "radio",
+                                                "cyclic",
+                                                "boolean",
+                                                "button",
+                                                "netSet"
+                                            ],
+                                            "default": "string"
+                                        },
+                                        "expand": {
+                                            "description": "If the CDF parameter contains the question symbol, the expand attribute can be used to expand the CDF parameter.",
+                                            "type": "object",
+                                            "properties": {
+                                                "initial": {
+                                                    "type": "integer",
+                                                    "default": 1
+                                                },
+                                                "step": {
+                                                    "type": "integer",
+                                                    "default": 1
+                                                },
+                                                "times": {
+                                                    "type": "integer",
+                                                    "default": 2
+                                                }
+                                            },
+                                            "required": [
+                                                "initial",
+                                                "step",
+                                                "times"
+                                            ],
+                                            "additionalProperties": false
+                                        },
+                                        "choices": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "display": {
+                                            "type": [ "boolean", "string", "array" ],
+                                            "items": {
+                                                "type": [ "object" ],
+                                                "properties": {
+                                                    "object": {
+                                                        "type": "string",
+                                                        "default": "schObjPropForm->paramView->value"
+                                                    },
+                                                    "operator": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "!=",
+                                                            "==",
+                                                            ">=",
+                                                            ">",
+                                                            "<=",
+                                                            "<"
+                                                        ]
+                                                    },
+                                                    "value": {
+                                                        "type": [ "string", "boolean", "integer", "number" ]
+                                                    }
+                                                },
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "editable": {
+                                            "type": [ "boolean", "string", "array" ],
+                                            "items": {
+                                                "type": [ "boolean", "object" ],
+                                                "properties": {
+                                                    "object": {
+                                                        "type": "string",
+                                                        "default": "cdfgData->paramName->value"
+                                                    },
+                                                    "operator": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "!=",
+                                                            "==",
+                                                            ">=",
+                                                            ">",
+                                                            "<=",
+                                                            "<"
+                                                        ]
+                                                    },
+                                                    "value": {
+                                                        "type": [ "string", "boolean", "integer", "number" ]
+                                                    }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "object",
+                                                    "operator",
+                                                    "value"
+                                                ]
+                                            }
+                                        },
+                                        "parseAsCEL": {
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "parseAsNumber": {
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "storeDefault": {
+                                            "type": "boolean",
+                                            "default": false
+                                        },
+                                        "default": {
+                                            "type": [ "string", "integer", "number", "boolean", "object" ],
+                                            "properties": {
+                                                "cellName": {
+                                                    "$ref": "#/definitions/creation_cellName"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "callback": {
+                                            "description": "If the callback content is directly entered, it will be fully displayed in the CDF callback field.",
+                                            "type": [ "string", "object" ],
+                                            "properties": {
+                                                "function": {
+                                                    "description": "Define the callback function name without parentheses.",
+                                                    "type": "string"
+                                                },
+                                                "passAsSelfSymbol": {
+                                                    "description": "If the callback function is defined in the CDF, it will be passed as a self symbol.",
+                                                    "type": "boolean",
+                                                    "default": true
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "function"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "anyOf": [
+                                        {
+                                            "if": {
+                                                "properties": {
+                                                    "user": {
+                                                        "const": null
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "if": {
+                                                "properties": {
+                                                    "type": {
+                                                        "const": "cyclic"
+                                                    }
+                                                }
+                                            },
+                                            "then": {
+                                                "required": [
+                                                    "choices"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "uniqueItems": true
+                            },
+                            "paramDisplayMode": {
+                                "type": "string",
+                                "enum": [ 
+                                    "parameter",
+                                    "opPoint",
+                                    "model",
+                                    "none",
+                                    "notSet"
+                                ],
+                                "default": "parameter"
+                            },
+                            "paramSimType": {
+                                "type": "string",
+                                "enum": [ 
+                                    "DC",
+                                    "transient",
+                                    "notSet"
+                                ],
+                                "default": "DC"
+                            },
+                            "paramEvaluate": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "literalValue",
+                                            "evaluate",
+                                            "notSet"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "evaluate": {
+                                        "type": "object",
+                                        "properties": {
+                                            "suffixes": {
+                                                "type": "boolean",
+                                                "default": true
+                                            },
+                                            "globalDesignVariables": {
+                                                "type": "boolean",
+                                                "default": true
+                                            },
+                                            "inheritedParameters": {
+                                                "type": "boolean",
+                                                "default": true
+                                            },
+                                            "everything": {
+                                                "type": "boolean",
+                                                "default": true
+                                            }
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "paramLabelSet": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "opPointLabelSet": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "modelLabelSet": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "termDisplayMode": {
+                                "type": "string",
+                                "enum": [ 
+                                    "netName",
+                                    "pinName",
+                                    "voltage",
+                                    "current",
+                                    "none",
+                                    "notSet"
+                                ],
+                                "default": "voltage"
+                            },
+                            "termSimType": {
+                                "type": "string",
+                                "enum": [ 
+                                    "DC",
+                                    "transient",
+                                    "notSet"
+                                ],
+                                "default": "DC"
+                            },
+                            "netNameType": {
+                                "type": "string",
+                                "enum": [ 
+                                    "schematic",
+                                    "simulation",
+                                    "notSet"
+                                ],
+                                "default": "schematic"
+                            },
+                            "instDisplayMode": {
+                                "type": "string",
+                                "enum": [ 
+                                    "cellName",
+                                    "instName",
+                                    "none",
+                                    "notSet"
+                                ],
+                                "default": "instName"
+                            },
+                            "instNameType": {
+                                "type": "string",
+                                "enum": [ 
+                                    "schematic",
+                                    "simulation",
+                                    "notSet"
+                                ],
+                                "default": "schematic"
+                            },
+                            "simInfo": {
+                                "type": "object",
+                                "properties": {
+                                    "previousSetting": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "simulator": {
+                                        "type": "object",
+                                        "properties": {
+                                            "ams": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "auCdl": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "auLvs": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "hspiceD": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "spectre": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            }
+                                        },
+                                        "patternProperties": {
+                                            ".+": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            }
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "method": {
+                                "type": "string",
+                                "enum": [ "new", "update", "updateCreate" ],
+                                "default": "update",
+                                "description": "Method for CDF parameter handling: 'new' (always create new, delete if exists), 'update' (update if exists, skip if not), 'updateCreate' (update if exists, create if not)"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            },
+            "patternProperties": {
+                "^[a-zA-Z0-9_]+/[a-zA-Z0-9_]+": {
+                    "$ref": "#/definitions/database_cell"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "version",
+        "database"
+    ],
+    "definitions": {
+        "text_classify": {
+            "type": "string",
+            "enum": [ 
+                "instance label",
+                "device annotate",
+                "logical label",
+                "split annotate",
+                "physical label",
+                "pin name",
+                "pin annotate",
+                "analog instance label",
+                "analog pin annotate",
+                "analog device annotate"
+            ]
+        },
+        "text_style": {
+            "type": "string",
+            "enum": [ 
+                "normal",
+                "NLP",
+                "IL"
+            ]
+        },
+        "text_font": {
+            "type": "string",
+            "enum": [ 
+                "euroStyle",
+                "gothic",
+                "math",
+                "roman",
+                "script",
+                "stick",
+                "fixed",
+                "swedish",
+                "milSpec"
+            ]
+        },
+        "text_justification": {
+            "type": "string",
+            "enum": [
+                "lowerLeft",
+                "lowerCenter",
+                "lowerRight",
+                "centerLeft",
+                "centerCenter",
+                "centerRight",
+                "upperLeft",
+                "upperCenter",
+                "upperRight"
+            ],
+            "default": "centerCenter"
+        },
+        "text_orient": {
+            "type": "string",
+            "enum": [
+                "R0",
+                "R90",
+                "R180",
+                "R270",
+                "MY",
+                "MYR90",
+                "MX",
+                "MXR90"
+            ],
+            "default": "R0"
+        },
+        "pin_direction": {
+            "type": "string",
+            "enum": [ 
+                "input",
+                "output",
+                "inputOutput",
+                "switch",
+                "jumper",
+                "tristate",
+                "unused"
+            ]
+        },
+        "pin_signal": {
+            "type": "string",
+            "enum": [
+                "analog",
+                "clock",
+                "ground",
+                "power",
+                "reset",
+                "scan",
+                "signal",
+                "tieHi",
+                "tieLo",
+                "tieOff",
+                "optical",
+                "singleModeOptical",
+                "multiModeOptical",
+                ""
+            ]
+        },
+        "creation_schematic_wire": {
+            "description": "Wire creation item for schematic view with coordinate, color, lineStyle, width, and optional label",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "wire"
+                },
+                "coordinate": {
+                    "$ref": "#/definitions/creation_coordinate"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "lineStyle": {
+                    "type": "string",
+                    "enum": ["solid", "dashed", "dotted"]
+                },
+                "width": {
+                    "type": "number",
+                    "default": 0.0
+                },
+                "wireType": {
+                    "type": "string",
+                    "enum": ["line", "arc"]
+                },
+                "signalType": {
+                    "$ref": "#/definitions/pin_signal"
+                },
+                "layerName": {
+                    "type": "string"
+                },
+                "layerNum": {
+                    "type": "integer"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Wire label configuration",
+                    "type": "object",
+                    "properties": {
+                        "text": {
+                            "type": "string"
+                        },
+                        "origin": {
+                            "$ref": "#/definitions/creation_xy"
+                        },
+                        "orient": {
+                            "$ref": "#/definitions/text_orient"
+                        },
+                        "font": {
+                            "$ref": "#/definitions/text_font"
+                        },
+                        "height": {
+                            "type": "number"
+                        },
+                        "justification": {
+                            "$ref": "#/definitions/text_justification"
+                        },
+                        "style": {
+                            "$ref": "#/definitions/text_style"
+                        },
+                        "drafted": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "visible": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "overbar": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "layerName": {
+                            "type": "string"
+                        },
+                        "layerNum": {
+                            "type": "integer"
+                        },
+                        "purpose": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["text"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["type", "coordinate"],
+            "additionalProperties": false
+        },
+        "creation_schematic_pin": {
+            "description": "Pin creation item for schematic view with name, direction, origin, orient, and optional instance",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "pin"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "direction": {
+                    "$ref": "#/definitions/pin_direction"
+                },
+                "origin": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "orient": {
+                    "$ref": "#/definitions/text_orient",
+                    "default": "R0"
+                },
+                "signalType": {
+                    "$ref": "#/definitions/pin_signal"
+                },
+                "instance": {
+                    "type": "object",
+                    "properties": {
+                        "library": {
+                            "type": "string"
+                        },
+                        "cell": {
+                            "type": "string"
+                        },
+                        "view": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["library", "cell", "view"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["type", "name", "direction"],
+            "additionalProperties": false
+        },
+        "creation_schematic_noteShape": {
+            "description": "NoteShape creation item for schematic view with shape, style, coordinate, and optional label",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "noteShape"
+                },
+                "shape": {
+                    "type": "string",
+                    "enum": ["line", "rectangle", "arc", "ellipse", "systemArc", "polygon"]
+                },
+                "style": {
+                    "type": "string",
+                    "enum": ["solid", "dashed", "dotted", "shortDash", "longDash", "dashDot"]
+                },
+                "coordinate": {
+                    "$ref": "#/definitions/creation_coordinate"
+                },
+                "width": {
+                    "type": "number"
+                },
+                "startAngle": {
+                    "description": "Start angle for arc/ellipse shapes (in degrees)",
+                    "type": "number"
+                },
+                "stopAngle": {
+                    "description": "Stop angle for arc/ellipse shapes (in degrees)",
+                    "type": "number"
+                },
+                "layerName": {
+                    "type": "string",
+                    "default": "text"
+                },
+                "layerNum": {
+                    "type": "integer",
+                    "default": 230
+                },
+                "purpose": {
+                    "type": "string",
+                    "default": "drawing"
+                },
+                "label": {
+                    "description": "Label attached to noteShape",
+                    "type": "object",
+                    "properties": {
+                        "text": {
+                            "type": "string"
+                        },
+                        "origin": {
+                            "$ref": "#/definitions/creation_xy"
+                        },
+                        "orient": {
+                            "$ref": "#/definitions/text_orient"
+                        },
+                        "font": {
+                            "$ref": "#/definitions/text_font"
+                        },
+                        "height": {
+                            "type": "number"
+                        },
+                        "justification": {
+                            "$ref": "#/definitions/text_justification"
+                        },
+                        "justify": {
+                            "$ref": "#/definitions/text_justification"
+                        },
+                        "drafted": {
+                            "type": "boolean"
+                        },
+                        "visible": {
+                            "type": "boolean"
+                        },
+                        "overbar": {
+                            "type": "boolean"
+                        },
+                        "style": {
+                            "$ref": "#/definitions/text_style"
+                        },
+                        "layerName": {
+                            "type": "string"
+                        },
+                        "layerNum": {
+                            "type": "integer"
+                        },
+                        "purpose": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["type", "shape", "style", "coordinate"],
+            "additionalProperties": false
+        },
+        "creation_schematic_label": {
+            "description": "Independent label creation item for schematic view with text, origin, and formatting properties",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "label"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "origin": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "orient": {
+                    "$ref": "#/definitions/text_orient",
+                    "default": "R0"
+                },
+                "font": {
+                    "$ref": "#/definitions/text_font",
+                    "default": "stick"
+                },
+                "height": {
+                    "type": "number",
+                    "default": 0.0625
+                },
+                "justification": {
+                    "$ref": "#/definitions/text_justification",
+                    "default": "lowerCenter"
+                },
+                "justify": {
+                    "description": "Alternative to justification",
+                    "$ref": "#/definitions/text_justification"
+                },
+                "drafted": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "visible": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "overbar": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "style": {
+                    "$ref": "#/definitions/text_style"
+                },
+                "layerName": {
+                    "type": "string",
+                    "default": "text"
+                },
+                "layerNum": {
+                    "type": "integer",
+                    "default": 230
+                },
+                "purpose": {
+                    "type": "string",
+                    "default": "drawing"
+                }
+            },
+            "required": ["type", "text"],
+            "additionalProperties": false
+        },
+        "creation_config_view": {
+            "description": "Define the cellview configuration details",
+            "type": "object",
+            "properties": {
+                "view": {
+                    "type": "string"
+                },
+                "topCell": {
+                    "type": "object",
+                    "properties": {
+                        "library": {
+                            "type": [ "string", "null" ],
+                            "pattern": "^[A-Za-z0-9_$#]*$"
+                        },
+                        "cell": {
+                            "type": [ "string", "null" ],
+                            "pattern": "^[A-Za-z0-9_$#]*$"
+                        },
+                        "view": {
+                            "type": [ "string", "null" ],
+                            "pattern": "^[A-Za-z0-9_$#]*$"
+                        }
+                    },
+                    "required": [
+                        "library",
+                        "cell",
+                        "view"
+                    ],
+                    "additionalProperties": false
+                },
+                "globalBindings": {
+                    "type": "object",
+                    "properties": {
+                        "template": {
+                            "type": "string",
+                            "enum": [
+                                "spectre",
+                                "hspiceD",
+                                "ams",
+                                "custom"
+                            ]
+                        },
+                        "libraryList": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "default": [
+                                "myLib"
+                            ]
+                        },
+                        "viewList": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "default": [
+                                "spectre",
+                                "cmos_sch",
+                                "cmos.sch",
+                                "schematic",
+                                "veriloga",
+                                "ahdl",
+                                "pspice",
+                                "dspf"
+                            ]
+                        },
+                        "stopList": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "default": [
+                                "spectre",
+                                "veriloga"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "template"
+                    ],
+                    "additionalProperties": false,
+                    "if": {
+                        "properties": {
+                            "template": {
+                                "const": "custom"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "libraryList",
+                            "viewList",
+                            "stopList"
+                        ]
+                    }
+                },
+                "objectBindRules": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "specifier": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/definitions/creation_specifier"
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/creation_specifier"
+                                        },
+                                        "minItems": 1,
+                                        "uniqueItems": true
+                                    }
+                                ]
+                            },
+                            "rule": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "libraryList",
+                                            "viewList",
+                                            "binding",
+                                            "stop"
+                                        ]
+                                    },
+                                    "itemList": {
+                                        "type": [ "array", "string" ],
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1,
+                                        "uniqueItems": true
+                                    },
+                                    "library": {
+                                        "type": "string"
+                                    },
+                                    "cell": {
+                                        "type": "string"
+                                    },
+                                    "view": {
+                                        "type": "string"
+                                    },
+                                    "stop": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ],
+                                "additionalProperties": false,
+                                "if": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "type": {
+                                                    "const": "libraryList"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "properties": {
+                                                "type": {
+                                                    "const": "viewList"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "then": {
+                                    "required": [
+                                        "itemList"
+                                    ]
+                                },
+                                "else": {
+                                    "if": {
+                                        "properties": {
+                                            "type": {
+                                                "const": "binding"
+                                            }
+                                        }
+                                    },
+                                    "then": {
+                                        "required": [
+                                            "view"
+                                        ]
+                                    },
+                                    "else": {
+                                        "required": [
+                                            "stop"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "specifier",
+                            "rule"
+                        ],
+                        "minItems": 1,
+                        "uniqueItems": true
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "topCell"
+            ]
+        },
+        "creation_specifier": {
+            "type": "object",
+            "properties": {
+                "libName": {
+                    "type": [ "string", "null" ],
+                    "pattern": "^[A-Za-z0-9_$#]*$"
+                },
+                "cellName": {
+                    "type": [ "string", "null" ],
+                    "pattern": "^[A-Za-z0-9_$#]*$"
+                },
+                "viewName": {
+                    "type": [ "string", "null" ],
+                    "pattern": "^[A-Za-z0-9_$#]*$"
+                },
+                "instanceName": {
+                    "type": [ "string", "null" ],
+                    "pattern": "^[A-Za-z0-9_$#]*$"
+                }
+            },
+            "required": [
+                "cellName"
+            ]
+        },
+        "creation_field_with_hashtag": {
+            "description": "Define the cellview creation details",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "description": "Define a creation type",
+                        "type": "string",
+                        "enum": [
+                            "hashtag",
+                            "group",
+                            "shape",
+                            "pin",
+                            "label",
+                            "cdsName",
+                            "cdsTerm",
+                            "cdsParam",
+                            "instanceName",
+                            "cellName",
+                            "note",
+                            "noteShape",
+                            "block",
+                            "selectionBox"
+                        ]
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "allOf": [
+                    {
+                        "$ref": "#/definitions/creation_hashtag"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_group"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_sharp"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_label"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_cdsTerm"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_cdsParam"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_ILlabel"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_NLPlabel"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_pin"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_noteSharp"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_note"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_block"
+                    },
+                    {
+                        "$ref": "#/definitions/creation_selectionBox"
+                    }
+                ]
+            }
+        },
+        "creation_hashtag": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "hashtag"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "hashtag": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "replace": {
+                                    "type": [ "array", "null" ],
+                                    "items": {
+                                        "description": "The expanded cell name will replace the # symbol of the original cell name.",
+                                        "type": [ "string", "integer", "array" ],
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "minItems": 2,
+                                        "maxItems": 3
+                                    },
+                                    "minItems": 1
+                                },
+                                "prefix": {
+                                    "description": "The prefix of the replaced expanded cell name.",
+                                    "type": "string"
+                                },
+                                "suffix": {
+                                    "description": "The suffix of the replaced expanded cell name.",
+                                    "type": "string"
+                                },
+                                "creation": {
+                                    "$ref": "#/definitions/creation_field_without_hashtag"
+                                }
+                            },
+                            "required": [
+                                "replace"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "hashtag"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_field_without_hashtag": {
+            "type": [ "array", "object" ],
+            "$ref": "#/definitions/creation_field_without_hashtagItem",
+            "items": {
+                "type": "object",
+                "$ref": "#/definitions/creation_field_without_hashtagItem"
+            }
+        },
+        "creation_field_without_hashtagItem": {
+            "properties": {
+                "type": {
+                    "description": "Define a creation type",
+                    "type": "string",
+                    "enum": [
+                        "group",
+                        "shape",
+                        "pin",
+                        "label",
+                        "cdsName",
+                        "cdsTerm",
+                        "cdsParam",
+                        "instanceName",
+                        "cellName",
+                        "note",
+                        "noteShape",
+                        "block"
+                    ]
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "allOf": [
+                {
+                    "$ref": "#/definitions/creation_hashtagGroup"
+                },
+                {
+                    "$ref": "#/definitions/creation_sharp"
+                },
+                {
+                    "$ref": "#/definitions/creation_label"
+                },
+                {
+                    "$ref": "#/definitions/creation_cdsTerm"
+                },
+                {
+                    "$ref": "#/definitions/creation_cdsParam"
+                },
+                {
+                    "$ref": "#/definitions/creation_ILlabel"
+                },
+                {
+                    "$ref": "#/definitions/creation_NLPlabel"
+                },
+                {
+                    "$ref": "#/definitions/creation_pin"
+                },
+                {
+                    "$ref": "#/definitions/creation_noteSharp"
+                },
+                {
+                    "$ref": "#/definitions/creation_note"
+                },
+                {
+                    "$ref": "#/definitions/creation_block"
+                },
+                {
+                    "$ref": "#/definitions/creation_selectionBox"
+                }
+            ]
+        },
+        "creation_paramFeature": {
+            "type": "object",
+            "properties": {
+                "width": {
+                    "type": "number"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "cdsParam": {
+                    "type": "object",
+                    "properties": {
+                        "height": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "shape": {
+                    "type": "object",
+                    "properties": {
+                        "style": {
+                            "type": "string",
+                            "enum": [ "dashed", "solid" ]
+                        },
+                        "width": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "width",
+                "height"
+            ]
+        },
+        "creation_xy": {
+            "type": "array",
+            "items": {
+                "type": [ "integer", "number" ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "creation_xy_with_string": {
+            "type": "array",
+            "items": {
+                "type": [ "integer", "number", "string" ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "creation_coordinate": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/creation_xy"
+            },
+            "minItems": 2
+        },
+        "creation_hashtagGroup": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "group"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "origin": {
+                        "description": "The origin coordinates of the drawing.",
+                        "$ref": "#/definitions/creation_xy_with_string"
+                    },
+                    "expand": {
+                        "type": "object",
+                        "properties": {
+                            "initial": {
+                                "type": [ "integer", "string" ],
+                                "default": 1
+                            },
+                            "step": {
+                                "type": "integer",
+                                "default": 1
+                            },
+                            "times": {
+                                "type": [ "integer", "string" ],
+                                "default": 2
+                            },
+                            "shift": {
+                                "$ref": "#/definitions/creation_xy"
+                            }
+                        },
+                        "dependentRequired": {
+                            "step": [ "initial", "times", "shift" ],
+                            "times": [ "initial", "step", "shift" ],
+                            "shift": [ "initial", "step", "times" ]
+                        },
+                        "additionalProperties": false
+                    },
+                    "pinName": {
+                        "type": [ "array", "object" ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "patternProperties": {
+                            "^[a-zA-Z0-9_]+": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_group": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "group"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "origin": {
+                        "description": "The origin coordinates of the drawing.",
+                        "$ref": "#/definitions/creation_xy_with_string"
+                    },
+                    "expand": {
+                        "type": "object",
+                        "properties": {
+                            "initial": {
+                                "type": "integer",
+                                "default": 1
+                            },
+                            "step": {
+                                "type": "integer",
+                                "default": 1
+                            },
+                            "times": {
+                                "type": "integer",
+                                "default": 2
+                            },
+                            "shift": {
+                                "$ref": "#/definitions/creation_xy"
+                            }
+                        },
+                        "dependentRequired": {
+                            "step": [ "initial", "times", "shift" ],
+                            "times": [ "initial", "step", "shift" ],
+                            "shift": [ "initial", "step", "times" ]
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_sharp": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "shape"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "shape": {
+                        "type": "string",
+                        "enum": [ "line", "rectangle", "polygon", "circle", "ellipse", "arc", "systemArc" ]
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [ "outline", "solid" ]
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "width": {
+                        "description": "If width is defined, wide line will be used for drawing. Otherwise narrow line will be used for drawing.",
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "required": [
+                    "shape",
+                    "style",
+                    "coordinate"
+                ],
+                "if": {
+                    "properties": {
+                        "shape": {
+                            "const": "arc"
+                        }
+                    }
+                },
+                "then": {
+                    "properties": {
+                        "coordinate": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "minItems": 3,
+                            "maxItems": 3
+                        }
+                    }
+                },
+                "else": {
+                    "if": {
+                        "properties": {
+                            "shape": {
+                                "const": "systemArc"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "coordinate": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/creation_xy"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2
+                            },
+                            "startAngle": {
+                                "type": "number"
+                            },
+                            "stopAngle": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "coordinate",
+                            "startAngle",
+                            "stopAngle"
+                        ]
+                    }
+                }
+            }
+        },
+        "creation_label": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "label"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "classify": {
+                        "$ref": "#/definitions/text_classify"
+                    },
+                    "style": {
+                        "$ref": "#/definitions/text_style"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "anyOf": [
+                    {
+                        "required": [
+                            "label"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "comment"
+                        ]
+                    }
+                ],
+                "required": [
+                    "classify",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_ILlabel": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "enum": [ "cdsName" ]
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_NLPlabel": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "enum": [ "instanceName", "cellName" ]
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_cdsTerm": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "cdsTerm"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "pinName": {
+                        "type": "string"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "pinName",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_cdsParam": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "cdsParam"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": "integer"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "number",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_pin": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "pin"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "style": {
+                        "$ref": "#/definitions/creation_pinStyle"
+                    },
+                    "points": {
+                        "$ref": "#/definitions/creation_pinPoints"
+                    },
+                    "direction": {
+                        "$ref": "#/definitions/pin_direction"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    },
+                    "orientation": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "endpoint": {
+                        "$ref": "#/definitions/creation_xy"
+                    },
+                    "signal": {
+                        "$ref": "#/definitions/pin_signal"
+                    },
+                    "text": {
+                        "$ref": "#/definitions/creation_pinText"
+                    },
+                    "cdsTerm": {
+                        "$ref": "#/definitions/creation_pinCdsTerm"
+                    },
+                    "template": {
+                        "type": "string"
+                    }
+                },
+                "anyOf": [
+                    {
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "comment"
+                        ]
+                    }
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_pinStyle": {
+            "type": "string",
+            "enum": [
+                "sympin",
+                "circle",
+                "block"
+            ],
+            "default": "sympin"
+        },
+        "creation_pinPoints": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/creation_xy"
+            },
+            "minItems": 3
+        },
+        "creation_pinText": {
+            "type": "object",
+            "properties": {
+                "font": {
+                    "$ref": "#/definitions/text_font"
+                },
+                "height": {
+                    "type": [ "integer", "number" ],
+                    "default": 0.0625
+                },
+                "justification": {
+                    "$ref": "#/definitions/text_justification"
+                },
+                "orientation": {
+                    "$ref": "#/definitions/text_orient"
+                },
+                "origin": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "offset": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "hide": {
+                    "type": "boolean"
+                },
+                "overbar": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_pinCdsTerm": {
+            "type": "object",
+            "properties": {
+                "font": {
+                    "$ref": "#/definitions/text_font"
+                },
+                "height": {
+                    "type": [ "integer", "number" ],
+                    "default": 0.0625
+                },
+                "justification": {
+                    "$ref": "#/definitions/text_justification"
+                },
+                "orient": {
+                    "$ref": "#/definitions/text_orient"
+                },
+                "origin": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "offset": {
+                    "$ref": "#/definitions/creation_xy"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_noteSharp": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "noteShape"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "shape": {
+                        "type": "string",
+                        "enum": [ "line", "rectangle", "polygon", "circle", "ellipse", "arc" ]
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [ "solid", "dashed" ]
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "width": {
+                        "description": "If width is defined, wide line will be used for drawing. Otherwise narrow line will be used for drawing.",
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "required": [
+                    "shape",
+                    "style",
+                    "coordinate"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_note": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "note"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "regex": {
+                        "type": "object",
+                        "properties": {
+                            "compile": {
+                                "type": "string"
+                            },
+                            "replace": {
+                                "type": "string"
+                            },
+                            "mismatch": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "compile",
+                            "replace"
+                        ]
+                    },
+                    "style": {
+                        "$ref": "#/definitions/text_style"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "anyOf": [
+                    {
+                        "required": [
+                            "comment"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "label"
+                        ]
+                    }
+                ],
+                "required": [
+                    "style",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "block"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "horizontal": {
+                        "description": "Draw horizontal pin connection length. The default value is 0.25.",
+                        "type": [ "integer", "number" ],
+                        "default": 0.25
+                    },
+                    "vertical": {
+                        "description": "Draw vertical pin connection length. The default value is 0.125.",
+                        "type": [ "integer", "number" ],
+                        "default": 0.125
+                    },
+                    "fontHeight": {
+                        "description": "Define the font height of label. The default font height is 0.0625.",
+                        "type": "object",
+                        "properties": {
+                            "pinName": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            },
+                            "cdsTerm": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            }
+                        }
+                    },
+                    "left": {
+                        "description": "Draw the left pin terminal using the horizontal pin connection length. The default direction is input and the default type is signal.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "right": {
+                        "description": "Draw the right pin terminal using the horizontal pin connection length. The default direction is output and the default type is signal.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "top": {
+                        "description": "Draw the top pin terminal using the vertical pin connection length. The default direction is inputOutput and the default type is power.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "bottom": {
+                        "description": "Draw the bottom pin terminal using the vertical pin connection length. The default direction is inputOutput and the default type is ground.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "separator": {
+                        "description": "The horizontal line that defines the body",
+                        "type": "object",
+                        "properties": {
+                            "unit": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.125
+                            },
+                            "position": {
+                                "type": "array",
+                                "items": {
+                                    "type": [ "integer", "number" ]
+                                }
+                            },
+                            "offset": {
+                                "type": [ "integer", "number" ]
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_blockPin": {
+            "type": "object",
+            "properties": {
+                "settings": {
+                    "type": "object",
+                    "properties": {
+                        "cdsTerm": {
+                            "type": "object",
+                            "properties": {
+                                "height": {
+                                    "type": [ "integer", "number" ],
+                                    "default": 0.0625
+                                },
+                                "justification": {
+                                    "$ref": "#/definitions/text_justification"
+                                },
+                                "orient": {
+                                    "$ref": "#/definitions/text_orient"
+                                },
+                                "offset": {
+                                    "$ref": "#/definitions/creation_xy"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "pinName": {
+                            "type:": "object",
+                            "properties": {
+                                "height": {
+                                    "type": [ "integer", "number" ],
+                                    "default": 0.0625
+                                },
+                                "justification": {
+                                    "$ref": "#/definitions/text_justification"
+                                },
+                                "orient": {
+                                    "$ref": "#/definitions/text_orient"
+                                },
+                                "offset": {
+                                    "$ref": "#/definitions/creation_xy"
+                                },
+                                "hide": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "pins": {
+                    "type": "array",
+                    "items": {
+                        "type": [ "string", "object" ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "direction": {
+                                "$ref": "#/definitions/pin_direction"
+                            },
+                            "signal": {
+                                "$ref": "#/definitions/pin_signal"
+                            },
+                            "shift": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "hidePinName": {
+                                "description": "The pin name is not displayed. The default value is false.",
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "offset": {
+                    "description": "Define the relative position of the first pin terminal from the body. The default value of horizontal pins is [ 0.0, -0.125 ]. The default value for vertical pins is to be placed in the middle of the body and aligned to the left of the 0.0625 grid point.",
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "shift": {
+                    "description": "Define the relative position between the next pin terminal and the previous pin terminal. The default value is [ 0.0, -0.125 ].",
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "labelShift": {
+                    "description": "Define the relative position of the label from the pin terminal. The default value is [ 0.0, 0.0 ].",
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "orientation": {
+                    "$ref": "#/definitions/text_orient"
+                },
+                "hidePinName": {
+                    "description": "The pin name is not displayed. The default value is false.",
+                    "type": "boolean"
+                },
+                "paramFeature": {
+                    "$ref": "#/definitions/creation_paramFeature"
+                }
+            },
+            "required": [
+                "pins"
+            ],
+            "additionalProperties": false
+        },
+        "creation_selectionBox": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "selectionBox"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_symbolViewGlobalFontSettings": {
+            "type:": "object",
+            "properties": {
+                "font": {
+                    "$ref": "#/definitions/text_font"
+                },
+                "height": {
+                    "type": [ "integer", "number" ],
+                    "default": 0.0625
+                },
+                "orient": {
+                    "$ref": "#/definitions/text_orient"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_symbolView": {
+            "description": "Define cellview name is symbol.",
+                "type": "object",
+                "properties": {
+                    "viewName": {
+                        "description": "Define the cellview name",
+                        "type": "string",
+                        "pattern": "^symbol",
+                        "default": "symbol"
+                    },
+                    "viewDuplicate": {
+                        "description": "Copied view name",
+                        "type": [ "string", "array" ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "creation": {
+                        "$ref": "#/definitions/creation_field_with_hashtag"
+                    },
+                    "group": {
+                        "description": "Define a creation group item for reuse.",
+                        "type": [ "array", "object" ],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Define creation group name, apply in groups field.",
+                                    "type": "string"
+                                },
+                                "creation": {
+                                    "$ref": "#/definitions/creation_field_without_hashtag"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "creation"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "patternProperties": {
+                            "^[a-zA-Z0-9_]+": {
+                                "$ref": "#/definitions/creation_field_without_hashtag"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "settings": {
+                        "type": "object",
+                        "properties": {
+                            "instNamePrefix": {
+                                "type": "string"
+                            },
+                            "wide_line": {
+                                "type": "object",
+                                "properties": {
+                                    "width": {
+                                        "type": [ "integer", "number" ]
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "text": {
+                                "$ref": "#/definitions/creation_symbolViewGlobalFontSettings"
+                            },
+                            "cdsTerm": {
+                                "$ref": "#/definitions/creation_symbolViewGlobalFontSettings"
+                            },
+                            "pinLabel": {
+                                "$ref": "#/definitions/creation_symbolViewGlobalFontSettings"
+                            },
+                            "pin": {
+                                "type": "object",
+                                "patternProperties": {
+                                    "^[a-zA-Z0-9_]+": {
+                                        "type": "object",
+                                        "properties": {
+                                            "style": {
+                                                "$ref": "#/definitions/creation_pinStyle"
+                                            },
+                                            "points": {
+                                                "$ref": "#/definitions/creation_pinPoints"
+                                            },
+                                            "direction": {
+                                                "$ref": "#/definitions/pin_direction"
+                                            },
+                                            "origin": {
+                                                "$ref": "#/definitions/creation_xy"
+                                            },
+                                            "orientation": {
+                                                "$ref": "#/definitions/text_orient"
+                                            },
+                                            "endpoint": {
+                                                "$ref": "#/definitions/creation_xy"
+                                            },
+                                            "signal": {
+                                                "$ref": "#/definitions/pin_signal"
+                                            },
+                                            "text": {
+                                                "$ref": "#/definitions/creation_pinText"
+                                            },
+                                            "cdsTerm": {
+                                                "$ref": "#/definitions/creation_pinCdsTerm"
+                                            },
+                                            "template": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "viewName",
+                    "creation"
+                ],
+                "additionalProperties": false
+        },
+        "creation_schematicView": {
+            "description": "Define cellview name is schematic.",
+            "type": "object",
+            "properties": {
+                "viewName": {
+                    "description": "Define the cellview name",
+                    "type": "string",
+                    "pattern": "^schematic",
+                    "default": "schematic"
+                },
+                "creation": {
+                    "description": "Array of creation items for wires, pins, and labels",
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/creation_schematic_wire"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_schematic_pin"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_schematic_noteShape"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_schematic_label"
+                            }
+                        ]
+                    }
+                },
+                "instance": {
+                    "description": "Object with instance names as keys",
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z0-9_]+": {
+                            "type": "object",
+                            "properties": {
+                                "library": {
+                                    "type": "string"
+                                },
+                                "cell": {
+                                    "type": "string"
+                                },
+                                "view": {
+                                    "type": "string",
+                                    "default": "symbol"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "coordinate": {
+                                    "$ref": "#/definitions/creation_xy"
+                                },
+                                "origin": {
+                                    "$ref": "#/definitions/creation_xy"
+                                },
+                                "orient": {
+                                    "$ref": "#/definitions/text_orient",
+                                    "default": "R0"
+                                },
+                                "parameters": {
+                                    "$ref": "#/definitions/database_cdf"
+                                },
+                                "textDisplay": {
+                                    "description": "Text display configuration for instance (single or array)",
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/definitions/creation_schematicTextDisplay"
+                                        },
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/creation_schematicTextDisplay"
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": ["library", "cell"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "settings": {
+                    "description": "Global settings for schematic view creation",
+                    "type": "object",
+                    "properties": {
+                        "wiring": {
+                            "type": "object",
+                            "properties": {
+                                "entryMethod": {
+                                    "type": "string",
+                                    "enum": ["draw", "connect"],
+                                    "default": "draw"
+                                },
+                                "routeMethod": {
+                                    "type": "string",
+                                    "enum": ["full", "horizontal", "vertical"],
+                                    "default": "full"
+                                },
+                                "snapSpace": {
+                                    "oneOf": [
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "x": {
+                                                    "type": "number"
+                                                },
+                                                "y": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "wireLabel": {
+                            "type": "object",
+                            "properties": {
+                                "font": {
+                                    "$ref": "#/definitions/text_font"
+                                },
+                                "height": {
+                                    "type": "number",
+                                    "default": 0.0625
+                                },
+                                "orient": {
+                                    "$ref": "#/definitions/text_orient"
+                                },
+                                "justification": {
+                                    "$ref": "#/definitions/text_justification"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["viewName"],
+            "additionalProperties": false
+        },
+        "creation_schematicTextDisplay": {
+            "description": "Text display configuration for schematic instance",
+            "type": "object",
+            "properties": {
+                "coordinate": {
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "drafted": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "font": {
+                    "$ref": "#/definitions/text_font"
+                },
+                "height": {
+                    "type": "number",
+                    "default": 0.0625
+                },
+                "justification": {
+                    "$ref": "#/definitions/text_justification"
+                },
+                "layerName": {
+                    "type": "string"
+                },
+                "layerNum": {
+                    "type": "integer"
+                },
+                "nameVisible": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "orient": {
+                    "$ref": "#/definitions/text_orient"
+                },
+                "overbar": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "valueVisible": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "visible": {
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "required": ["coordinate", "layerName", "text"],
+            "additionalProperties": false
+        },
+        "creation_layoutView": {
+            "type": "object",
+            "properties": {
+                "viewName": {
+                    "type": "string",
+                    "pattern": "^layout",
+                    "default": "layout"
+                },
+                "creation": {
+                    "$ref": "#/definitions/creation_layout"
+                },
+                "instance": {
+                    "$ref": "#/definitions/creation_layoutInstance"
+                },
+                "figGroups": {
+                    "$ref": "#/definitions/creation_layoutFigGroup"
+                },
+                "rod": {
+                    "$ref": "#/definitions/creation_layoutRod"
+                },
+                "via": {
+                    "$ref": "#/definitions/creation_layoutVia"
+                },
+                "placeRoute": {
+                    "$ref": "#/definitions/creation_layoutPlaceRoute"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_simulator": {
+            "type": "object",
+            "properties": {
+                "netlistProcedure": {
+                    "type": "string"
+                },
+                "otherParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "instParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "enumParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "referenceParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "stringParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "arrayParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "exculdeParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "componentName": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "termOrder": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "termMapping": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "propMapping": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "opParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_paramExpression"
+                },
+                "optParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_paramExpression"
+                },
+                "modelParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "namePrefix": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "deviceTerminals": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "extraTerminals": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "permuteRule": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "modelName": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "dollarParams": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "dollarEqualParams": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "isPrimitive": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                }
+            },
+            "patternProperties": {
+                ".+": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                }
+            }
+        },
+        "creation_simulator_setting": {
+            "type": [ "string", "array", "object" ],
+            "items": {
+                "type": [ "boolean", "string", "array", "object" ],
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    }
+                }
+            },
+            "properties": {
+                "cellName": {
+                    "$ref": "#/definitions/creation_cellName"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_simulator_paramExpression": {
+            "type": [ "string", "object" ],
+            "properties": {
+                "function": {
+                    "type": "string"
+                },
+                "mappedRoot": {
+                    "type": "string"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "function": {
+                                        "type": "string"
+                                    },
+                                    "mapped": {
+                                        "type": "object",
+                                        "properties": {
+                                            "root": {
+                                                "type": "string"
+                                            },
+                                            "property": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_cellName": {
+            "enum": [ "whole", "uppercase", "lowercase" ],
+            "default": "whole"
+        },
+        "creation_layout": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "rectangle",
+                            "path",
+                            "pathSeg",
+                            "polygon",
+                            "ellipse",
+                            "donut"
+                        ]
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "width": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "style": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/creation_layoutPathStyle"
+                            },
+                            {
+                                "type": [ "array", "object" ],
+                                "items": {
+                                    "$ref": "#/definitions/creation_layoutPathStyle"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "properties": {
+                                    "beginStyle": {
+                                        "$ref": "#/definitions/creation_layoutPathStyleWithCustom"
+                                    },
+                                    "endStyle": {
+                                        "$ref": "#/definitions/creation_layoutPathStyleWithCustom"
+                                    },
+                                    "beginExtension": {
+                                        "oneOf": [
+                                            {
+                                                "type": [ "integer", "number" ]
+                                            },
+                                            {
+                                                "$ref": "#/definitions/creation_layoutPathStyleWithCustomExtension"
+                                            }
+                                        ]
+                                    },
+                                    "endExtension": {
+                                        "oneOf": [
+                                            {
+                                                "type": [ "integer", "number" ]
+                                            },
+                                            {
+                                                "$ref": "#/definitions/creation_layoutPathStyleWithCustomExtension"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "beginStyle",
+                                    "endStyle"
+                                ],
+                                "additionalProperties": false,
+                                "allOf": [
+                                    {
+                                        "if": {
+                                            "oneOf": [
+                                                {
+                                                    "properties": {
+                                                        "beginStyle": {
+                                                            "const": "variable"
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "beginStyle": {
+                                                            "const": "custom"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "then": {
+                                            "required": [
+                                                "beginExtension"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "if": {
+                                            "oneOf": [
+                                                {
+                                                    "properties": {
+                                                        "endStyle": {
+                                                            "const": "variable"
+                                                        }
+                                                    }
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "endStyle": {
+                                                            "const": "custom"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "then": {
+                                            "required": [
+                                                "endExtension"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "layerName": {
+                        "type": "string"
+                    },
+                    "layerNum": {
+                        "type": "integer"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "orthogonal": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_layoutPathStyle": {
+            "type": "string",
+            "enum": [
+                "extend",
+                "truncate",
+                "variable",
+                "chamfer"
+            ]
+        },
+        "creation_layoutPathStyleWithCustom": {
+            "type": "string",
+            "enum": [
+                "extend",
+                "truncate",
+                "variable",
+                "chamfer",
+                "custom"
+            ]
+        },
+        "creation_layoutPathStyleWithCustomExtension": {
+            "type": "object",
+            "properties": {
+                "extension": {
+                    "type": [ "integer", "number" ]
+                },
+                "leftDiagonalExtension": {
+                    "type": [ "integer", "number" ]
+                },
+                "rightDiagonalExtension": {
+                    "type": [ "integer", "number" ]
+                },
+                "rightHalfWidth": {
+                    "type": [ "integer", "number" ]
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "extension",
+                "leftDiagonalExtension",
+                "rightDiagonalExtension",
+                "rightHalfWidth"
+            ]
+        },
+        "creation_layoutInstance": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9_]+": {
+                    "type": "object",
+                    "properties": {
+                        "library": {
+                            "type": "string"
+                        },
+                        "cell": {
+                            "type": "string"
+                        },
+                        "view": {
+                            "type": "string"
+                        },
+                        "viewType": {
+                            "type": "string"
+                        },
+                        "figGroup": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "coordinate": {
+                            "$ref": "#/definitions/creation_xy"
+                        },
+                        "orient": {
+                            "type": "string"
+                        },
+                        "parameters": {
+                            "$ref": "#/definitions/database_cdf",
+                            "type": [ "array", "object" ],
+                            "items": {
+                                "$ref": "#/definitions/database_cdf",
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "required": [ "cell", "coordinate", "library", "orient", "parameters", "view" ],
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_layoutFigGroup": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "figGroup": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "ordered": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_layoutRod": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "layerName": {
+                        "type": "string"
+                    },
+                    "layerNum": {
+                        "type": "integer"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "figGroup": {
+                        "type": "string"
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [
+                            "extendExtend",
+                            "roundRound",
+                            "truncateExtend",
+                            "varExtendExtend"
+                        ],
+                        "default": "truncateExtend"
+                    },
+                    "subparts": {
+                        "$ref": "#/definitions/creation_layoutRodSubPart"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "path"
+                        ],
+                        "default": "path"
+                    },
+                    "width": {
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_layoutRodSubPart": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "beginOffset": {
+                        "type": [ "integer", "number" ],
+                        "default": 0
+                    },
+                    "endOffset": {
+                        "type": [ "integer", "number" ],
+                        "default": 0
+                    },
+                    "choppable": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "layerName": {
+                        "type": "string"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "enclosurePath",
+                            "offsetPath",
+                            "rectangle"
+                        ]
+                    },
+                    "enclosure": {
+                        "type": [ "integer", "number" ],
+                        "default": 0
+                    },
+                    "beginSegOffset": {
+                        "type": [ "integer", "number" ],
+                        "default": 0
+                    },
+                    "endSegOffset": {
+                        "type": [ "integer", "number" ],
+                        "default": 0
+                    },
+                    "diagonal": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "gap": {
+                        "type": "string",
+                        "enum": [
+                            "distribute",
+                            "minimum"
+                        ],
+                        "default": "distribute"
+                    },
+                    "justification": {
+                        "type": "string",
+                        "enum": [
+                            "center",
+                            "left",
+                            "right"
+                        ],
+                        "default": "center"
+                    },
+                    "length": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "separation": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "space": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "width": {
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "required": [
+                    "layerName",
+                    "purpose",
+                    "type"
+                ],
+                "additionalProperties": false,
+                "if": {
+                    "properties": {
+                        "type": {
+                            "const": "rectangle"
+                        }
+                    }
+                },
+                "then": {
+                    "required": [
+                        "length",
+                        "width",
+                        "space"
+                    ]
+                },
+                "else": {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "offsetPath"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "width"
+                        ]
+                    }
+                }
+            }
+        },
+        "creation_layoutVia": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "orientation": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "patternProperties": {
+                            "[a-zA-Z0-9_]+": {
+                                "type": [ "number", "integer", "array" ],
+                                "items": {
+                                    "type": [ "number", "integer" ]
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_layoutPlaceRoute": {
+            "type": "object",
+            "properties": {
+                "areaBoundary": {
+                    "$ref": "#/definitions/creation_layoutBoundaries"
+                },
+                "prBoundary": {
+                    "$ref": "#/definitions/creation_layoutBoundary"
+                },
+                "snapBoundary": {
+                    "$ref": "#/definitions/creation_layoutBoundary"
+                },
+                "cluster": {
+                    "$ref": "#/definitions/creation_layoutCluster"
+                },
+                "blockage": {
+                    "$ref": "#/definitions/creation_layoutBlockage"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_layoutBoundary": {
+            "type": "object",
+            "properties": {
+                "coordinate": {
+                    "$ref": "#/definitions/creation_coordinate"
+                },
+                "figGroup": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_layoutBoundaries": {
+           "type": "array",
+            "items": {
+                "$ref": "#/definitions/creation_layoutBoundary"
+            }
+        },
+        "creation_layoutCluster": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "boundary": {
+                        "$ref": "#/definitions/creation_layoutBoundaries"
+                    },
+                    "instance": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "parent": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "inclusive",
+                            "exclusive",
+                            "suggested"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "creation_layoutBlockage": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "areaBlockage",
+                            "areaHalo",
+                            "layerBlockage",
+                            "layerHalo"
+                        ]
+                    },
+                    "points": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "owner": {
+                        "type": [ "null", "object" ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "cluster",
+                                    "instance"
+                                ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "type"
+                        ]
+                    },
+                    "layer": {
+                        "type": [ "string", "integer" ]
+                    },
+                    "allowPGNet": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "spacing": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "density": {
+                        "type": [ "integer", "number" ]
+                    },
+                    "blockageType": {
+                        "type": "string",
+                        "enum": [
+                            "routing",
+                            "viaRouting",
+                            "wiring",
+                            "fill",
+                            "slot",
+                            "pin",
+                            "feedthru",
+                            "screen"
+                        ]
+                    },
+                    "haloType": {
+                        "type": "string",
+                        "enum": [
+                            "routing",
+                            "placement",
+                            "wiring",
+                            "fill",
+                            "slot",
+                            "pin",
+                            "feedthru",
+                            "screen"
+                        ]
+                    },
+                    "offsets": {
+                        "type": "object",
+                        "properties": {
+                            "top": {
+                                "type": [ "integer", "number" ]
+                            },
+                            "bottom": {
+                                "type": [ "integer", "number" ]
+                            },
+                            "left": {
+                                "type": [ "integer", "number" ]
+                            },
+                            "right": {
+                                "type": [ "integer", "number" ]
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "top",
+                            "bottom",
+                            "left",
+                            "right"
+                        ]
+                    },
+                    "isSoft": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "figGroup": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "type"
+                ],
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "areaBlockage"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "points"
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "areaHalo"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "offsets"
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "layerBlockage"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "points",
+                                "blockageType",
+                                "layer"
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "layerHalo"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "offsets",
+                                "haloType",
+                                "layer"
+                            ]
+                        }
+                    },
+                    {
+                        "oneOf": [
+                            {
+                                "required": [
+                                    "points"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "offsets"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "database_cell": {
+            "type": "object",
+            "properties": {
+                "library": {
+                    "type": "string"
+                },
+                "cell": {
+                    "type": "string"
+                },
+                "schematicSymbol": {
+                    "$ref": "#/definitions/creation_symbolView"
+                },
+                "maskLayout": {
+                    "$ref": "#/definitions/creation_layoutView"
+                }
+            },
+            "required": [ "cell", "library" ],
+            "additionalProperties": false
+        },
+        "database_cdf": {
+            "patternProperties": {
+                "[a-zA-Z0-9_]+": {
+                    "type": [ "string", "number", "integer", "boolean" ]
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

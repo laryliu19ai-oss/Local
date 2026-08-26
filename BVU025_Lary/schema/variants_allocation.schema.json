@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/your-org/simGrid/schemas/variants-allocation.json",
+  "title": "Variants Allocation Configuration",
+  "description": "SimGrid distributed simulation variants allocation configuration",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Unique project identifier",
+      "pattern": "^proj_[a-zA-Z0-9_-]+$",
+      "examples": ["proj_inv_analysis_001"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Configuration creation timestamp (ISO 8601 format)"
+    },
+    "netlist_info": {
+      "type": "object",
+      "description": "Basic netlist information",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Netlist file path (NAS or absolute path)",
+          "examples": ["/mnt/nas/projects/inv/inv.pex.netlist"]
+        },
+        "topcell": {
+          "type": "string",
+          "description": "Top-level circuit name",
+          "examples": ["inv"]
+        },
+        "total_variants": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of variants (including original)"
+        }
+      },
+      "required": ["path", "topcell", "total_variants"],
+      "additionalProperties": false
+    },
+    "variants": {
+      "type": "array",
+      "description": "Global variants - variants that all workers must process",
+      "items": {
+        "type": "string",
+        "pattern": "^(original|c_\\d+|cc_\\d+|only_c|only_cc|no_c_cc)$"
+      },
+      "uniqueItems": true,
+      "examples": [["original"]]
+    },
+    "workers": {
+      "type": "object",
+      "description": "Variant allocation for each worker",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "description": "Worker configuration",
+          "properties": {
+            "variants": {
+              "type": "array",
+              "description": "List of variants specific to this worker",
+              "items": {
+                "type": "string",
+                "pattern": "^(c_\\d+|cc_\\d+)$"
+              },
+              "uniqueItems": true
+            },
+            "weight": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Worker weight (used for task allocation)",
+              "default": 1.0
+            },
+            "assigned_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Assignment timestamp"
+            }
+          },
+          "required": ["variants"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    }
+  },
+  "required": ["project_id", "netlist_info", "variants", "workers"],
+  "additionalProperties": false
+}

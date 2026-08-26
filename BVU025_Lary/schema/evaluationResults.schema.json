@@ -1,0 +1,123 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/evaluationResults.schema",
+    "version": 1.0,
+    "release": "2026/02/07",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "PSF Batch Evaluation Results",
+    "description": "Configuration for batch evaluating multiple PSF simulation results",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the evaluation results configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Configuration file format version",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration file. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration file.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode for detailed output",
+            "type": "boolean",
+            "default": false
+        },
+        "evaluationResults": {
+            "description": "Batch evaluation configuration with three supported formats",
+            "oneOf": [
+                {
+                    "description": "Format 1: List of evaluation items",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/evaluationItem"
+                    },
+                    "minItems": 1
+                },
+                {
+                    "description": "Format 2: Single evaluation item (object with string psfData)",
+                    "type": "object",
+                    "properties": {
+                        "psfData": {
+                            "description": "PSF directory path (string)",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "outputFile": {
+                            "description": "Output JSON file path (optional)",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "evaluation": {
+                            "$ref": "evaluation.schema.json#/properties/evaluation"
+                        }
+                    },
+                    "required": ["psfData", "evaluation"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "Format 3: Single evaluation with table psfData (multiple PSF files)",
+                    "type": "object",
+                    "properties": {
+                        "psfData": {
+                            "description": "PSF directory paths (table/object with named entries)",
+                            "type": "object",
+                            "patternProperties": {
+                                "^[a-zA-Z][a-zA-Z0-9_]*$": {
+                                    "type": "string",
+                                    "minLength": 1
+                                }
+                            },
+                            "additionalProperties": false,
+                            "minProperties": 1
+                        },
+                        "outputFile": {
+                            "description": "Base output file path (will append _<key>.json for each PSF)",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "evaluation": {
+                            "$ref": "evaluation.schema.json#/properties/evaluation"
+                        }
+                    },
+                    "required": ["psfData", "evaluation"],
+                    "additionalProperties": false
+                }
+            ]
+        }
+    },
+    "required": ["evaluationResults"],
+    "additionalProperties": false,
+    "definitions": {
+        "evaluationItem": {
+            "type": "object",
+            "properties": {
+                "psfData": {
+                    "description": "PSF directory path",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "outputFile": {
+                    "description": "Output JSON file path (optional)",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "evaluation": {
+                    "$ref": "evaluation.schema.json#/properties/evaluation"
+                }
+            },
+            "required": ["psfData", "evaluation"],
+            "additionalProperties": false
+        }
+    }
+}

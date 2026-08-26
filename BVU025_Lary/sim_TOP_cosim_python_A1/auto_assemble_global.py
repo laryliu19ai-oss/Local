@@ -65,14 +65,14 @@ def load_onetest_config(netlist_dir, top_cell, pattern_dir=None):
     return {}
 
 def universal_assemble(netlist_dir, pattern_dir=None):
-    """Assemble AMS netlist, subcircuits, and control files using TM14 pattern objects."""
+    """Assemble AMS netlist, subcircuits, and control files using TM14and15 pattern objects."""
     netlist_dir = os.path.abspath(netlist_dir)
     
     # Resolve valid pattern directory containing run_cosim.oneTest.json / cosim.oneTest.json
     candidates = [
         pattern_dir,
         os.getcwd(),
-        "/home/lary/project/BVU025/SCH/cosim/pattern/TM14",
+        "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15",
         "c:/Antgravity/Local/BVU025_Lary/sim_TOP_cosim_python_A1",
         os.path.dirname(os.path.abspath(__file__))
     ]

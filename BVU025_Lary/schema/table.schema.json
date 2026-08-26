@@ -1,0 +1,1170 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/table.schema",
+    "version": 1.0,
+    "release": "2024/06/10",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Table Creation",
+    "description": "The schema validates the minimum requirements for table creation",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "version": {
+            "description": "Define the cellview file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the cellview. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the cellview.",
+            "type": "string"
+        },
+        "settings": {
+            "type": "object",
+            "properties": {
+                "wide_line": {
+                    "description": "Specify the width of wide lines.",
+                    "type": [ "integer", "number" ],
+                    "default": 0.025
+                },
+                "font": {
+                    "description": "Specify the font style.",
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "description": "Specify the font for the title of the table. The default value is roman.",
+                            "default": "roman",
+                            "$ref": "#/definitions/text_font"
+                        },
+                        "data": {
+                            "description": "Specify the font for the data of the table. The default value is swedish.",
+                            "default": "swedish",
+                            "$ref": "#/definitions/text_font"
+                        },
+                        "height": {
+                            "description": "Specify the font height of the table. The default value is 0.0625.",
+                            "type": [ "integer", "number" ],
+                            "default": 0.0625
+                        },
+                        "margin": {
+                            "description": "Specify the distance between the text and the upper and lower margins of the table field. The default value is 0.03125.",
+                            "type": [ "integer", "number" ],
+                            "default": 0.03125
+                        }
+                    },
+                    "required": [
+                        "title",
+                        "data"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "wide_line",
+                "font"
+            ],
+            "additionalProperties": false
+        },
+        "table": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "description": "It is necessary to set the library, cell, and view field.",
+                    "type": "object",
+                    "properties": {
+                        "library": {
+                            "description": "Library location where the table is drawn. It is necessary to set the library/cell/view field.",
+                            "type": "string"
+                        },
+                        "cell": {
+                            "description": "Cell location where the table is drawn. It is necessary to set the library/cell/view field.",
+                            "type": "string"
+                        },
+                        "view": {
+                            "description": "View location where the table is drawn. It is necessary to set the library/cell/view field.",
+                            "type": "string",
+                            "enum": [ "schematic", "symbol" ]
+                        },
+                        "viewType": {
+                            "description": "Specify the view type of the cell view to open the database. The default value is schematic view type of the schematic cell view and schematicSymbol view type of the symbol cell view.",
+                            "type": "string",
+                            "enum": [ "schematic", "schematicSymbol" ]
+                        },
+                        "method": {
+                            "description": "Specify the view writing mode. The default value is append.",
+                            "type": "string",
+                            "enum": [ "new", "append" ]
+                        },
+                        "origin": {
+                            "description": "Specify the origin of the drawing. The default value is [ 0.0, 0.0 ].",
+                            "$ref": "#/definitions/creation_xy"
+                        },
+                        "justification": {
+                            "description": "Specify the justification of the table as the origin of the drawing. The default value is upperLeft.",
+                            "$ref": "#/definitions/text_justification"
+                        },
+                        "storeJsonView": {
+                            "description": "Store the JSON configurate in a JSON cell view. The default value is false.",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "required": [
+                        "library",
+                        "cell",
+                        "view"
+                    ],
+                    "additionalProperties": false
+                },
+                "title": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "description": "Define the identifier for the table column.",
+                            "type": "object",
+                            "properties": {
+                                "value": {
+                                    "description": "Specify the title text of the table column.",
+                                    "type": "string"
+                                },
+                                "width": {
+                                    "description": "Specify the table field width.",
+                                    "type": [ "integer", "number" ]
+                                },
+                                "alignment": {
+                                    "description": "Specify the horizontal alignment of table text. Vertical alignment is always centered and cannot be modified.",
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {
+                                            "description": "Specify how the title text of this table column is aligned horizontally. The default value is center.",
+                                            "default": "center",
+                                            "$ref": "#/definitions/text_alignment"
+                                        },
+                                        "data": {
+                                            "description": "Specify how the data text of this table column is aligned horizontally. The default value is center.",
+                                            "default": "center",
+                                            "$ref": "#/definitions/text_alignment"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                "margin": {
+                                    "description": "Specify the distance between the text and the left and right margins of the table field. Valid when the aligned text is set to the left or right.",
+                                    "type": [ "integer", "number" ],
+                                    "default": 0.03125
+                                }
+                            },
+                            "required": [
+                                "value",
+                                "width"
+                            ],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Specify table data. The first row sets the table columns for the entire data table. Only the table identifier can be entered in the first row. Other rows input corresponding data according to the table identifier.",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": [ "string", "boolean", "integer" ]
+                        },
+                        "minItems": 2
+                    },
+                    "minItems": 2
+                },
+                "display": {
+                    "description": "Enter table field identifiers to specify the order of columns in which the table should be generated. If there are multiple identifiers, multiple corresponding table columns will be drawn.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 2
+                }
+            },
+            "required": [
+                "target",
+                "title",
+                "data",
+                "display"
+            ],
+            "additionalProperties": false
+        },
+        "pinCreation": {
+            "description": "The pin instances are automatically created on the left side of the table.",
+            "type": "object",
+            "properties": {
+                "distance": {
+                    "description": "The distance of pin instances from the left edge of the table. The default value is 0.25.",
+                    "type": [ "integer", "number" ],
+                    "default": 0.25
+                },
+                "length": {
+                    "description": "The length of the wire connecting pin instances. The default value is 1.0.",
+                    "type": [ "integer", "number" ],
+                    "default": 1.0
+                },
+                "pin": {
+                    "description": "Create styles for pin instances.",
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description": "Table field specifying the I/O pin name.",
+                            "type": "string"
+                        },
+                        "length": {
+                            "description": "Table field specifying the I/O pin length.",
+                            "type": "string"
+                        },
+                        "direction": {
+                            "description": "Table field specifying the I/O pin direction.",
+                            "type": "string"
+                        },
+                        "mirror": {
+                            "description": "Table field specifies whether I/O pin instances should be mirrored horizontally. The field content needs to be a Boolean value.",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "length",
+                        "direction",
+                        "mirror"
+                    ]
+                },
+                "drawing": {
+                    "description": "Specify drawing pin instances and wire method.",
+                    "type": "object",
+                    "properties": {
+                        "offset": {
+                            "description": "Draw the output pin offset from the input pin.",
+                            "type": [ "integer", "number" ],
+                            "default": 0.5
+                        },
+                        "pin": {
+                            "description": "The drawing settings of pin instances.",
+                            "type": "object",
+                            "properties": {
+                                "font": {
+                                    "$ref": "#/definitions/text_font"
+                                },
+                                "height": {
+                                    "$ref": "#/definitions/text_height"
+                                },
+                                "distance": {
+                                    "description": "The distance between pin and pin text. The default value is 0.01.",
+                                    "type": [ "integer", "number" ],
+                                    "default": 0.1
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "wire": {
+                            "type": "object",
+                            "properties": {
+                                "font": {
+                                    "$ref": "#/definitions/text_font"
+                                },
+                                "height": {
+                                    "$ref": "#/definitions/text_height"
+                                },
+                                "wideWidth": {
+                                    "description": "The wide width defined by data bus. The default value is 0.025.",
+                                    "type": "number",
+                                    "default": 0.025
+                                },
+                                "distance": {
+                                    "description": "The distance between pin and wire text. The default value is 0.01.",
+                                    "type": [ "integer", "number" ],
+                                    "default": 0.1
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "pin"
+            ]
+        },
+        "schematicSymbol": {
+            "description": "Define cellview name is symbol.",
+            "type": "object",
+            "properties": {
+                "viewName": {
+                    "description": "Define the cellview name",
+                    "type": "string",
+                    "enum": [ "symbol" ]
+                },
+                "creation": {
+                    "description": "Define the cellview creation details",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "description": "Define a creation type",
+                                "type": "string",
+                                "enum": [
+                                    "shape",
+                                    "pin",
+                                    "label",
+                                    "cdsTerm",
+                                    "cdsParam",
+                                    "instanceName",
+                                    "cellName",
+                                    "note",
+                                    "noteShape",
+                                    "block",
+                                    "selectionBox"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ],
+                        "allOf": [
+                            {
+                                "$ref": "#/definitions/creation_sharp"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_label"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_cdsTerm"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_cdsParam"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_NLPlabel"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_pin"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_noteSharp"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_note"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_block"
+                            },
+                            {
+                                "$ref": "#/definitions/creation_selectionBox"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "viewName",
+                "creation"
+            ],
+            "additionalProperties": false
+        },
+        "cdf": {
+            "type": "object",
+            "properties": {
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "description": "Define whether it is a user CDF parameter. The default value is false.",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "name": {
+                                "description": "Define the CDF parameter name.",
+                                "type": "string"
+                            },
+                            "prompt": {
+                                "description": "Define the CDF parameter prompt.",
+                                "type": "string"
+                            },
+                            "units": {
+                                "description": "Define the unit to be displayed when the CDF parameter is a string type.",
+                                "type": "string",
+                                "enum": [
+                                    "resistance",
+                                    "capacitance",
+                                    "inductance",
+                                    "conductance",
+                                    "time",
+                                    "frequency",
+                                    "power",
+                                    "powerDB",
+                                    "lengthMetric",
+                                    "lengthEnglish",
+                                    "angle",
+                                    "voltage",
+                                    "current",
+                                    "temperature",
+                                    ""
+                                ]
+                            },
+                            "expand": {
+                                "description": "If the CDF parameter contains the question symbol, the expand attribute can be used to expand the CDF parameter.",
+                                "type": "object",
+                                "properties": {
+                                    "initial": {
+                                        "type": "integer",
+                                        "default": 1
+                                    },
+                                    "step": {
+                                        "type": "integer",
+                                        "default": 1
+                                    },
+                                    "times": {
+                                        "type": "integer",
+                                        "default": 2
+                                    }
+                                },
+                                "required": [
+                                    "initial",
+                                    "step",
+                                    "times"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "paramDisplayMode": {
+                    "type": "string"
+                },
+                "paramLabelSet": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "simInfo": {
+                    "type": "boolean"
+                },
+                "method": {
+                    "type": "string",
+                    "enum": [ "new", "update" ],
+                    "default": "update"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "settings",
+        "table"
+    ],
+    "definitions": {
+        "text_font": {
+            "type": "string",
+            "enum": [ 
+                "euroStyle",
+                "gothic",
+                "math",
+                "roman",
+                "script",
+                "stick",
+                "fixed",
+                "swedish",
+                "milSpec"
+            ],
+            "default": "stick"
+        },
+        "text_height": {
+            "type": [ "integer", "number" ],
+            "default": 0.0625
+        },
+        "text_classify": {
+            "type": "string",
+            "enum": [ 
+                "instance label",
+                "device annotate",
+                "logical label",
+                "split annotate",
+                "physical label",
+                "pin name",
+                "pin annotate",
+                "analog instance label",
+                "analog pin annotate",
+                "analog device annotate"
+            ]
+        },
+        "text_style": {
+            "type": "string",
+            "enum": [ 
+                "normal",
+                "NLP",
+                "IL"
+            ]
+        },
+        "text_justification": {
+            "type": "string",
+            "enum": [
+                "lowerLeft",
+                "lowerCenter",
+                "lowerRight",
+                "centerLeft",
+                "centerCenter",
+                "centerRight",
+                "upperLeft",
+                "upperCenter",
+                "upperRight"
+            ],
+            "default": "upperLeft"
+        },
+        "text_orient": {
+            "type": "string",
+            "enum": [
+                "R0",
+                "R90",
+                "R180",
+                "R270",
+                "MY",
+                "MYR90",
+                "MX",
+                "MXR90"
+            ]
+        },
+        "text_alignment": {
+            "type": "string",
+            "enum": [
+                "left",
+                "center",
+                "right"
+            ],
+            "default": "center"
+        },
+        "pin_direction": {
+            "type": "string",
+            "enum": [ 
+                "input",
+                "output",
+                "inputOutput",
+                "switch"
+            ]
+        },
+        "pin_signal": {
+            "type": "string",
+            "enum": [
+                "analog",
+                "clock",
+                "ground",
+                "power",
+                "reset",
+                "scan",
+                "signal",
+                "tieHi",
+                "tieLo",
+                "tieOff",
+                ""
+            ]
+        },
+        "creation_xy": {
+            "type": "array",
+            "items": {
+                "type": [ "integer", "number" ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "creation_coordinate": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/creation_xy"
+            },
+            "minItems": 2
+        },
+        "creation_sharp": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "shape"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "shape": {
+                        "type": "string",
+                        "enum": [ "line", "rectangle", "polygon", "circle", "ellipse", "arc" ]
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [ "outline", "solid" ]
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "width": {
+                        "description": "If width is defined, wide line will be used for drawing. Otherwise narrow line will be used for drawing.",
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "required": [
+                    "shape",
+                    "style",
+                    "coordinate"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_label": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "label"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "classify": {
+                        "$ref": "#/definitions/text_classify"
+                    },
+                    "style": {
+                        "$ref": "#/definitions/text_style"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "label",
+                    "classify",
+                    "style",
+                    "justification",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_NLPlabel": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "enum": [ "instanceName", "cellName" ]
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "justification",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_cdsTerm": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "cdsTerm"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "pinName": {
+                        "type": "string"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "pinName",
+                    "justification",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_cdsParam": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "cdsParam"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": "integer"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "number",
+                    "justification",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_pin": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "pin"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [ "sympin" ]
+                    },
+                    "direction": {
+                        "$ref": "#/definitions/pin_direction"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    },
+                    "orientation": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "endpoint": {
+                        "$ref": "#/definitions/creation_xy"
+                    },
+                    "signal": {
+                        "$ref": "#/definitions/pin_signal"
+                    },
+                    "text": {
+                        "type": "object",
+                        "properties": {
+                            "font": {
+                                "$ref": "#/definitions/text_font"
+                            },
+                            "height": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            },
+                            "justification": {
+                                "$ref": "#/definitions/text_justification"
+                            },
+                            "orientation": {
+                                "$ref": "#/definitions/text_orient"
+                            },
+                            "origin": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "offset": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "hide": {
+                                "type": "boolean"
+                            },
+                            "overbar": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "justification"
+                        ],
+                        "oneOf": [
+                            {
+                                "required": [
+                                    "origin"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "offset"
+                                ]
+                            }
+                        ],
+                        "additionalProperties": false
+                    },
+                    "cdsTerm": {
+                        "type": "object",
+                        "properties": {
+                            "font": {
+                                "$ref": "#/definitions/text_font"
+                            },
+                            "height": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            },
+                            "justification": {
+                                "$ref": "#/definitions/text_justification"
+                            },
+                            "orient": {
+                                "$ref": "#/definitions/text_orient"
+                            },
+                            "origin": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "offset": {
+                                "$ref": "#/definitions/creation_xy"
+                            }
+                        },
+                        "required": [
+                            "justification"
+                        ],
+                        "oneOf": [
+                            {
+                                "required": [
+                                    "origin"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "offset"
+                                ]
+                            }
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "name",
+                    "style",
+                    "direction",
+                    "origin",
+                    "signal",
+                    "text"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_noteSharp": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "noteShape"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "shape": {
+                        "type": "string",
+                        "enum": [ "line", "rectangle", "polygon", "circle", "ellipse", "arc" ]
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [ "solid", "dashed" ]
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "width": {
+                        "description": "If width is defined, wide line will be used for drawing. Otherwise narrow line will be used for drawing.",
+                        "type": [ "integer", "number" ]
+                    }
+                },
+                "required": [
+                    "shape",
+                    "style",
+                    "coordinate"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_note": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "note"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "style": {
+                        "$ref": "#/definitions/text_style"
+                    },
+                    "font": {
+                        "$ref": "#/definitions/text_font"
+                    },
+                    "height": {
+                        "type": [ "integer", "number" ],
+                        "default": 0.0625
+                    },
+                    "justification": {
+                        "$ref": "#/definitions/text_justification"
+                    },
+                    "orient": {
+                        "$ref": "#/definitions/text_orient"
+                    },
+                    "origin": {
+                        "$ref": "#/definitions/creation_xy"
+                    }
+                },
+                "required": [
+                    "label",
+                    "style",
+                    "justification",
+                    "origin"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_block": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "block"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    },
+                    "horizontal": {
+                        "description": "Draw horizontal pin connection length. The default value is 0.25.",
+                        "type": [ "integer", "number" ],
+                        "default": 0.25
+                    },
+                    "vertical": {
+                        "description": "Draw vertical pin connection length. The default value is 0.125.",
+                        "type": [ "integer", "number" ],
+                        "default": 0.125
+                    },
+                    "fontHeight": {
+                        "description": "Define the font height of label. The default font height is 0.0625.",
+                        "type": "object",
+                        "properties": {
+                            "pinName": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            },
+                            "cdsTerm": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.0625
+                            }
+                        }
+                    },
+                    "left": {
+                        "description": "Draw the left pin terminal using the horizontal pin connection length. The default direction is input and the default type is signal.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "right": {
+                        "description": "Draw the right pin terminal using the horizontal pin connection length. The default direction is output and the default type is signal.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "top": {
+                        "description": "Draw the top pin terminal using the vertical pin connection length. The default direction is inputOutput and the default type is power.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "bottom": {
+                        "description": "Draw the bottom pin terminal using the vertical pin connection length. The default direction is inputOutput and the default type is ground.",
+                        "$ref": "#/definitions/creation_blockPin"
+                    },
+                    "separator": {
+                        "description": "The horizontal line that defines the body",
+                        "type": "object",
+                        "properties": {
+                            "unit": {
+                                "type": [ "integer", "number" ],
+                                "default": 0.125
+                            },
+                            "position": {
+                                "type": "array",
+                                "items": {
+                                    "type": [ "integer", "number" ]
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "coordinate"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "creation_blockPin": {
+            "type": "object",
+            "properties": {
+                "pins": {
+                    "type": "array",
+                    "items": {
+                        "type": [ "string", "object" ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "direction": {
+                                "$ref": "#/definitions/pin_direction"
+                            },
+                            "signal": {
+                                "$ref": "#/definitions/pin_signal"
+                            },
+                            "shift": {
+                                "$ref": "#/definitions/creation_xy"
+                            },
+                            "hidePinName": {
+                                "description": "The pin name is not displayed. The default value is false.",
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "offset": {
+                    "description": "Define the relative position of the first pin terminal from the body. The default value of horizontal pins is [ 0.0, -0.125 ]. The default value for vertical pins is to be placed in the middle of the body and aligned to the left of the 0.0625 grid point.",
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "shift": {
+                    "description": "Define the relative position between the next pin terminal and the previous pin terminal. The default value is [ 0.0, -0.125 ].",
+                    "$ref": "#/definitions/creation_xy"
+                },
+                "orientation": {
+                    "$ref": "#/definitions/text_orient"
+                },
+                "hidePinName": {
+                    "description": "The pin name is not displayed. The default value is false.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "pins"
+            ],
+            "additionalProperties": false
+        },
+        "creation_selectionBox": {
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "selectionBox"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "coordinate": {
+                        "$ref": "#/definitions/creation_coordinate"
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": false
+}

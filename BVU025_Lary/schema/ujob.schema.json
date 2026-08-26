@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$id": "https://example.com/ujob.schema",
+  "version": 1.0,
+  "release": "2026/07/06",
+  "author": "Chao-Jen Huang (ephoton)",
+  "title": "Unit Job (µjob) Configuration",
+  "description": "Configuration for a SimNode job execution pipeline with multiple workflow steps.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "The schema of the µjob configuration.",
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "version": {
+      "description": "Define the µjob configuration file format.",
+      "type": "number",
+      "default": 1.0,
+      "const": 1.0
+    },
+    "release": {
+      "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+      "type": "string",
+      "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+    },
+    "author": {
+      "description": "The author of the configuration.",
+      "type": "string"
+    },
+    "job_id": {
+      "description": "Unique identifier for this job.",
+      "type": "string"
+    },
+    "dir": {
+      "description": "Directory configuration for job execution, uploads, and results.",
+      "type": "object",
+      "properties": {
+        "job": {
+          "description": "Absolute path to the job working directory. Required.",
+          "type": "string"
+        },
+        "upload": {
+          "description": "Absolute path to the directory where input files are staged for upload. If null or omitted, defaults to {dir.job}/upload.",
+          "type": ["string", "null"]
+        },
+        "results": {
+          "description": "Absolute path to the directory where output results are collected. If null or omitted, defaults to {dir.job}/results.",
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["job"]
+    },
+    "workflow": {
+      "description": "Array of workflow steps to execute sequentially. At least one step is required.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "driver": {
+            "description": "The driver to invoke for this workflow step (e.g., \"virtuoso_batch\", \"spectre_batch\"). Semantics are driver-specific.",
+            "type": "string"
+          },
+          "rundir": {
+            "description": "Directory SimNode changes into before invoking this driver. For Virtuoso-family drivers (e.g. virtuoso_batch) this MUST be provided and MUST already exist as a valid pre-configured Cadence project directory (has CDS.lib/.cdsinit) — SimNode does not create one, and a missing directory is a hard validation error at tar-extraction time. For other (CLI-invocation) drivers this is optional; if omitted, SimNode auto-generates ~/simulation/simNode/{job_id}/{workflow_id}_{driver} where {workflow_id} is this item's array index and {driver} is this item's driver value.",
+            "type": "string"
+          },
+          "arguments": {
+            "description": "Raw arguments passed to the driver's underlying invocation. Semantics are driver-specific: for CLI-based drivers (e.g. spectre_batch) these are literal CLI flags/positional arguments appended verbatim to the tool's command line. For virtuoso_batch, this array holds exactly one element — the filename (already staged into rundir via this item's files array) of a host-provided SKILL -replay script; the driver always automatically invokes `virtuoso -nograph -replay <that filename>`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "files": {
+            "description": "Array of file-copy entries staging input files from dir.upload into the step's rundir before execution. File-copy semantics are described in definitions/fileCopyEntry. See development/simNode/08_JOB_PIPELINE.md for base-directory semantics. Optional; defaults to empty array if omitted.",
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/fileCopyEntry"
+            }
+          },
+          "results": {
+            "description": "Array of file-copy entries collecting output files from the step's rundir into dir.results after execution. File-copy semantics are described in definitions/fileCopyEntry. See development/simNode/08_JOB_PIPELINE.md for base-directory semantics. Optional; defaults to empty array if omitted.",
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/fileCopyEntry"
+            }
+          },
+          "env_shell": {
+            "description": "Shell to use when sourcing env_script (\"bash\" or \"csh\"). Only meaningful together with env_script; ignored otherwise. Defaults to \"bash\" if env_script is set but this is omitted.",
+            "type": "string",
+            "enum": ["bash", "csh"]
+          },
+          "env_script": {
+            "description": "Shell snippet (bash `source`/csh `source` style) sourced immediately before this step's driver binary is exec'd, in the same shell process. This is the submitter's own explicit choice for this one job and always takes precedence over SimNexus Hub's driver_env_profiles chain (per-workstation override -> user's own default -> admin's global template) -- see platforms/simNexus/backend/app/services/driver_env_service.py. Optional; omit to fall back to that chain.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["driver", "arguments"]
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false,
+  "required": ["version", "job_id", "dir", "workflow"],
+  "definitions": {
+    "pathRef": {
+      "description": "A relative path reference, either as a string or as an object with optional path and filename components. For string form: a relative path (whether file or directory is determined at copy time). For object form: at least one of path or filename must be present. If both present, full location is path/filename. If only path, refers to entire directory. If only filename, refers to single file at root.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "description": "Relative directory path component.",
+              "type": "string"
+            },
+            "filename": {
+              "description": "Filename component.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1
+        }
+      ]
+    },
+    "fileCopyEntry": {
+      "description": "A file-copy operation, either as a string shorthand or an explicit source/destination object. String form is shorthand for {source: <string>, destination: <string>} using the same relative path on both sides. Object form requires both source and destination, each independently a pathRef. Actual base directories depend on whether this entry is in workflow[].files (source from dir.upload, destination to rundir) or workflow[].results (source from rundir, destination to dir.results) — see development/simNode/08_JOB_PIPELINE.md.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "source": {
+              "$ref": "#/definitions/pathRef"
+            },
+            "destination": {
+              "$ref": "#/definitions/pathRef"
+            }
+          },
+          "additionalProperties": false,
+          "required": ["source", "destination"]
+        }
+      ]
+    }
+  }
+}

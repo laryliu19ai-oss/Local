@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvskill.com/schemas/ohmie_skill.schema.json",
+  "title": "Ohmie Skill Definition Schema",
+  "description": "Schema for Ohmie skill definitions",
+  "type": "object",
+  "required": [
+    "skill_id",
+    "skill_name",
+    "version",
+    "description",
+    "input_schema",
+    "output_schema",
+    "implementation"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "pattern": "^[a-z_]+$",
+      "description": "Unique skill identifier"
+    },
+    "skill_name": {
+      "type": "string",
+      "description": "Human-readable skill name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Skill version"
+    },
+    "description": {
+      "type": "string",
+      "description": "Skill description"
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "JSON schema for skill input"
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON schema for skill output"
+    },
+    "implementation": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "prompt_template",
+            "skill_function",
+            "external_tool"
+          ],
+          "description": "Implementation type"
+        },
+        "template": {
+          "type": "string",
+          "description": "Prompt template (for prompt_template type)"
+        },
+        "function_name": {
+          "type": "string",
+          "description": "Function name (for skill_function type)"
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "Tool name (for external_tool type)"
+        },
+        "tools_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Required tools for this skill"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Additional implementation parameters"
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["input", "output"],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object"
+          },
+          "output": {
+            "type": "object"
+          }
+        }
+      },
+      "description": "Example skill invocations"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Skill tags for categorization"
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "simParameters.schema.json",
+    "version": 1.0,
+    "release": "2026/02/09",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Simulation Parameters Configuration",
+    "description": "Schema for simulation parameter files used with baseParameters field",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema reference"
+        },
+        "version": {
+            "type": "number",
+            "description": "Configuration version"
+        },
+        "release": {
+            "type": "string",
+            "description": "Release date or version string"
+        },
+        "author": {
+            "type": "string",
+            "description": "Configuration author"
+        },
+        "description": {
+            "type": "string",
+            "description": "Description of this parameter set"
+        },
+        "parameters": {
+            "description": "Simulation parameters - supports both object (unordered) and array (ordered) formats",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "description": "Parameter object format (unordered execution)",
+                    "patternProperties": {
+                        "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+                            "oneOf": [
+                                {"type": "number"},
+                                {"type": "string"},
+                                {"type": "boolean"}
+                            ],
+                            "description": "Parameter value (number, string, or boolean)"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                {
+                    "type": "array",
+                    "description": "Parameter array format (ordered execution - recommended)",
+                    "items": {
+                        "type": "object",
+                        "description": "Parameter group object",
+                        "patternProperties": {
+                            "^[a-zA-Z_][a-zA-Z0-9_]*$": {
+                                "oneOf": [
+                                    {"type": "number"},
+                                    {"type": "string"},
+                                    {"type": "boolean"}
+                                ],
+                                "description": "Parameter value (number, string, or boolean)"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            ]
+        }
+    },
+    "required": ["parameters"],
+    "additionalProperties": false
+}

@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "markNetRule.schema.json",
+  "title": "markNetRule Configuration Schema",
+  "description": "JSON Schema for Cadence Layout XL markNetRule configuration files",
+  "type": "object",
+  "required": ["layout"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "number",
+      "description": "Configuration version number",
+      "default": 1.0,
+      "const": 1.0
+    },
+    "release": {
+      "type": "string",
+      "description": "Release date in YYYY/MM/DD format",
+      "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+    },
+    "author": {
+      "type": "string",
+      "description": "Configuration author"
+    },
+    "layout": {
+      "type": "object",
+      "required": ["markNetRule"],
+      "properties": {
+        "markNetRule": {
+          "type": "object",
+          "description": "markNetRule configuration for Layout XL net marking",
+          "properties": {
+            "viaLayers": {
+              "type": "array",
+              "description": "Via layer connectivity definitions",
+              "items": {
+                "type": "object",
+                "required": ["layer1", "viaLayer", "layer2"],
+                "properties": {
+                  "enable": {
+                    "type": "boolean",
+                    "description": "Enable this via layer rule",
+                    "default": true
+                  },
+                  "layer1": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Layer name without purpose"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Layer with purpose",
+                        "required": ["layer", "purpose"],
+                        "properties": {
+                          "layer": {
+                            "type": "string",
+                            "description": "Layer name"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "description": "Layer purpose"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "viaLayer": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Via layer name without purpose"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Via layer with purpose",
+                        "required": ["layer", "purpose"],
+                        "properties": {
+                          "layer": {
+                            "type": "string",
+                            "description": "Via layer name"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "description": "Via layer purpose"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "layer2": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Layer name without purpose"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Layer with purpose",
+                        "required": ["layer", "purpose"],
+                        "properties": {
+                          "layer": {
+                            "type": "string",
+                            "description": "Layer name"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "description": "Layer purpose"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "connectedLayers": {
+              "type": "array",
+              "description": "Connected layer definitions",
+              "items": {
+                "type": "object",
+                "required": ["layers"],
+                "properties": {
+                  "enable": {
+                    "type": "boolean",
+                    "description": "Enable this connected layer rule",
+                    "default": true
+                  },
+                  "layers": {
+                    "type": "array",
+                    "description": "List of connected layers",
+                    "minItems": 2,
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "description": "Layer name without purpose"
+                        },
+                        {
+                          "type": "object",
+                          "description": "Layer with purpose",
+                          "required": ["layer", "purpose"],
+                          "properties": {
+                            "layer": {
+                              "type": "string",
+                              "description": "Layer name"
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "description": "Layer purpose"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "stopLayers": {
+              "type": "array",
+              "description": "Stop layer definitions",
+              "items": {
+                "type": "object",
+                "required": ["layer", "stopLayer"],
+                "properties": {
+                  "enable": {
+                    "type": "boolean",
+                    "description": "Enable this stop layer rule",
+                    "default": true
+                  },
+                  "layer": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Layer name without purpose"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Layer with purpose",
+                        "required": ["layer", "purpose"],
+                        "properties": {
+                          "layer": {
+                            "type": "string",
+                            "description": "Layer name"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "description": "Layer purpose"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "stopLayer": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Stop layer name without purpose"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Stop layer with purpose",
+                        "required": ["layer", "purpose"],
+                        "properties": {
+                          "layer": {
+                            "type": "string",
+                            "description": "Stop layer name"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "description": "Stop layer purpose"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "excludePurposes": {
+              "type": "array",
+              "description": "List of purposes to exclude from net marking",
+              "items": {
+                "type": "string",
+                "description": "Purpose name to exclude"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

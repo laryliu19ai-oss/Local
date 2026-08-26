@@ -1,0 +1,191 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "package.schema.json",
+    "version": 1.0,
+    "release": "2025/05/25",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "IC Package Definition Schema",
+    "description": "Defines the physical package geometry, ball/pad layout, and pin assignments for Bravotek IC products. Supports WLCSP, QFN, DFN, BGA, and other package types.",
+    "type": "object",
+    "required": ["version", "package_type", "id", "geometry", "pin_array", "pins"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Reference to the package schema file."
+        },
+        "version": {
+            "type": "number",
+            "const": 1.0,
+            "description": "Package definition format version."
+        },
+        "release": {
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$",
+            "description": "Release date in YYYY/MM/DD format."
+        },
+        "author": {
+            "type": "string",
+            "description": "Author of this package definition."
+        },
+        "package_type": {
+            "type": "string",
+            "enum": ["WLCSP", "QFN", "DFN", "SOT23", "BGA", "LGA", "SOP", "DIP"],
+            "description": "IC package type."
+        },
+        "id": {
+            "type": "string",
+            "description": "Package configuration identifier (e.g. BVK013).",
+            "pattern": "^[A-Z0-9_-]+$"
+        },
+        "device": {
+            "type": "string",
+            "description": "Device part number this package is associated with (e.g. BV6820)."
+        },
+        "description": {
+            "type": "string",
+            "description": "Human-readable description of this package configuration."
+        },
+        "geometry": {
+            "type": "object",
+            "description": "Physical dimensions of the package body.",
+            "required": ["unit", "x", "y"],
+            "additionalProperties": false,
+            "properties": {
+                "unit": {
+                    "type": "string",
+                    "enum": ["mm", "um", "mil"],
+                    "description": "Unit for all dimension values in this package definition."
+                },
+                "x": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Package body dimension along the X axis (horizontal, longer edge for landscape orientation)."
+                },
+                "y": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Package body dimension along the Y axis (vertical)."
+                },
+                "z": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Package body height / thickness (optional, for 3D reference)."
+                }
+            }
+        },
+        "pin_array": {
+            "type": "object",
+            "description": "Ball or pad grid geometry. All spatial values use the unit defined in geometry.unit.",
+            "required": ["columns", "rows", "pitch_x", "pitch_y", "diameter"],
+            "additionalProperties": false,
+            "properties": {
+                "columns": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of ball/pad columns (horizontal count)."
+                },
+                "rows": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Number of ball/pad rows (vertical count)."
+                },
+                "pitch_x": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Center-to-center spacing between adjacent balls/pads in the X direction."
+                },
+                "pitch_y": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Center-to-center spacing between adjacent balls/pads in the Y direction."
+                },
+                "diameter": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Ball or pad diameter (circular) or equivalent size."
+                },
+                "margin_x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Distance from the package body edge to the center of the nearest ball/pad in the X direction."
+                },
+                "margin_y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Distance from the package body edge to the center of the nearest ball/pad in the Y direction."
+                },
+                "alternating_type": {
+                    "type": "integer",
+                    "enum": [0, 1, 2, 3, 4],
+                    "default": 0,
+                    "description": "Pin alternating pattern for non-uniform grids. 0 = standard rectangular grid. 1-4 = special staggered layouts defined in the Bravotek Visio add-in."
+                },
+                "top_view": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the pin layout is drawn as seen from the top (die side up). Column order is mirrored on the X axis. Default false = bottom view (PCB mounting side)."
+                }
+            }
+        },
+        "pins": {
+            "type": "array",
+            "description": "Ordered pin definitions. Order is row-major: row A (or row 0) first, left-to-right within each row. Length must equal columns × rows.",
+            "items": {
+                "$ref": "#/definitions/pin_entry"
+            },
+            "minItems": 1
+        },
+        "display": {
+            "type": "object",
+            "description": "SVG rendering and label display preferences.",
+            "additionalProperties": false,
+            "properties": {
+                "show_designator_inside": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show the ball designator (e.g. A1) inside the ball circle."
+                },
+                "show_designator_outside": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show the ball designator outside the ball circle."
+                },
+                "show_pin_name": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show the pin signal name next to the ball."
+                },
+                "pin_font_size": {
+                    "type": "number",
+                    "minimum": 4,
+                    "maximum": 32,
+                    "description": "Base font size for pin name labels (in SVG user units, scaled proportionally)."
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "pin_entry": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Signal name for this pin (e.g. VIN, AGND, LX)."
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["power", "ground", "signal", "nc", "reserved", "io"],
+                    "description": "Pin function category."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Optional description of the pin function."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,192 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Unified DPI-C Co-Simulation Plan Schema",
+    "description": "Unified JSON schema supporting both the original i2c_master/data syntax and the extended defaults/plan syntax (with set_vdc and set_idc support).",
+    "type": "object",
+    "properties": {
+        "version": {
+            "anyOf": [
+                { "type": "number" },
+                { "type": "string" }
+            ],
+            "description": "The plan file version."
+        }
+    },
+    "required": ["version"],
+    "anyOf": [
+        {
+            "title": "Original i2c_master Style",
+            "properties": {
+                "i2c_master": {
+                    "type": "object",
+                    "properties": {
+                        "speed_ns": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 5000
+                        },
+                        "ignore_nack": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transaction_item"
+                            }
+                        }
+                    },
+                    "required": ["speed_ns", "ignore_nack", "data"]
+                }
+            },
+            "required": ["i2c_master"]
+        },
+        {
+            "title": "Extended plan Style (with VDC/IDC Control)",
+            "properties": {
+                "defaults": {
+                    "type": "object",
+                    "properties": {
+                        "speed_ns": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 250
+                        },
+                        "ignore_nack": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                },
+                "plan": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transaction_item"
+                    }
+                }
+            },
+            "required": ["plan"]
+        }
+    ],
+    "definitions": {
+        "transaction_item": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "raw_write",
+                        "raw_read",
+                        "reg_write",
+                        "reg_read",
+                        "delay",
+                        "generate_clocks",
+                        "set_vdc",
+                        "set_idc"
+                    ]
+                },
+                "addr": {
+                    "anyOf": [
+                        { "type": "integer", "minimum": 0, "maximum": 127 },
+                        { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                    ]
+                },
+                "subaddr": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            }
+                        },
+                        { "type": "integer", "minimum": 0, "maximum": 255 },
+                        { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                    ]
+                },
+                "data": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            }
+                        },
+                        { "type": "integer", "minimum": 0, "maximum": 255 },
+                        { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                    ]
+                },
+                "read_len": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "use_global": {
+                    "type": "boolean"
+                },
+                "speed_ns": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "ignore_nack": {
+                    "type": "boolean"
+                },
+                "delay_ns": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "clocks_count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "period_ns": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "voltage": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "Target voltage in Volts for set_vdc command."
+                },
+                "current": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "Target current in Amperes for set_idc command."
+                },
+                "step_no": {
+                    "anyOf": [
+                        { "type": "integer", "minimum": 1 },
+                        { "type": "string" }
+                    ],
+                    "description": "The step number or index of the test item (e.g. 1, 2, '3a', '7b')."
+                },
+                "expect_data": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                                ]
+                            }
+                        },
+                        { "type": "integer", "minimum": 0, "maximum": 255 },
+                        { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                    ]
+                }
+            },
+            "required": ["name", "kind"]
+        }
+    }
+}

@@ -1,0 +1,2129 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/pdkpatch.schema",
+    "version": 1.0,
+    "release": "2026/01/10",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "PDK Patching Procedure",
+    "description": "Define the procedure for applying PDK patches",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the PDK patch configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the configuration file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "debugMode": {
+            "description": "Enable debug mode. The default value is false.",
+            "type": "boolean",
+            "default": false
+        },
+        "library": {
+            "description": "Default imported library name. This field will be overridden by the category's library name setting.",
+            "type": [ "string", "null" ],
+            "pattern": "^[A-Za-z0-9_$#]*$"
+        },
+        "prePatch": {
+            "$ref": "#/definitions/individualPatch"
+        },
+        "postPatch": {
+            "$ref": "#/definitions/individualPatch"
+        },
+        "techfile": {
+            "description": "Define the techfile patching and reload procedure. Supports both object mode (full configuration) and string mode (path to external config file).",
+            "type": [ "object", "string" ],
+            "properties": {
+                "description": {
+                    "description": "Optional description of the techfile patching configuration. Useful for documentation.",
+                    "type": "string"
+                },
+                "techfilePath": {
+                    "description": "Relative or absolute path to the techfile. Relative paths are resolved from library directory.",
+                    "type": "string"
+                },
+                "backupEnabled": {
+                    "description": "Enable automatic backup and restore mechanism. Creates '.backup' file on first run, restores from backup on subsequent runs.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "mode": {
+                    "description": "Techfile reload mode. 'merge' (default) - append/merge patched content with existing tech.db using tcLoadTechFile 'a' mode. 'replace' - completely replace tech.db content using tcLoadTechFile 'w' mode.",
+                    "type": "string",
+                    "enum": ["merge", "replace"],
+                    "default": "merge"
+                },
+                "sections": {
+                    "description": "List of techfile sections to reload using tcLoadTechFile. Common sections: controls, constraintGroups, layerDefinitions, layerRules, siteDefs, viaDefs, viaSpecs, devices, leRules.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "patch": {
+                    "description": "List of patch rules to apply to techfile content. Each rule can use 'include' to insert file content or 'replace' for direct text replacement.",
+                    "$ref": "#/definitions/filePatchingRule"
+                }
+            },
+            "additionalProperties": false
+        },
+        "spiceModel": {
+            "description": "Define the patching procedure for SPICE models.",
+            "type": [ "object", "string" ],
+            "properties": {
+                "*": {
+                    "$ref": "#/definitions/simulator"
+                },
+                "hspice": {
+                    "$ref": "#/definitions/simulator"
+                },
+                "spectre": {
+                    "$ref": "#/definitions/simulator"
+                }
+            },
+            "additionalItems": false
+        },
+        "spiceModelLink": {
+            "description": "Define the rule-based SPICE model link management system. Supports glob, pcre, and codeblock matching modes with template-based insertion. Can be a single object (backward compatible) or an array of objects (multi-rules support for sequential processing).",
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "file": {
+                            "type": "string",
+                            "description": "Target SKILL file path. Can be absolute (/path/to/file.il) or relative (subdir/file.il). Relative paths are resolved based on fileDir context. When specified, all rules apply to this single file."
+                        },
+                        "fileDir": {
+                            "type": "string",
+                            "description": "Directory context for file resolution: 'work' (workDir), 'library' (libraryDir). Default: 'library'. Only used when file is a relative path.",
+                            "enum": [ "work", "library" ],
+                            "default": "library"
+                        },
+                        "insertMode": {
+                            "type": "string",
+                            "description": "Insert mode control at item level: 'pattern' (replace matched codeblock), 'start' (prepend to file), 'end' (append to file), 'new' (create/overwrite file), 'remove' (remove matched codeblock only). Default behavior: if pattern exists -> 'pattern', else -> 'end'. This field controls how the matched block is processed.",
+                            "enum": [ "pattern", "start", "end", "new", "remove" ]
+                        },
+                        "codeblock": {
+                            "description": "Codeblock template configuration for fine-grained control of model link generation. When specified, all model link code blocks are generated using the provided templates.",
+                            "type": "object",
+                            "properties": {
+                                "templateDir": {
+                                    "description": "Template directory context: 'work' uses current working directory (for testing), omit or use other value for default PDK path ({g_bvSkillPath}/patch/pdk/{libName}/spiceModel/). Default: nil (PDK path).",
+                                    "type": "string",
+                                    "enum": [ "work" ]
+                                },
+                                "simulator": {
+                                    "description": "Simulator-level template file name (e.g., 'modelSimulatorDefinition.il.j2'). Template should use {{simulatorName}} and {{modelPathDefinition}} placeholders. File location determined by templateDir.",
+                                    "type": "string",
+                                    "pattern": "\\.(il\\.j2|jinja2)$"
+                                },
+                                "modelPath": {
+                                    "description": "Model path template file name (e.g., 'modelPathDefinition.il.j2'). Template should use {{modelPath}} and {{sectionName}} placeholders. File location determined by templateDir.",
+                                    "type": "string",
+                                    "pattern": "\\.(il\\.j2|jinja2)$"
+                                }
+                            },
+                            "required": [ "simulator", "modelPath" ],
+                            "additionalProperties": false
+                        },
+                        "rules": {
+                            "description": "Sequential rules for matching and updating SPICE model links. Rules are processed in order. Each rule performs continuous matching to define block boundaries.",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/spiceModelLinkRule"
+                            },
+                            "minItems": 1
+                        }
+                    },
+                    "required": [ "rules" ],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "array",
+                    "description": "Array of spiceModelLink configurations for sequential processing. Each item is processed in order, allowing multi-step transformations on the same or different files.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "file": {
+                                "type": "string",
+                                "description": "Target SKILL file path. Can be absolute (/path/to/file.il) or relative (subdir/file.il). Relative paths are resolved based on fileDir context. When specified, all rules apply to this single file."
+                            },
+                            "fileDir": {
+                                "type": "string",
+                                "description": "Directory context for file resolution: 'work' (workDir), 'library' (libraryDir). Default: 'library'. Only used when file is a relative path.",
+                                "enum": [ "work", "library" ],
+                                "default": "library"
+                            },
+                            "insertMode": {
+                                "type": "string",
+                                "description": "Insert mode control at item level: 'pattern' (replace matched codeblock), 'start' (prepend to file), 'end' (append to file), 'new' (create/overwrite file), 'remove' (remove matched codeblock only). Default behavior: if pattern exists -> 'pattern', else -> 'end'. This field controls how the matched block is processed.",
+                                "enum": [ "pattern", "start", "end", "new", "remove" ]
+                            },
+                            "codeblock": {
+                                "description": "Codeblock template configuration for fine-grained control of model link generation. When specified, all model link code blocks are generated using the provided templates.",
+                                "type": "object",
+                                "properties": {
+                                    "templateDir": {
+                                        "description": "Template directory context: 'work' uses current working directory (for testing), omit or use other value for default PDK path ({g_bvSkillPath}/patch/pdk/{libName}/spiceModel/). Default: nil (PDK path).",
+                                        "type": "string",
+                                        "enum": [ "work" ]
+                                    },
+                                    "simulator": {
+                                        "description": "Simulator-level template file name (e.g., 'modelSimulatorDefinition.il.j2'). Template should use {{simulatorName}} and {{modelPathDefinition}} placeholders. File location determined by templateDir.",
+                                        "type": "string",
+                                        "pattern": "\\.(il\\.j2|jinja2)$"
+                                    },
+                                    "modelPath": {
+                                        "description": "Model path template file name (e.g., 'modelPathDefinition.il.j2'). Template should use {{modelPath}} and {{sectionName}} placeholders. File location determined by templateDir.",
+                                        "type": "string",
+                                        "pattern": "\\.(il\\.j2|jinja2)$"
+                                    }
+                                },
+                                "required": [ "simulator", "modelPath" ],
+                                "additionalProperties": false
+                            },
+                            "rules": {
+                                "description": "Sequential rules for matching and updating SPICE model links. Rules are processed in order. Each rule performs continuous matching to define block boundaries.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/spiceModelLinkRule"
+                                },
+                                "minItems": 1
+                            }
+                        },
+                        "required": [ "rules" ],
+                        "additionalProperties": false
+                    },
+                    "minItems": 1
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "verification": {
+            "description": "Define the verification procedure.",
+            "type": [ "object", "string" ],
+            "properties": {
+                "calibre": {
+                    "type": "object",
+                    "properties": {
+                        "drc": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/definitions/verificationRule"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/verificationRule"
+                                    }
+                                }
+                            ]
+                        },
+                        "lvs": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/definitions/verificationRule"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/verificationRule"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "cdfCallback": {
+            "description": "List of CDF callback files. These files will be copied to the library and loaded from \"libInit.il\".",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "cdf": {
+            "type": "object",
+            "patternProperties": {
+                "^.+$": {
+                    "type": "object",
+                    "properties": {
+                        "method": {
+                            "type": "string",
+                            "default": "update",
+                            "enum": [
+                                "new",
+                                "update",
+                                "updateCreate"
+                            ],
+                            "description": "Method for CDF parameter handling: 'new' (always create new, delete if exists), 'update' (update if exists, skip if not), 'updateCreate' (update if exists, create if not)"
+                        },
+                        "deleteParameter": {
+                            "description": "List of CDF parameter names to be deleted when method is 'update'. Parameters are deleted before new parameters are created or updated.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "uniqueItems": true
+                        },
+                        "parameterOrder": {
+                            "description": "Specify the order of CDF parameters. Supports three formats: simple array (full order mode), explicit full order mode, or insertion mode.",
+                            "oneOf": [
+                                {
+                                    "description": "Simple array format for full order mode (backward compatible). Parameters are ordered as listed, unlisted parameters are appended at the end.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "minItems": 1,
+                                    "uniqueItems": true
+                                },
+                                {
+                                    "description": "Full order mode (explicit format). Complete control over parameter order.",
+                                    "type": "object",
+                                    "properties": {
+                                        "mode": {
+                                            "type": "string",
+                                            "const": "full",
+                                            "description": "Specifies full order mode"
+                                        },
+                                        "order": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "minItems": 1,
+                                            "uniqueItems": true,
+                                            "description": "List of parameter names in desired order"
+                                        }
+                                    },
+                                    "required": ["mode", "order"],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "description": "Insertion mode. Only reposition specified parameters, others maintain original order.",
+                                    "type": "object",
+                                    "properties": {
+                                        "mode": {
+                                            "type": "string",
+                                            "const": "insertion",
+                                            "description": "Specifies insertion mode"
+                                        },
+                                        "positions": {
+                                            "type": "object",
+                                            "description": "Map of parameter names to insertion positions",
+                                            "patternProperties": {
+                                                "^[A-Za-z_][A-Za-z0-9_]*$": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "after": {
+                                                            "description": "Insert after this parameter name. Use null to insert at beginning.",
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "null"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": ["after"],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "minProperties": 1,
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "required": ["mode", "positions"],
+                                    "additionalProperties": false
+                                }
+                            ]
+                        },
+                        "parameter": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "user": {
+                                        "description": "Define whether it is a user CDF parameter. The default value is false.",
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "name": {
+                                        "description": "Define the CDF parameter name.",
+                                        "type": "string"
+                                    },
+                                    "prompt": {
+                                        "description": "Define the CDF parameter prompt.",
+                                        "type": "string"
+                                    },
+                                    "units": {
+                                        "description": "Define the unit to be displayed when the CDF parameter is a string type.",
+                                        "type": "string",
+                                        "enum": [
+                                            "resistance",
+                                            "capacitance",
+                                            "inductance",
+                                            "conductance",
+                                            "time",
+                                            "frequency",
+                                            "power",
+                                            "powerDB",
+                                            "lengthMetric",
+                                            "lengthEnglish",
+                                            "angle",
+                                            "voltage",
+                                            "current",
+                                            "temperature",
+                                            ""
+                                        ],
+                                        "default": ""
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "string",
+                                            "int",
+                                            "float",
+                                            "radio",
+                                            "cyclic",
+                                            "boolean",
+                                            "button",
+                                            "netSet"
+                                        ],
+                                        "default": "string"
+                                    },
+                                    "expand": {
+                                        "description": "If the CDF parameter contains the question symbol, the expand attribute can be used to expand the CDF parameter.",
+                                        "type": "object",
+                                        "properties": {
+                                            "initial": {
+                                                "type": "integer",
+                                                "default": 1
+                                            },
+                                            "step": {
+                                                "type": "integer",
+                                                "default": 1
+                                            },
+                                            "times": {
+                                                "type": "integer",
+                                                "default": 2
+                                            }
+                                        },
+                                        "required": [
+                                            "initial",
+                                            "step",
+                                            "times"
+                                        ],
+                                        "additionalProperties": false
+                                    },
+                                    "choices": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "display": {
+                                        "type": [ "string", "array", "boolean" ],
+                                        "items": {
+                                            "type": [ "object" ],
+                                            "properties": {
+                                                "object": {
+                                                    "type": "string",
+                                                    "default": "schObjPropForm->paramView->value"
+                                                },
+                                                "operator": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "!=",
+                                                        "==",
+                                                        ">=",
+                                                        ">",
+                                                        "<=",
+                                                        "<"
+                                                    ]
+                                                },
+                                                "value": {
+                                                    "type": [ "string", "boolean", "integer", "number" ]
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "editable": {
+                                        "type": [ "boolean", "string", "array" ],
+                                        "items": {
+                                            "type": [ "boolean", "object" ],
+                                            "properties": {
+                                                "object": {
+                                                    "type": "string",
+                                                    "default": "cdfgData->paramName->value"
+                                                },
+                                                "operator": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "!=",
+                                                        "==",
+                                                        ">=",
+                                                        ">",
+                                                        "<=",
+                                                        "<"
+                                                    ]
+                                                },
+                                                "value": {
+                                                    "type": [ "string", "boolean", "integer", "number" ]
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "object",
+                                                "operator",
+                                                "value"
+                                            ]
+                                        }
+                                    },
+                                    "parseAsCEL": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "parseAsNumber": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "storeDefault": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "default": {
+                                        "type": [ "string", "integer", "number", "boolean", "object" ],
+                                        "properties": {
+                                            "reference": {
+                                                "type": "string"
+                                            },
+                                            "regex": {
+                                                "$ref": "#/definitions/reference_regex"
+                                            },
+                                            "cellName": {
+                                                "$ref": "#/definitions/creation_cellName"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    },
+                                    "callback": {
+                                        "description": "If the callback content is directly entered, it will be fully displayed in the CDF callback field.",
+                                        "type": [ "string", "object" ],
+                                        "properties": {
+                                            "function": {
+                                                "description": "Define the callback function name without parentheses.",
+                                                "type": "string"
+                                            },
+                                            "passAsSelfSymbol": {
+                                                "description": "If the callback function is defined in the CDF, it will be passed as a self symbol.",
+                                                "type": "boolean",
+                                                "default": true
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "function"
+                                        ]
+                                    },
+                                    "method": {
+                                        "type": "string",
+                                        "default": "new",
+                                        "enum": [
+                                            "new",
+                                            "update",
+                                            "updateCreate"
+                                        ],
+                                        "description": "Method for this specific parameter (overrides parent method if specified): 'new' (always create new, delete if exists), 'update' (update if exists, skip if not), 'updateCreate' (update if exists, create if not)"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "paramDisplayMode": {
+                            "type": "string",
+                            "enum": [ 
+                                "parameter",
+                                "opPoint",
+                                "model",
+                                "none",
+                                "notSet"
+                            ],
+                            "default": "parameter"
+                        },
+                        "paramSimType": {
+                            "type": "string",
+                            "enum": [ 
+                                "DC",
+                                "transient",
+                                "notSet"
+                            ],
+                            "default": "DC"
+                        },
+                        "paramEvaluate": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "literalValue",
+                                        "evaluate",
+                                        "notSet"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                "evaluate": {
+                                    "type": "object",
+                                    "properties": {
+                                        "suffixes": {
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "globalDesignVariables": {
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "inheritedParameters": {
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "everything": {
+                                            "type": "boolean",
+                                            "default": true
+                                        }
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "paramLabelSet": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "opPointLabelSet": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "modelLabelSet": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "termDisplayMode": {
+                            "type": "string",
+                            "enum": [ 
+                                "netName",
+                                "pinName",
+                                "voltage",
+                                "current",
+                                "none",
+                                "notSet"
+                            ],
+                            "default": "voltage"
+                        },
+                        "termSimType": {
+                            "type": "string",
+                            "enum": [ 
+                                "DC",
+                                "transient",
+                                "notSet"
+                            ],
+                            "default": "DC"
+                        },
+                        "netNameType": {
+                            "type": "string",
+                            "enum": [ 
+                                "schematic",
+                                "simulation",
+                                "notSet"
+                            ],
+                            "default": "schematic"
+                        },
+                        "instDisplayMode": {
+                            "type": "string",
+                            "enum": [ 
+                                "cellName",
+                                "instName",
+                                "none",
+                                "notSet"
+                            ],
+                            "default": "instName"
+                        },
+                        "instNameType": {
+                            "type": "string",
+                            "enum": [ 
+                                "schematic",
+                                "simulation",
+                                "notSet"
+                            ],
+                            "default": "schematic"
+                        },
+                        "simInfo": {
+                                "type": "object",
+                                "properties": {
+                                    "previousSetting": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "simulator": {
+                                        "type": "object",
+                                        "properties": {
+                                            "ams": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "auCdl": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "auLvs": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "hspiceD": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            },
+                                            "spectre": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            }
+                                        },
+                                        "patternProperties": {
+                                            ".+": {
+                                                "$ref": "#/definitions/creation_simulator"
+                                            }
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                    },
+                    "required": [
+                        "method"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "duplication": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "prefix": {
+                        "type": "string"
+                    },
+                    "suffix": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "target": {
+                        "type": "string"
+                    },
+                    "removeViews": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "overwrite": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "source",
+                    "target"
+                ]
+            }
+        },
+        "database": {
+            "description": "Define what cellviews are created.",
+            "type": [ "array", "string" ],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "prefix": {
+                        "description": "The prefix of the replaced expanded cell name.",
+                        "type": "string"
+                    },
+                    "suffix": {
+                        "description": "The suffix of the replaced expanded cell name.",
+                        "type": "string"
+                    },
+                    "cell": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": [ "string", "array" ],
+                                    "items": {
+                                        "type": [ "string", "integer", "array" ],
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "label": {
+                                    "type": "object",
+                                    "patternProperties": {
+                                        ".*": {
+                                            "type": [ "string", "object", "null" ],
+                                            "properties": {
+                                                "reference": {
+                                                    "type": "string"
+                                                },
+                                                "regex": {
+                                                    "$ref": "#/definitions/reference_regex"
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "reference"
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "symbol": {
+                        "type": "array",
+                        "items": {
+                            "type": [ "string", "array" ],
+                            "items": {
+                                "items": {
+                                    "type": [ "string", "array" ],
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "pinNaming": {
+                        "type": "object",
+                        "patternProperties": {
+                            ".*": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "cdf": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "category": {
+            "description": "Define categories of the library.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Define category name.",
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_$#]*$"
+                    },
+                    "filter": {
+                        "description": "Cells or categories that meet the filter definition will be added to the category.",
+                        "type": "object",
+                        "properties": {
+                            "cell": {
+                                "description": "This filter field supports PCRE syntax. Cells that meet the filter definition will be added to the category.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "category": {
+                                "description": "This filter field supports PCRE syntax. Categories that meet the filter definition will be added to the category.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "filter"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": [
+        "library"
+    ],
+    "definitions": {
+        "simulator": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "model": {
+                                "type": "string",
+                                "default": "model",
+                                "enum": [
+                                    "model",
+                                    "usageModel",
+                                    "specificModel"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "model"
+                        ],
+                        "if": {
+                            "properties": {
+                                "model": {
+                                    "oneOf": [
+                                        {
+                                            "const": "model"
+                                        },
+                                        {
+                                            "const": "usageModel"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "model": {
+                                    "type": "string"
+                                },
+                                "filter": {
+                                    "type": "string"
+                                },
+                                "searchDir": {
+                                    "description": "Custom search directory for model files. Absolute path (starts with /) or relative path from library directory. When specified, overrides the default model path from libInit.il.",
+                                    "type": "string"
+                                },
+                                "section": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "minItems": 1
+                                },
+                                "latest": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "model",
+                                "section"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "else": {
+                            "if": {
+                                "properties": {
+                                    "model": {
+                                        "const": "specificModel"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "properties": {
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "file": {
+                                        "type": "string"
+                                    },
+                                    "searchDir": {
+                                        "description": "Custom search directory for model files. Absolute path (starts with /) or relative path from library directory. When specified, overrides the default model path from libInit.il.",
+                                        "type": "string"
+                                    },
+                                    "section": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1
+                                    },
+                                    "latest": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "model",
+                                    "section",
+                                    "file"
+                                ],
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "usageModel": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "section": {
+                                "type": "array",
+                                "items": {
+                                    "type": [ "string", "object" ],
+                                    "properties": {
+                                        "original": {
+                                            "type": "string"
+                                        },
+                                        "new": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            },
+                            "corner": {
+                                "$ref": "#/definitions/arrayString",
+                                "minItems": 1
+                            },
+                            "add": {
+                                "$ref": "#/definitions/spiceModelLibraryPatch"
+                            },
+                            "duplicate": {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "remove": {
+                                "$ref": "#/definitions/spiceModelLibraryPatch"
+                            },
+                            "include": {
+                                "$ref": "#/definitions/spiceModelLibraryInclude"
+                            }
+                        },
+                        "required": [
+                            "section"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "additionalProperties": false
+                },
+                "patchFile": {
+                    "description": "SPICE model file patching configurations. Each configuration specifies which files to patch and how to modify them.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spiceModelPatchFile"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "arrayString": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "spiceModelLibraryPatch": {
+            "type": "object",
+            "properties": {
+                "library": {
+                    "$ref": "#/definitions/arrayString"
+                },
+                "librarySuffix": {
+                    "$ref": "#/definitions/arrayString"
+                }
+            },
+            "additionalProperties": false
+        },
+        "spiceModelLibraryInclude": {
+            "type": "object",
+            "properties": {
+                "defaultCorner": {
+                    "type": "string"
+                },
+                "defaultCornerMapping": {
+                    "$ref": "#/definitions/spiceModelCornerMapping"
+                },
+                "libraries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "fileRule": {
+                                "type": "string"
+                            },
+                            "defaultCorner": {
+                                "type": "string"
+                            },
+                            "cornerMapping": {
+                                "$ref": "#/definitions/spiceModelCornerMapping"
+                            }
+                        },
+                        "required": [
+                            "fileRule"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "spiceModelCornerMapping": {
+            "type": "object"
+        },
+        "spiceModelPatchFile": {
+            "type": "object",
+            "description": "Configuration for patching SPICE model files. Uses regex filter to match files and applies patch rules to modify specific sections and devices.",
+            "properties": {
+                "filter": {
+                    "type": "string",
+                    "description": "Regular expression pattern to match SPICE model file names. Example: '^bcd18g3_hp_v([0-9]+)\\.lib' matches files like 'bcd18g3_hp_v123.lib'"
+                },
+                "patch": {
+                    "type": "array",
+                    "description": "List of patch rules to apply to matched files. Each rule specifies a section, device, and optional insertion point.",
+                    "items": {
+                        "$ref": "#/definitions/spiceModelPatchRule"
+                    }
+                }
+            },
+            "required": [
+                "filter",
+                "patch"
+            ],
+            "additionalProperties": false
+        },
+        "spiceModelPatchRule": {
+            "type": "object",
+            "description": "Individual patch rule specifying where and how to modify SPICE model content",
+            "properties": {
+                "section": {
+                    "type": "string",
+                    "description": "SPICE model section name to target. Example: 'diode', 'od_60_iso', 'resistor'"
+                },
+                "device": {
+                    "type": "string",
+                    "description": "Device name (subcircuit name) to patch. This is the target device to be inserted or modified."
+                },
+                "insert": {
+                    "type": "string",
+                    "description": "Optional: Reference device name after which to insert the target device. If not specified, device is appended at the end of the section."
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Relative path to the patch file containing device subcircuit definition. Path is relative to: {g_bvSkillPath}/patch/pdk/{libName}/spiceModel/{simulatorName}/"
+                }
+            },
+            "required": [
+                "section",
+                "device",
+                "file"
+            ],
+            "additionalProperties": false
+        },
+        "spiceModelLinkRule": {
+            "type": "object",
+            "description": "Rule for matching and updating SPICE model links. Supports three modes: glob (simple string pattern), pcre (regex pattern), and codeblock (SKILL code block extraction). Rules perform continuous matching to define block boundaries. The insertMode at item level controls how the matched block is processed.",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "description": "Matching mode: 'glob' for simple string pattern, 'pcre' for regular expression, 'codeblock' for SKILL code block extraction",
+                    "enum": [ "glob", "pcre", "codeblock" ]
+                },
+                "pattern": {
+                    "description": "Pattern to match. For glob/pcre: string pattern to match. For codeblock: SKILL block pattern name (e.g., 'asiSetEnvOptionVal') or array of nested patterns for flat mode matching. Used for continuous matching to define block boundaries.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "Single pattern string for glob, pcre, or tree mode codeblock"
+                        },
+                        {
+                            "type": "array",
+                            "description": "Array of pattern strings for flat mode codeblock matching (e.g., ['asiSetEnvOptionVal', 'asiGetTool', 'list'])",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1
+                        }
+                    ]
+                },
+                "matchingMode": {
+                    "type": "string",
+                    "description": "Only for codeblock mode: 'flat' for flat pattern matching, 'tree' for tree-based matching. Default is 'tree'.",
+                    "enum": [ "flat", "tree" ],
+                    "default": "tree"
+                },
+                "template": {
+                    "type": "string",
+                    "description": "Optional: Template file name (e.g., 'modelLink.il.j2') for content insertion. Template file should be in spiceModel/ folder. Uses {{codeblock}} placeholder for content injection."
+                }
+            },
+            "required": [ "mode" ],
+            "additionalProperties": false
+        },
+        "verificationRule": {
+            "type": "object",
+            "properties": {
+                "directory": {
+                    "type": "string"
+                },
+                "file": {
+                    "$ref": "#/definitions/fileMatchingRule"
+                },
+                "patch": {
+                    "$ref": "#/definitions/filePatchingRule"
+                },
+                "define": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "enable": {
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "group": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 2
+                            },
+                            "selected": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "oneOf": [
+                            {
+                                "required": [
+                                    "name",
+                                    "enable"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "group",
+                                    "selected"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "variable": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z0-9_]+$": {
+                            "type": [ "integer", "number", "string" ]
+                        }
+                    }
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "enable": {
+                                "type": "boolean"
+                            },
+                            "quotation": {
+                                "type": "string",
+                                "enum": [
+                                    "noChange",
+                                    "none",
+                                    "single",
+                                    "double"
+                                ],
+                                "default": "noChange"
+                            },
+                            "directory": {
+                                "$ref": "#/definitions/include_directory"
+                            },
+                            "file": {
+                                "type": "object",
+                                "$ref": "#/definitions/include_rcfile"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "setup": {
+                    "type": "object",
+                    "patternProperties": {
+                        "(?i)LVS\\s+BUILTIN\\s+DEVICE\\s+PIN\\s+SWAP": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+ALL\\s+CAPACITOR\\s+PINS\\s+SWAPPABLE": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+IGNORE\\s+PORTS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+RECOGNIZE\\s+GATES": {
+                            "$ref": "#/definitions/enum_recongnizeGates"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+SPLIT\\s+GATES": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+CHECK\\s+PORT\\s+NAMES": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REPORT\\s+OPTION": {
+                            "$ref": "#/definitions/enum_reportOption"
+                        },
+                        "(?i)LVS\\s+REPORT\\s+MAXIMUM": {
+                            "type": "integer",
+                            "default": 1000
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+PARALLEL\\s+BIPOLAR": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+PARALLEL\\s+CAPACITORS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+PARALLEL\\s+DIODES": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+PARALLEL\\s+MOS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+PARALLEL\\s+RESISTORS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+SERIES\\s+CAPACITORS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+REDUCE\\s+SERIES\\s+RESISTORS": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+ABORT\\s+ON\\s+SUPPLY\\s+ERROR": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LAYOUT\\s+CASE": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)SOURCE\\s+CASE": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+COMPARE\\s+CASE": {
+                            "$ref": "#/definitions/enum_yesno"
+                        },
+                        "(?i)LVS\\s+INJECT\\s+LOGIC": {
+                            "$ref": "#/definitions/enum_yesno"
+                        }
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "fileMatchingRule": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "description": "Simple mode: Direct file name specification. The file will be updated in-place with a backup created as '<filename>.backup'."
+                },
+                {
+                    "type": "object",
+                    "description": "Complex mode: Use filter regex for file matching with advanced options.",
+                    "properties": {
+                        "filter": {
+                            "description": "This field can define a standard regular expression to retrieve files that match the specified pattern.",
+                            "type": "string"
+                        },
+                        "identify": {
+                            "description": "The default identifier of the file to be retrieved.",
+                            "type": "string"
+                        },
+                        "regex": {
+                            "$ref": "#/definitions/reference_regex"
+                        },
+                        "capture": {
+                            "type": "object",
+                            "properties": {
+                                "rule": {
+                                    "type": "string",
+                                    "enum": [
+                                        "all",
+                                        "latest"
+                                    ],
+                                    "default": "all"
+                                },
+                                "identify": {
+                                    "type": "integer"
+                                },
+                                "latest": {
+                                    "description": "Compare the numbers defined by the group IDs in order; the larger one indicates the latest version.",
+                                    "type": [ "string", "array" ],
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "minItems": 1,
+                                    "maxItems": 4
+                                }
+                            },
+                            "additionalProperties": false,
+                            "if": {
+                                "properties": {
+                                    "rule": {
+                                        "const": "latest"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "latest"
+                                ]
+                            }
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "filter"
+                    ]
+                }
+            ]
+        },
+        "filePatchingRule": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "description": "Optional description of what this patch rule does. Useful for documentation and maintenance.",
+                        "type": "string"
+                    },
+                    "enable": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "matchedRule": {
+                        "type": [ "string", "array" ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "include": {
+                        "type": "string"
+                    },
+                    "append": {
+                        "type": [ "string", "object" ],
+                        "properties": {
+                            "quotation": {
+                                "type": "string",
+                                "enum": [
+                                    "none",
+                                    "single",
+                                    "double"
+                                ],
+                                "default": "double"
+                            },
+                            "directory": {
+                                "$ref": "#/definitions/include_directory"
+                            },
+                            "file": {
+                                "$ref": "#/definitions/include_rcfile",
+                                "type": [ "string", "array", "object" ],
+                                "items": {
+                                    "type": "object",
+                                    "$ref": "#/definitions/include_rcfile"
+                                },
+                                "minItems": 1
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "replace": {
+                        "type": "string"
+                    },
+                    "maxMatchingLines": {
+                        "description": "Define the maximum number of lines to be searched for matching the specified rules.",
+                        "type": "integer",
+                        "default": 30
+                    },
+                    "numberOfMatches": {
+                        "description": "Define the number of matched patterns.",
+                        "type": "integer",
+                        "default": 1
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "matchedRule"
+                ],
+                "anyOf": [
+                    {
+                        "required": [
+                            "include"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "replace"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "append"
+                        ]
+                    }
+                ]
+            }
+        },
+        "include_directory": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "none",
+                        "workDirectory",
+                        "specificDirectory"
+                    ]
+                },
+                "additionalPath": {
+                    "type": "string"
+                },
+                "specificPath": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "if": {
+                "properties": {
+                    "type": {
+                        "const": "specificDirectory"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "specificPath"
+                ]
+            }
+        },
+        "include_rcfile": {
+            "properties": {
+                "filter": {
+                    "type": "string"
+                },
+                "identify": {
+                    "type": "integer"
+                },
+                "latest": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "minItems": 1,
+                    "maxItems": 4
+                }
+            },
+            "additionalProperties": false
+        },
+        "enum_yesno": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "YES",
+                        "NO"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "setting": {
+                            "type": "string",
+                            "enum": [
+                                "YES",
+                                "NO"
+                            ]
+                        },
+                        "comment": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "enum_recongnizeGates": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "enum": [
+                        "ALL",
+                        "SIMPLE",
+                        "NONE"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "enable": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "setting": {
+                            "type": "string",
+                            "enum": [
+                                "ALL",
+                                "SIMPLE",
+                                "NONE"
+                            ]
+                        },
+                        "comment": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "enum_reportOption": {
+            "type": ["string", "array", "object"],
+            "default": "NONE",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "A",
+                    "AV",
+                    "B",
+                    "BPE",
+                    "BPW",
+                    "BV",
+                    "BX",
+                    "C",
+                    "CV",
+                    "D",
+                    "E",
+                    "E1",
+                    "EB",
+                    "EC",
+                    "EO",
+                    "ES",
+                    "F",
+                    "FX",
+                    "G",
+                    "H",
+                    "I",
+                    "LPE",
+                    "LPW",
+                    "MC",
+                    "N",
+                    "NCA",
+                    "NE",
+                    "NOK",
+                    "NP",
+                    "O",
+                    "P",
+                    "PG",
+                    "R",
+                    "RA",
+                    "RD",
+                    "S",
+                    "SP",
+                    "SPE",
+                    "UP",
+                    "V",
+                    "W",
+                    "X",
+                    "XR"
+                ]
+            },
+            "uniqueItems": true,
+            "properties": {
+                "A": {
+                    "description": "Enables the reporting of detailed instance connections on matched nets that are classified as INCORRECT (except for Short Circuit and Open Circuit discrepancies). Regardless of whether this option is specified, much of this information is also reported in a more concise form in the DETAILED INSTANCE CONNECTIONS section located at the bottom of the default LVS report.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "AV": {
+                    "description": "Enables the same reporting as option A, with the exception that the AV option does not report correct devices on incorrect power and ground nets. For example, specifying this option does not generate the Correct Devices On This Net section in the LVS report when power or ground nets are reported as incorrect. Specifying both the A and AV options generates the LVS report based only on the AV option.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "B": {
+                    "description": "Enables the reporting of detailed instance connections in Short Circuit and Open Circuit discrepancies.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "BPE": {
+                    "description": "Causes the default “Warning: Components with non-identical power or ground pins.” message for LVS Box cells to be handled as an error instead. In this case, the “Warning:” identifier changes to “Error:”, and the overall comparison status of the run becomes INCORRECT.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "BPW": {
+                    "description": "Causes the default “Error: Components with non-identical signal pins.” message for LVS Box cells to be handled as a warning instead. In this case, the “Error:” identifier changes to “Warning:”, which does not cause an overall comparison status of INCORRECT. Signal pins are on nets that are neither power nor ground nets.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "BV": {
+                    "description": "Enables the same reporting as option B, except for reporting correct devices on power and ground nets. In other words, if the net for which detailed connections are being reported is a power or ground net, correct instances are not reported. Specifying both the B and BV options generates the LVS report based only on the BV option.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "BX": {
+                    "description": "Causes LVS Box cells to be listed in the setup section of the LVS report. Cells are listed by layout and source, respectively. The cells listed are those specified in the rule file (all LVS Box statements are concatenated), whether they are present in the design or not.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "C": {
+                    "description": "Enables the reporting of detailed instance connections in Missing Net and No Similar Net discrepancies.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "CV": {
+                    "description": "Enables the same reporting as option C, except for reporting correct devices on power and ground nets. In other words, if the net for which detailed connections are being reported is a power or ground net, correct instances are not reported. Specifying both the C and CV options generates the LVS report based only on the CV option.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "D": {
+                    "description": "Enables the reporting of detailed instance connections reporting in Missing Instance and Missing Gate discrepancies.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "E": {
+                    "description": "This option should be used with caution, as it disables a potentially important diagnostic. Causes LVS to ignore missing properties. Subsequently, missing properties are not reported and do not cause the overall result to be INCORRECT. Only the number of missing properties are reported in the statistics section. By default, missing properties are reported as discrepancies and cause the overall result to be INCORRECT.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "E1": {
+                    "description": "Causes LVS to ignore missing properties that are used exclusively in TOLERANCE clauses of LVS Reduce statements, and that are not used for any other purpose. Such missing properties are not reported as missing and do not cause the overall result to be INCORRECT. Only the number of missing properties is reported in the Statistics section. Missing properties that are used in other contexts (for example, in Trace Property specification statements) continue to be reported as discrepancies and cause the overall result to be INCORRECT, even if they also appear in TOLERANCE clauses (unless such reporting is disabled by other options, such as option E.) As is normally the case, when a property used in a reduction TOLERANCE statement is missing on a device, then, with respect to that property, the device participates in the reduction as if the TOLERANCE statement were not present.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "EB": {
+                    "description": "Causes bad device warnings that occur during circuit extraction to produce an INCORRECT status during LVS comparison for the cells in which the devices occur. The discrepancy is reported like this: BAD DEVICE(s) detected by extraction in this cell. See extraction report for details.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "EC": {
+                    "description": "Causes Sconnect conflicts that occur during circuit extraction to produce an INCORRECT status during LVS comparison for the cells in which the conflicts occur. The discrepancy is reported like this: SCONNECT error(s) detected by extraction in this cell. See extraction report for details. See also option S.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "EO": {
+                    "description": "Causes open circuit warnings that occur during circuit extraction to produce an INCORRECT status during LVS comparison for the cells in which the text opens occur. The discrepancy is reported like this: Open circuit(s) detected by extraction in this cell. See extraction report for details.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "ES": {
+                    "description": "Causes short circuit warnings that occur during circuit extraction to produce an INCORRECT status during LVS comparison for the cells in which the text shorts occur. The discrepancy is reported like this: Short circuit(s) detected by extraction in this cell. See extraction report for details.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "F": {
+                    "description": "Disables missing smashed MOSFET warnings, the unbalanced smashed MOSFET summary warning at the top of the LVS report, and respective warnings in the Information and Warnings section for the LVS report. Also see option O.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "FX": {
+                    "description": "Enables DETAILED ERROR ANALYSIS section of the report. This section can improve comprehension of the report and simplify debugging of numerous common LVS error types. For complete details of this section of the report, see “Detailed Error Analysis Reporting” in the Calibre Verification User's Manual.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "G": {
+                    "description": "Enables the reporting of detailed instance connections in Property Error discrepancies.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "H": {
+                    "description": "Disables warnings in Calibre nmLVS-H about cell correspondence names not found in the layout or source. The tool normally prints these warnings in the transcript.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "I": {
+                    "description": "Disables the listing of isolated nets in the LVS report. However, named toplevel isolated nets are always retained and participate in LVS comparison.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "LPE": {
+                    "description": "Causes the overall comparison result to be INCORRECT if there are unmatched passthrough nets present in the layout. By default, passthrough nets in the layout are reported as warnings in the INFORMATION AND WARNINGS section of the LVS report. Passthrough nets are nets that are connected to ports but not connected to anything else inside the subcircuit. Calibre nmLVS-H removes such nets and their ports unless they are named and can be used as initial correspondence points. For a full discussion and examples, see the section “Passthrough Nets” in the Calibre Verification User's Manual. See also options SP and SPE.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "LPW": {
+                    "description": "Causes “different number of ports” errors to be changed to “extra ports in layout” warnings for layout cells with extra ports when LVS Ignore Ports NO is active. When LPW is specified, the extra ports condition does not cause the cells to be classified as INCORRECT.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "MC": {
+                    "description": "Controls the reporting of device instance counts based upon model name (subtype). By default, initial instance counts and instance counts after transformations are reported per element name (component type). For example, one count is reported for all MN devices, even if there are MN devices with different model names. When MC is specified, instance counts are reported separately for each element name and model name.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "N": {
+                    "description": "Causes LVS to report layout names that are missing in the source as errors. LVS also reports the overall comparison result as INCORRECT and generates the secondary comparison status message: Error: Layout names missing in source. Additionally, a NAME ERRORS section is created in the report for any instance, net, or port name errors, respectively.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "NCA": {
+                    "description": "Controls reporting of NOT COMPARED cells. If a cell with the status of NOT COMPARED is detected, all remaining cells that have not been fully compared are also reported as NOT COMPARED (no attempt is made to finish comparing the remaining cells) and the run terminates with a NOT COMPARED status. Cells that may have been compared as either CORRECT or INCORRECT prior to the detection of the first NOT COMPARED cell retain their compared statuses.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "NE": {
+                    "description": "Causes LVS to report a NOT COMPARED status for corresponding cells that have differing instance counts in layout and source. Both instance type (element) and subtype (model) are checked when comparing instance counts. In flat LVS, this option causes the top-level comparison status to be NOT COMPARED if the instance counts do not match between layout and source.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "NOK": {
+                    "description": "Causes Calibre nmLVS-H to provide detailed comparison results only for hcells in which discrepancies occur. Hcells that compare correctly have just their object counts reported. By default, in Calibre nmLVS-H, all hcells are reported in detail whether they compare correctly or not. If you specify NOK, only INCORRECT hcells have all details reported. In that case, the CELL COMPARISON RESULTS section header changes to CELL COMPARISON RESULTS (INCORRECT CELLS ONLY). For CORRECT hcells, the section header is CORRECT CELL CONTENTS SUMMARY. The overall results of all cells are still reported in the OVERALL COMPARISON RESULTS section.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "NP": {
+                    "description": "Causes the LVS report to omit correctly matched pins. This makes reading the report easier when the number of pins is large but only a few are incorrect.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "O": {
+                    "description": "Enables reporting of ambiguity resolution and unbalanced smashed MOSFETs status messages in the OVERALL COMPARISON RESULTS and CELL COMPARISON RESULTS sections. This reporting would be otherwise disabled by LVS Report Option options F, R, or RA. If LVS Report Option O is specified, options F, R, and RA disable reporting of ambiguity resolution points and unbalanced smashed MOSFETs, respectively, but the overall status messages are printed followed by the string “(reporting disabled)”.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "P": {
+                    "description": "Disables the reporting of “Direct connections between different ports” warnings in the connectivity extractor.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "PG": {
+                    "description": "Causes Calibre nmLVS-H to report all hcells that have mismatched power and ground nets. Calibre nmLVS-H reports the comparison status as NOT COMPARED for hcells that have different supply nets in layout and source (for example, power net is missing in layout). By default, however, this status is reported only if logic gate recognition is enabled, and at least one gate is recognized in the cell in either layout or source. The PG option ignores the dependency on logic gate recognition and reports any hcells with power and ground net mismatches.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "R": {
+                    "description": "Disables reporting of ambiguity resolution points in LVS when the overall comparison result is CORRECT. This option controls reporting of ambiguity resolution points in the Information and Warnings section of the LVS report, as well as reporting of ambiguity resolution status messages in the OVERALL COMPARISON RESULTS and CELL COMPARISON RESULTS sections of the LVS report. When the overall comparison result is other than CORRECT, ambiguity resolution points are reported as usual, regardless of this option. Also see options O and RA.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "RA": {
+                    "description": "Disables reporting of ambiguity resolution points in LVS independent of the overall comparison result. This option is similar to LVS Report Option R, which also disables reporting of ambiguity resolution points (but only if the overall comparison result is CORRECT). Both options control reporting of ambiguity resolution points in the INFORMATION AND WARNINGS section of the LVS report.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "RD": {
+                    "description": "Marks reduced instances in the LVS report. If LVS Report Option RD is specified, names of reduced instances in the LVS report are followed by the string “(SL)” for layout instances or “(SS)” for source instances. Note that these annotations are the same as the ones used in instance cross-reference files to mark reduced instances.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "S": {
+                    "description": "Enables the detailed reporting of Sconnect conflicts in the LVS run transcript and the circuit extraction report. The report format is discussed under “LVS Connectivity Extraction Messages” in the Calibre Verification User's Manual. See also option EC.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "SP": {
+                    "description": "Enables reporting of passthrough nets in the source. Such nets are reported in the INFORMATION AND WARNINGS section of the LVS report as warnings. Passthrough nets are nets that are connected to ports but not connected to anything else inside the subcircuit. Calibre nmLVS removes such nets and their ports, unless they are named and can be used as initial correspondence points. For a full discussion and examples, see the section “Passthrough Nets” in the Calibre Verification User's Manual. See also option SPE.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "SPE": {
+                    "description": "Causes the overall comparison results to be INCORRECT if there are unmatched passthrough nets in the source. The nets are reported as for option SP. For a full discussion and examples, see the section “Passthrough Nets” in the Calibre Verification User's Manual. See also option LPE.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "UP": {
+                    "description": "Causes unattached ports detected during circuit extraction to be passed through to the LVS comparison module and to cause an INCORRECT result in the LVS report. The section of the report is entitled “Errors passed through from extraction.” The error message is this: Unattached port(s) detected by extraction in this cell. See extraction report for details. Additionally, a SPICE comment beginning with “*.CALIBRE WARNING PORTS” and containing the preceding error message is written to the extracted netlist for any affected subcircuits.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "V": {
+                    "description": "Causes the connectivity extractor in Calibre and ICverify to report virtual connections (for example, from the Virtual Connect Name or Virtual Connect Colon YES specification statements). Virtual connections are reported as notes in the connectivity extraction report. Specifying this option is equivalent to specifying Virtual Connect Report YES.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "W": {
+                    "description": "Causes LVS to report an error rather than a warning when source and layout refer to the same data. When the source and layout refer to the same data, this option causes the overall comparison result to be INCORRECT.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "X": {
+                    "description": "Causes Calibre nmLVS-H to provide a list of representative instances for each configuration of pins reported in the COMPONENT TYPES WITH NONIDENTICAL SIGNAL PINS section of the report. Each list of instances is preceded by its parent cell name. The final pin configuration (after discarding of extra pins) is shown as well. See the section “Component Types with Non-Identical Signal Pins” in the Calibre Verification User's Manual.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "XR": {
+                    "description": "Disables creation of cross-reference database (XDB) when comparison result is CORRECT. By default, creation of the cross-reference database is controlled by options of the Mask SVDB Directory specification statement, as well as command-line arguments -ixf and -nxf. If option XR is specified, then the database is not created if there are no LVS errors and the overall comparison status is CORRECT. This option can be useful if the cross-reference database is used only to debug LVS errors and generating it takes considerable time. This option has no effect if the cross-reference database is not requested.",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_simulator": {
+            "type": "object",
+            "properties": {
+                "netlistProcedure": {
+                    "type": "string"
+                },
+                "otherParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "instParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "enumParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "referenceParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "stringParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "arrayParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "exculdeParameters": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "componentName": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "termOrder": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "termMapping": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "propMapping": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "opParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_paramExpression"
+                },
+                "optParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_paramExpression"
+                },
+                "modelParamExprList": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "namePrefix": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "deviceTerminals": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "extraTerminals": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "permuteRule": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "modelName": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "dollarParams": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "dollarEqualParams": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                },
+                "isPrimitive": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                }
+            },
+            "patternProperties": {
+                ".+": {
+                    "$ref": "#/definitions/creation_simulator_setting"
+                }
+            }
+        },
+        "creation_simulator_setting": {
+            "type": [ "string", "array", "object" ],
+            "items": {
+                "type": [ "boolean", "string", "array", "object" ],
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    }
+                }
+            },
+            "properties": {
+                "reference": {
+                    "type": "string"
+                },
+                "regex": {
+                    "$ref": "#/definitions/reference_regex"
+                },
+                "cellName": {
+                    "$ref": "#/definitions/creation_cellName"
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_simulator_paramExpression": {
+            "type": [ "string", "object" ],
+            "properties": {
+                "function": {
+                    "type": "string"
+                },
+                "mappedRoot": {
+                    "type": "string"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "function": {
+                                "type": "string"
+                            },
+                            "mapped": {
+                                "type": "object",
+                                "properties": {
+                                    "root": {
+                                        "type": "string"
+                                    },
+                                    "property": {
+                                        "type": "string"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "creation_cellName": {
+            "enum": [ "whole", "uppercase", "lowercase" ],
+            "default": "whole"
+        },
+        "reference_regex": {
+            "type": "object",
+            "description": "Optional: Define regex to transform matched filenames. If not specified, matched files will be updated in-place with a '.backup' file created.",
+            "properties": {
+                "compile": {
+                    "type": "string"
+                },
+                "replace": {
+                    "type": "string"
+                },
+                "mismatch": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "compile",
+                "replace"
+            ]
+        },
+        "individualPatch": {
+            "type": [ "array", "string" ],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "execute",
+                            "patch",
+                            "copy",
+                            "link",
+                            "remove"
+                        ],
+                        "default": "patch"
+                    },
+                    "directory": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "$ref": "#/definitions/fileMatchingRule"
+                    },
+                    "patch": {
+                        "$ref": "#/definitions/filePatchingRule"
+                    },
+                    "fileOperation": {
+                        "type": "object",
+                        "properties": {
+                            "directory": {
+                                "type": "string",
+                                "description": "Working directory for file operations. Relative paths default to {{libraryDir}}/"
+                            },
+                            "source": {
+                                "type": "string",
+                                "description": "Source file path. Required for copy and link modes. Relative paths are relative to directory if set, otherwise {{libraryDir}}/"
+                            },
+                            "destination": {
+                                "type": "string",
+                                "description": "Destination file/directory path. Required for all file operation modes. Relative paths are relative to directory if set, otherwise {{libraryDir}}/"
+                            },
+                            "force": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "Force overwrite for copy/link, or use rm -rf for remove mode"
+                            }
+                        },
+                        "required": [ "destination" ],
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": false
+}

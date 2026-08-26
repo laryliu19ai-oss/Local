@@ -1,0 +1,230 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://example.com/modelgroup.schema",
+    "version": 1.0,
+    "release": "2025/09/26",
+    "author": "Chao-Jen Huang (ephoton)",
+    "title": "Simulation Model Group Definition",
+    "description": "Define the model corner set for the simulation environment.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The schema of the configuration.",
+            "type": "string",
+            "format": "uri-reference"
+        },
+        "version": {
+            "description": "Define the file format",
+            "type": "number",
+            "default": 1.0,
+            "const": 1.0
+        },
+        "release": {
+            "description": "The release date of the configuration. Date format is \"yyyy/mm/dd\".",
+            "type": "string",
+            "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+        },
+        "author": {
+            "description": "The author of the configuration.",
+            "type": "string"
+        },
+        "library": {
+            "description": "The PDK library name.",
+            "type": "string"
+        },
+        "modelgroup": {
+            "description": "Define the model group for the simulation environment.",
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "A brief description of the corner model group.",
+                    "type": "string"
+                },
+                "libraryPath": {
+                    "description": "The path to the model library files.",
+                    "type": "string"
+                },
+                "simulator": {
+                    "description": "The simulator for the model group.",
+                    "type": "string",
+                    "enum": [ "spectre", "hspiceD" ]
+                },
+                "based": {
+                    "$ref": "#/definitions/singleLibraryPackage"
+                },
+                "corners": {
+                    "description": "Define the model corners for the model group.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [ "single", "combinations" ]
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "library": {
+                                "type": "array"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "single"
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "library": {
+                                    "$ref": "#/definitions/singleLibraryPackage"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "library"
+                            ]
+                        },
+                        "else": {
+                            "properties": {
+                                "library": {
+                                    "$ref": "#/definitions/multipleLibraryPackage"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "corners"
+            ],
+            "oneOf": [
+                {
+                    "required": [ "libraryPath" ]
+                },
+                {
+                    "required": [ "simulator" ]
+                }
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "library",
+        "modelgroup"
+    ],
+    "definitions": {
+        "singleLibraryPackage": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "settings": {
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "test": {
+                                "type": "string"
+                            },
+                            "block": {
+                                "type": "string"
+                            },
+                            "file": {
+                                "type": "string"
+                            },
+                            "section": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [ 
+                            "enabled",
+                            "test",
+                            "block",
+                            "section"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "model",
+                    "settings"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "multipleLibraryPackage": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "settings": {
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "test": {
+                                "type": "string"
+                            },
+                            "block": {
+                                "type": "string"
+                            },
+                            "prefix": {
+                                "type": "string"
+                            },
+                            "suffix": {
+                                "type": "string"
+                            },
+                            "sections": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "section": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "name",
+                                        "section"
+                                ],
+                                    "additionalProperties": false
+                                }
+                            }
+                        },
+                        "required": [
+                            "enabled",
+                            "test",
+                            "block",
+                            "sections"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "model",
+                    "settings"
+                ],
+                "additionalProperties": false
+            }
+        }
+    }
+}

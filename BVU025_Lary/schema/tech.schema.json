@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bvskill.com/schemas/tech.schema.json",
+  "title": "Tech Config Schema",
+  "description": "Technology configuration for process-specific cell mapping",
+  "type": "object",
+  "required": ["database"],
+  "properties": {
+    "database": {
+      "type": "object",
+      "required": ["tech"],
+      "properties": {
+        "tech": {
+          "type": "object",
+          "required": ["name", "cells"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Technology name (e.g., umc18cdmos, tsmc65lp)",
+              "examples": ["umc18cdmos", "tsmc65lp", "gf22fdx"]
+            },
+            "version": {
+              "type": "string",
+              "description": "Technology version",
+              "examples": ["1.8", "6.5", "22"]
+            },
+            "description": {
+              "type": "string",
+              "description": "Technology description"
+            },
+            "cells": {
+              "type": "object",
+              "description": "Cell definitions (key: cell name, value: cell config)",
+              "patternProperties": {
+                ".*": {
+                  "$ref": "#/definitions/cellConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "parameterRule": {
+      "type": "object",
+      "description": "Parameter rule with default, min, max values",
+      "properties": {
+        "default": {
+          "description": "Default value (string for dimensions, number for counts)",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"}
+          ]
+        },
+        "min": {
+          "description": "Minimum value",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"}
+          ]
+        },
+        "max": {
+          "description": "Maximum value",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"}
+          ]
+        }
+      },
+      "examples": [
+        {"default": "500n", "min": "500n", "max": "100u"},
+        {"default": 1, "min": 1, "max": 64}
+      ]
+    },
+    "cellConfig": {
+      "type": "object",
+      "required": ["type", "properties", "portMap", "cdfMap"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["nmos", "pmos", "res", "cap", "ind", "diode", "bjt", "vsource", "isource"],
+          "description": "Basic device type"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Device properties for AI understanding",
+          "examples": [
+            ["svt"],
+            ["lvt", "iso"],
+            ["poly", "ltc"]
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Cell description"
+        },
+        "portMap": {
+          "type": "object",
+          "description": "Port name mapping (Virtuoso terminal name -> standard name)",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {"D": "D", "G": "G", "S": "S", "B": "B"},
+            {"PLUS": "N1", "MINUS": "N2"}
+          ]
+        },
+        "cdfMap": {
+          "type": "object",
+          "description": "CDF parameter mapping (standard name -> Virtuoso CDF name)",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {"w": "wTotal", "l": "length", "nf": "fingers", "m": "m"},
+            {"r": "res", "w": "wf", "l": "l"}
+          ]
+        },
+        "deviceParams": {
+          "type": "object",
+          "description": "Device parameters from PDK (e.g., rsh, tc1, tc2, vc1, vc2, voltage, topPlate, bottomPlate, capDensity)",
+          "additionalProperties": true,
+          "examples": [
+            {"rsh": 180, "tc1": 1000e-6, "tc2": 500e-9, "vc1": 100e-6, "vc2": 50e-9},
+            {"topPlate": "metal5", "bottomPlate": "metal4", "capDensity": 2.0, "tc1": 30e-6, "voltage": "3.3V"}
+          ]
+        },
+        "designRules": {
+          "type": "object",
+          "description": "Design rules for parameter validation (hierarchical structure)",
+          "additionalProperties": {
+            "$ref": "#/definitions/parameterRule"
+          }
+        }
+      }
+    }
+  }
+}

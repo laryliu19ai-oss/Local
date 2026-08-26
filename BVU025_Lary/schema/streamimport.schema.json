@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stream Import Configuration (MVP)",
+  "description": "MVP configuration for stream file (GDSII/OASIS) import using Cadence strmin",
+  "type": "object",
+  "properties": {
+    "version": {
+      "description": "Configuration file format version",
+      "type": "number",
+      "default": 1.0,
+      "const": 1.0
+    },
+    "release": {
+      "description": "Release date (yyyy/mm/dd)",
+      "type": "string",
+      "pattern": "^(?:19|2[01])[0-9]{2}/(?:0[1-9]|1[0-2])/(?:0[1-9]|[12][0-9]|3[01])$"
+    },
+    "author": {
+      "description": "Configuration author",
+      "type": "string"
+    },
+    "debugMode": {
+      "description": "Enable debug mode",
+      "type": "boolean",
+      "default": false
+    },
+
+    "streamImport": {
+      "type": "object",
+      "description": "Stream import configuration",
+      "properties": {
+        "strmFile": {
+          "type": "string",
+          "description": "Stream 檔案路徑（GDSII/OASIS）"
+        },
+        "library": {
+          "type": "string",
+          "description": "目標 Cadence library 名稱（必要）"
+        },
+        "attachTechFileOfLib": {
+          "type": ["string", "null"],
+          "description": "附加 tech file 的 library（可選）"
+        },
+        "logFile": {
+          "type": "string",
+          "default": "strmin.log",
+          "description": "Log 檔案路徑（可選）"
+        }
+      },
+      "required": ["strmFile", "library"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["streamImport"],
+  "additionalProperties": false
+}

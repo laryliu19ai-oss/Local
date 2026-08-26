@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$id": "https://example.com/spectreSimulationConfig.schema",
+  "version": 1.0,
+  "release": "2026/07/13",
+  "author": "Chao-Jen Huang (ephoton)",
+  "title": "Spectre Simulation Configuration",
+  "description": "Simulator-specific configuration for the spectre driver (analysis/measurements/driver_config) -- deliberately NOT part of schema/ujob.schema.json's workflow item, which only defines orchestration (driver/rundir/arguments/files/results). This is staged into the workflow step's rundir as its own tar member (filename: simulation_config.json, see ujob_builder.SIMULATION_CONFIG_FILENAME) exactly like any other input file declared in workflow[].files[] -- the ujob workflow never carries simulator-specific keys directly. See development/simNexus/VIRTUOSO_SPECTRE_UJOB_TAR_ANALYSIS.md for the responsibility-boundary rationale.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "The schema of this simulation configuration.",
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "analysis": {
+      "description": "Spectre analysis statements to inject into the netlist (see spectre_batch.py:_build_injections). Each entry's extra fields (start/stop/dec/dev/step/...) are analysis-type-specific -- see development/simDriverSpectre/02_CLI_MAPPING.md.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "Spectre analysis type.",
+            "type": "string",
+            "enum": ["dc", "ac", "tran", "stb", "noise", "sp", "xf", "pss"]
+          },
+          "name": {
+            "description": "Analysis statement name (defaults to '{type}Ana' if omitted).",
+            "type": "string"
+          }
+        },
+        "additionalProperties": true,
+        "required": ["type"]
+      }
+    },
+    "measurements": {
+      "description": "Named signal expressions to extract from PSF output after simulation (spectre_batch.py:collect/_filter_measurements). Restricts the returned measurements dict to exactly these names when non-empty.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Measurement name, used as the key in the returned measurements dict.",
+            "type": "string"
+          },
+          "expr": {
+            "description": "PSF signal name/expression to read (e.g. a node voltage like 'vout').",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["name", "expr"]
+      }
+    },
+    "driver_config": {
+      "description": "Spectre CLI/runtime options -- see spectre_batch.py:_build_cmd.",
+      "type": "object",
+      "properties": {
+        "output_format": {
+          "description": "Spectre -format flag.",
+          "type": "string",
+          "enum": ["psfascii", "psfbin"],
+          "default": "psfascii"
+        },
+        "num_threads": {
+          "description": "Enables +mt when > 1.",
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "aps_mode": {
+          "description": "Accelerated Parallel Simulation mode flag (e.g. 'aps', 'apsdc'); null disables it.",
+          "type": ["string", "null"]
+        },
+        "save_signals": {
+          "description": "Signal names for an injected `save` statement.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

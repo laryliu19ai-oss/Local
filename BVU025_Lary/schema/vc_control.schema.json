@@ -1,0 +1,122 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Python-led DPI-C I2C & Analog Voltage/Current Control Schema",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string"
+        },
+        "defaults": {
+            "type": "object",
+            "properties": {
+                "speed_ns": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 250
+                },
+                "ignore_nack": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "plan": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "raw_write",
+                            "raw_read",
+                            "reg_write",
+                            "reg_read",
+                            "delay",
+                            "generate_clocks",
+                            "set_vdc",
+                            "set_idc"
+                        ]
+                    },
+                    "addr": {
+                        "anyOf": [
+                            { "type": "integer", "minimum": 0, "maximum": 127 },
+                            { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                        ]
+                    },
+                    "subaddr": {
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                            ]
+                        }
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                            ]
+                        }
+                    },
+                    "read_len": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "speed_ns": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "ignore_nack": {
+                        "type": "boolean"
+                    },
+                    "delay_ns": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "clocks_count": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "period_ns": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "voltage": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "description": "Target voltage in Volts for set_vdc command."
+                    },
+                    "current": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "description": "Target current in Amperes for set_idc command."
+                    },
+                    "expect_data": {
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                { "type": "integer", "minimum": 0, "maximum": 255 },
+                                { "type": "string", "pattern": "^(0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0[dD][0-9]+|[0-9]+)$" }
+                            ]
+                        }
+                    }
+                },
+                "required": ["name", "kind"]
+            }
+        }
+    },
+    "required": [
+        "version",
+        "plan"
+    ]
+}

@@ -182,6 +182,9 @@ def execute_sar_search(
             sar_code = trial_code
             print(f"  -> Bit[{bit}]: CMP = 0 (Low)  -> Keep.    Code: {sar_code} (0x{sar_code:02X})")
 
+        # Update trim code immediately upon decision during low clock phase
+        hw.set_trim_code(sar_code)
+
         # Low clock phase settling
         hw.delay_us(clock_half_period_us)
         current_time_us += clock_half_period_us

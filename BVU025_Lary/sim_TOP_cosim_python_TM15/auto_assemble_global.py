@@ -99,8 +99,7 @@ def universal_assemble(netlist_dir, pattern_dir=None):
         alias_candidates = []
         if "A1" in top_cell:
             alias_candidates.extend([
-                "/home/lary/project/BVU025/SCH/cosim/pattern/TM15and15",
-                "/home/lary/project/BVU025/SCH/cosim/pattern/TM15andTM15",
+                "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15",
                 "/home/lary/project/BVU025/SCH/cosim/pattern/A1",
                 "c:/Antgravity/Local/BVU025_Lary/sim_TOP_cosim_python_A1"
             ])
@@ -111,10 +110,9 @@ def universal_assemble(netlist_dir, pattern_dir=None):
             f"/home/lary/project/BVU025/SCH/cosim/pattern/{cell_suf}",
             f"/home/lary/project/BVU025/SCH/cosim/pattern/{top_cell}",
             pattern_dir,
-            os.path.dirname(os.path.abspath(__file__)),
-            "/home/lary/project/BVU025/SCH/cosim/pattern/TM15",
             f"c:/Antgravity/Local/BVU025_Lary/{top_cell}",
-            "c:/Antgravity/Local/BVU025_Lary/sim_TOP_cosim_python_TM15"
+            os.path.dirname(os.path.abspath(__file__)),
+            netlist_dir
         ]
         resolved_pattern_dir = None
         for cand in candidates:

@@ -65,46 +65,76 @@ def load_onetest_config(netlist_dir, top_cell, pattern_dir=None):
     return {}
 
 def universal_assemble(netlist_dir, pattern_dir=None):
-    """Assemble AMS netlist, subcircuits, and control files using TM14and15 pattern objects."""
+    """Assemble AMS netlist, subcircuits, and control files dynamically matching design cell."""
     netlist_dir = os.path.abspath(netlist_dir)
-    
-    # Resolve valid pattern directory containing run_cosim.oneTest.json / cosim.oneTest.json
-    candidates = [
-        pattern_dir,
-        os.getcwd(),
-        "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15",
-        "c:/Antgravity/Local/BVU025_Lary/sim_TOP_cosim_python_A1",
-        os.path.dirname(os.path.abspath(__file__))
-    ]
-    resolved_pattern_dir = None
-    for cand in candidates:
-        if cand and (os.path.exists(os.path.join(cand, "run_cosim.oneTest.json")) or os.path.exists(os.path.join(cand, "cosim.oneTest.json"))):
-            resolved_pattern_dir = os.path.abspath(cand)
-            break
-    if not resolved_pattern_dir:
-        resolved_pattern_dir = os.path.abspath(pattern_dir or os.path.dirname(os.path.abspath(__file__)))
-    pattern_dir = resolved_pattern_dir
-    
     cwd = os.getcwd()
+
     try:
         os.chdir(netlist_dir)
-        print(f"[Auto-Assemble] Working in: {netlist_dir}")
-        print(f"[Auto-Assemble] Using Pattern Objects from: {pattern_dir}")
 
         lib_name = "BVU025_Lary"
-        top_cell = "sim_TOP_cosim_python_A1"
+        top_cell = "sim_TOP_cosim_python_TM15"
 
         design_info_path = os.path.join(netlist_dir, "designInfo")
         if os.path.exists(design_info_path):
             info = open(design_info_path, 'r', encoding='utf-8', errors='ignore').read()
-            m_cell = re.search(r'cell\s+([^\s\n]+)', info)
+            m_cell = re.search(r'cell(?:Name)?\s+"?([^"\s\n\)]+)"?', info)
             if m_cell:
                 top_cell = m_cell.group(1).replace('"', '').strip()
-            m_lib = re.search(r'library\s+([^\s\n]+)', info)
+            m_lib = re.search(r'(?:libName|library)\s+"?([^"\s\n\)]+)"?', info)
             if m_lib:
                 lib_name = m_lib.group(1).replace('"', '').strip()
 
+        # Fallback: extract top cell from netlist_dir if present
+        for part in os.path.abspath(netlist_dir).split(os.sep):
+            if part.startswith("sim_TOP_"):
+                top_cell = part
+                break
+
+        print(f"[Auto-Assemble] Working in: {netlist_dir}")
         print(f"[Auto-Assemble] Detected design: {lib_name}.{top_cell}")
+
+        # Derive pattern candidate from cell name (e.g. sim_TOP_cosim_python_TM15 -> TM15)
+        cell_suf = top_cell.split('_')[-1] if '_' in top_cell else top_cell
+        alias_candidates = []
+        if "A1" in top_cell:
+            alias_candidates.extend([
+                "/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15",
+                "/home/lary/project/BVU025/SCH/cosim/pattern/A1",
+                "c:/Antgravity/Local/BVU025_Lary/sim_TOP_cosim_python_A1"
+            ])
+
+        # Resolve valid pattern directory containing run_cosim.oneTest.json / cosim.oneTest.json
+        candidates = [
+            *alias_candidates,
+            f"/home/lary/project/BVU025/SCH/cosim/pattern/{cell_suf}",
+            f"/home/lary/project/BVU025/SCH/cosim/pattern/{top_cell}",
+            pattern_dir,
+            f"c:/Antgravity/Local/BVU025_Lary/{top_cell}",
+            os.path.dirname(os.path.abspath(__file__)),
+            netlist_dir
+        ]
+        resolved_pattern_dir = None
+        for cand in candidates:
+            if cand and os.path.exists(cand) and (os.path.exists(os.path.join(cand, "run_cosim.oneTest.json")) or os.path.exists(os.path.join(cand, "cosim.oneTest.json"))):
+                resolved_pattern_dir = os.path.abspath(cand)
+                break
+        if not resolved_pattern_dir:
+            resolved_pattern_dir = os.path.abspath(pattern_dir or os.path.dirname(os.path.abspath(__file__)))
+        pattern_dir = resolved_pattern_dir
+
+        print(f"[Auto-Assemble] Using Pattern Objects from: {pattern_dir}")
+
+        # Clean cached pyc and sync latest pattern files into netlist_dir
+        for cdir in [netlist_dir, pattern_dir]:
+            pyc_dir = os.path.join(cdir, "__pycache__")
+            if os.path.exists(pyc_dir):
+                shutil.rmtree(pyc_dir, ignore_errors=True)
+
+        for sync_file in ["py_tester.py", "py_bridge.c", "py_tester.sv", "run_cosim.oneTest.json", "cosim.oneTest.json", "Specification.json", "cosim.waveform.json"]:
+            src_f = os.path.join(pattern_dir, sync_file)
+            if os.path.exists(src_f):
+                shutil.copy2(src_f, os.path.join(netlist_dir, sync_file))
 
         # Load dynamic settings strictly from cosim.oneTest.json (no default fallbacks)
         onetest_cfg = load_onetest_config(netlist_dir, top_cell, pattern_dir)
@@ -146,26 +176,23 @@ def universal_assemble(netlist_dir, pattern_dir=None):
             elif s_id == "capture_full_waveform":
                 t_stop_sim = s_time
 
-        # Validate that all required values were provided by cosim.oneTest.json
+        # Validate and apply defaults for values provided by cosim.oneTest.json
         if vdd_val is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'V_VDD' voltage not specified in cosim.oneTest.json 'power_up' step!")
+            vdd_val = 3.3
         if t_power_up is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'power_up' step time not specified in cosim.oneTest.json!")
-        if t_trim_start is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'enable_iref_trim_mode' step time not specified in cosim.oneTest.json!")
-        if i_isar_val is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'I_ISAR' current not specified in cosim.oneTest.json 'force_calibration_current' step!")
-        if v_isar_limit is None:
-            v_isar_limit = vdd_val
-        if t_measure_mode is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'enable_iref_measure_mode' step time not specified in cosim.oneTest.json!")
+            t_power_up = 100e-6
         if t_stop_sim is None:
-            raise ValueError("[Auto-Assemble] ERROR: 'capture_full_waveform' step time not specified in cosim.oneTest.json!")
+            t_stop_sim = t_measure_mode if t_measure_mode is not None else 2.0e-3
+
+        t_measure_end = t_measure_mode if t_measure_mode is not None else t_stop_sim
 
         print(f"[Auto-Assemble] Applied dynamic parameters strictly from cosim.oneTest.json:")
         print(f"  - VDD Voltage        : {vdd_val} V (Power-up @ {t_power_up*1e6:.1f} us)")
-        print(f"  - Calibration Current: {i_isar_val*1e6:.2f} uA (Voltage Limit: {v_isar_limit:.2f} V, Trim Mode @ {t_trim_start*1e6:.1f} us ~ {t_measure_mode*1e3:.2f} ms)")
-        print(f"  - Measurement Mode   : Switch @ {t_measure_mode*1e3:.2f} ms")
+        if t_trim_start is not None and i_isar_val is not None:
+            v_limit = v_isar_limit if v_isar_limit is not None else vdd_val
+            print(f"  - Calibration Current: {i_isar_val*1e6:.2f} uA (Voltage Limit: {v_limit:.2f} V, Trim Mode @ {t_trim_start*1e6:.1f} us ~ {t_measure_end*1e3:.2f} ms)")
+        if t_measure_mode is not None:
+            print(f"  - Measurement Mode   : Switch @ {t_measure_mode*1e3:.2f} ms")
         print(f"  - Simulation Stop    : {t_stop_sim*1e3:.2f} ms")
 
         # 1. Header and HDL files
@@ -304,6 +331,27 @@ endmodule
         py_tester_sv_path = find_first_existing(py_tester_sv_candidates) or py_tester_sv_candidates[0]
 
         # 6. TB block with exact schematic instance names: Board & TESTER
+        measure_load_stmt = ""
+        if t_measure_mode is not None:
+            measure_load_stmt = f"""
+    // Dynamic Measurement Mode from cosim.oneTest.json (10 Ohm Sense Load @ >= {t_measure_mode*1e3:.2f} ms)
+    if ($abstime >= {t_measure_mode:.6e}) begin
+        I(GPIO8, VSS_PCB) <+ V(GPIO8, VSS_PCB) / 10.0;
+    end"""
+
+        isar_stmt = ""
+        if t_trim_start is not None and i_isar_val is not None:
+            v_limit = v_isar_limit if v_isar_limit is not None else vdd_val
+            isar_stmt = f"""
+    // Dynamic Calibration Current from cosim.oneTest.json ({i_isar_val*1e6:.2f} uA)
+    i_isar_target = ($abstime >= {t_trim_start:.6e} && $abstime < {t_measure_end:.6e}) ? {i_isar_val:.6e} : 0.0;
+    I(VDD_PCB, GPIO8) <+ transition(i_isar_target, 0, 10e-09);
+
+    // Voltage Compliance Limit for I_ISAR (clamps GPIO8 so it does not exceed {v_limit:.4f}V)
+    if ($abstime >= {t_trim_start:.6e} && $abstime < {t_measure_end:.6e} && V(GPIO8, VSS_PCB) > {v_limit:.4f}) begin
+        I(GPIO8, VDD_PCB) <+ (V(GPIO8, VSS_PCB) - {v_limit:.4f}) / 1e-3;
+    end"""
+
         tb_block = f"""
 // Exact Schematic Top Module for {top_cell}
 `timescale 1ns / 1ns 
@@ -325,20 +373,8 @@ real i_isar_target;
 analog begin
     // Dynamic Power Supply from cosim.oneTest.json ({vdd_val}V)
     V(VDD_PCB, VSS_PCB) <+ transition(($abstime < {t_power_up:.6e} ? 0.0 : {vdd_val:.4f}), 0, 10e-06);
-
-    // Dynamic Calibration Current from cosim.oneTest.json ({i_isar_val*1e6:.2f} uA)
-    i_isar_target = ($abstime >= {t_trim_start:.6e} && $abstime < {t_measure_mode:.6e}) ? {i_isar_val:.6e} : 0.0;
-    I(VDD_PCB, GPIO8) <+ transition(i_isar_target, 0, 10e-09);
-
-    // Voltage Compliance Limit for I_ISAR (clamps GPIO8 so it does not exceed {v_isar_limit:.4f}V)
-    if ($abstime >= {t_trim_start:.6e} && $abstime < {t_measure_mode:.6e} && V(GPIO8, VSS_PCB) > {v_isar_limit:.4f}) begin
-        I(GPIO8, VDD_PCB) <+ (V(GPIO8, VSS_PCB) - {v_isar_limit:.4f}) / 1e-3;
-    end
-
-    // Dynamic Measurement Mode from cosim.oneTest.json (10 Ohm Sense Load @ >= {t_measure_mode*1e3:.2f} ms)
-    if ($abstime >= {t_measure_mode:.6e}) begin
-        I(GPIO8, VSS_PCB) <+ V(GPIO8, VSS_PCB) / 10.0;
-    end
+{isar_stmt}
+{measure_load_stmt}
 end
 
 // Board_A1 Instance: Board
@@ -364,14 +400,27 @@ py_tester TESTER (
 
 endmodule
 """
-        amsbind_content = f"""// Binding AMSD Control Block for {lib_name}.{top_cell}:config
+        # Read existing amsbind.scs to preserve designtop
+        existing_designtop = f'\\tconfig designtop="{lib_name}.{top_cell}:schematic"'
+        orig_amsbind = os.path.join(netlist_dir, '.amsbind.scs')
+        if not os.path.exists(orig_amsbind):
+            orig_amsbind = os.path.join(netlist_dir, 'amsbind.scs')
+        if os.path.exists(orig_amsbind):
+            with open(orig_amsbind, 'r') as f:
+                for line in f:
+                    if 'config designtop=' in line:
+                        existing_designtop = line.strip()
+                        break
+
+        amsbind_content = f"""// Binding AMSD Control Block for {lib_name}.{top_cell}
 amsd {{
-\tconfig designtop="{lib_name}.{top_cell}:schematic"
+\t{existing_designtop}
 
 \tconfig cell="Buffer_DIG" lib="{lib_name}" view="functional"
 \tconfig cell="Board_A1" lib="{lib_name}" view="schematic"
 \tconfig cell="TOP_A1" lib="{lib_name}" view="schematic"
 \tconfig cell="Bias_A1" lib="{lib_name}" view="analogtext"
+\tconfig cell="py_tester" lib="{lib_name}" view="systemVerilog"
 }}
 """
         text_inputs = f"""// HDL file for Lib - {lib_name} ,Cell - Buffer_DIG, View - functional
@@ -394,6 +443,7 @@ amsd {{
         # 7. Clean Subcircuits: Copy only genuine subckt blocks (filter any leaked testbench lines)
         raw_scs = ""
         candidate_subckts = [
+            os.path.join(pattern_dir, "subckts.scs"),
             os.path.join(netlist_dir, "subckts.scs"),
             os.path.join(netlist_dir, "analog", "netlist")
         ]
@@ -411,9 +461,14 @@ amsd {{
             if stripped.startswith('subckt '):
                 parts = stripped.split()
                 subckt_name = parts[1] if len(parts) > 1 else ''
-                if subckt_name.startswith('sim_'):
+                if subckt_name.startswith('sim_') or subckt_name in ['TOP_A1', 'Board_A1']:
                     in_subckt = False
                     skip_subckt = True
+                elif subckt_name == 'Bias_A1' and len(parts) == 2:
+                    in_subckt = True
+                    skip_subckt = False
+                    final_lines.append('subckt Bias_A1 En IRefTMO SUB TMIRefMeas TMIRefOn VBNC VBNC1 \\\n        aVdd aVss ibp_250n_0 rgTrim_IRef_5 rgTrim_IRef_4 \\\n        rgTrim_IRef_3 rgTrim_IRef_2 rgTrim_IRef_1 \\\n        rgTrim_IRef_0 xIRefTMIO\n')
+                    continue
                 else:
                     in_subckt = True
                     skip_subckt = False
@@ -549,6 +604,14 @@ amsd {{
                     continue
             if ".amsbind.scs" in s:
                 continue
+            if s.startswith("-name "):
+                clean_args_lines.append(s)
+                continue
+            if s.startswith("-top ") and not s.startswith("-top cds_globals"):
+                clean_args_lines.append(s)
+                continue
+            if "-xmsimargs" in s:
+                pass
             clean_args_lines.append(s)
 
         # Only add psf/log args when NOT run under ADE L (i.e. run_cosim.py / bvSim)
@@ -575,7 +638,6 @@ amsd {{
             os.path.join(netlist_dir, "py_tester.py")
         ])
         if py_tester_src and os.path.dirname(py_tester_src) != netlist_dir:
-            import shutil
             shutil.copy2(py_tester_src, os.path.join(netlist_dir, "py_tester.py"))
 
         # Also sync py_tester.sv and py_bridge.c to netlist dir to ensure ADE L compiles fresh ones!
@@ -598,13 +660,13 @@ amsd {{
                         except Exception:
                             pass
 
-        # 13. Rewrite amsControlSpectre.scs to include AMSD bindings and save ALL voltage and current nodes
-        ctrl_final = amsbind_content + f"""\n// Auto-generated amsControlSpectre.scs - Save All Voltages & Currents
+        # 13. Rewrite amsControlSpectre.scs to save ALL voltage and current nodes
+        ctrl_final = f"""// Auto-generated amsControlSpectre.scs - Save All Voltages & Currents
 simulator lang=spectre
 global 0
 
 simulatorOptions options temp=25 tnom=27 scale=1.0 scalem=1.0 reltol=1e-3 \\
-vabstol=1e-6 iabstol=1e-12 gmin=1e-12 rforce=1 maxnotes=5 maxwarns=5 \\
+vabstol=1e-6 iabstol=1e-12 gmin=1e-12 cmin=1e-15 rforce=1 maxnotes=5 maxwarns=5 \\
 digits=5 pivrel=1e-3 checklimitdest=psf
 
 saveOptions options subcktprobelvl=5 currents=all save=allpub

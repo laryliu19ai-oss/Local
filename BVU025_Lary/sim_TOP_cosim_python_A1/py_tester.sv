@@ -1,4 +1,7 @@
 `timescale 1ns / 1ps
+`worklib BVU025_Lary
+`view systemVerilog
+
 /*
 ** =========================================================================
 ** Module Name  : py_tester

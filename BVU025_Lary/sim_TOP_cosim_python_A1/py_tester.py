@@ -40,13 +40,20 @@ except ImportError:
 
 
 def _parse_time_us(t_str: str | float | int) -> float:
-    """Parse time string with SI units (s, ms, us, u, ns, n) into microseconds."""
+    """Parse time string with SI units (s, ms, m, us, u, ns, n, ps, p) into microseconds."""
+    if t_str is None:
+        return 0.0
     if isinstance(t_str, (int, float)):
         return float(t_str)
     s = str(t_str).strip()
     if s.endswith("ms"): return float(s[:-2]) * 1000.0
-    if s.endswith("us") or s.endswith("u"): return float(s.rstrip("us"))
-    if s.endswith("ns") or s.endswith("n"): return float(s.rstrip("ns")) / 1000.0
+    if s.endswith("us"): return float(s[:-2])
+    if s.endswith("ns"): return float(s[:-2]) / 1000.0
+    if s.endswith("ps"): return float(s[:-2]) / 1e6
+    if s.endswith("m"): return float(s[:-1]) * 1000.0
+    if s.endswith("u"): return float(s[:-1])
+    if s.endswith("n"): return float(s[:-1]) / 1000.0
+    if s.endswith("p"): return float(s[:-1]) / 1e6
     if s.endswith("s"): return float(s[:-1]) * 1e6
     try:
         return float(s)
@@ -71,8 +78,8 @@ def find_config_json() -> str:
         ".",
         "..",
         "../..",
-        "../../../pattern/TM14and15",
-        "../pattern/TM14and15"
+        "../../../pattern/TM15",
+        "../pattern/TM15"
     ]
     for d in candidate_dirs:
         for fname in candidate_names:
@@ -174,6 +181,9 @@ def execute_sar_search(
             # Current too low -> keep trial bit (1)
             sar_code = trial_code
             print(f"  -> Bit[{bit}]: CMP = 0 (Low)  -> Keep.    Code: {sar_code} (0x{sar_code:02X})")
+
+        # Update trim code immediately upon decision during low clock phase
+        hw.set_trim_code(sar_code)
 
         # Low clock phase settling
         hw.delay_us(clock_half_period_us)

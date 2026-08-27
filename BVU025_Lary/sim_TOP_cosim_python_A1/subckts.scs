@@ -1,0 +1,784 @@
+simulator lang=spectre
+global 0
+
+subckt RNHR3000_TG_CDMOS_G3_pcell_0
+parameters segW=2u segL=10u multi1=(1) mis_flag1=1
+    R15 (n15 MINUS B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R14 (n14 n15 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R13 (n13 n14 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R12 (n12 n13 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R11 (n11 n12 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R10 (n10 n11 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R9 (n9 n10 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R8 (n8 n9 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R7 (n7 n8 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R6 (n6 n7 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R5 (n5 n6 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R4 (n4 n5 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R3 (n3 n4 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R2 (n2 n3 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R1 (n1 n2 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R0 (PLUS n1 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+ends RNHR3000_TG_CDMOS_G3_pcell_0
+
+subckt RNHR4000_TG_CDMOS_G3_pcell_1
+parameters segW=2u segL=10u multi1=(1) mis_flag1=1
+    R0 (PLUS MINUS B) rnhr4000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+ends RNHR4000_TG_CDMOS_G3_pcell_1
+
+subckt IRef_R_A1
+    R5_15 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_14 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_13 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_12 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_11 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_10 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_9 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_8 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_7 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_6 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_5 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_4 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_3 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_2 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R5_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_7 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_6 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_5 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_4 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_3 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_2 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R4_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R3_3 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R3_2 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R3_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R3_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R2_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R2_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_31 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_30 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_29 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_28 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_27 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_26 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_25 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_24 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_23 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_22 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_21 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_20 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_19 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_18 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_17 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_16 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_15 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_14 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_13 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_12 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_11 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_10 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_9 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_8 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_7 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_6 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_5 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_4 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_3 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_2 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R6_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R7_3 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R7_2 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R7_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    R7_0 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    RT_1 RNHR4000_TG_CDMOS_G3_pcell_1 m=1 segW=800n segL=16.17u multi1=(1) \
+        mis_flag1=1
+    MN5 (aN_63 Code_i_5 aN_31 aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN4 (aN_31 Code_i_4 aN_15 aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN3 (aN_15 Code_i_3 aN_7 aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN2 (aN_7 Code_i_2 aN_3 aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN1 (aN_3 Code_i_1 aN_1 aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN0 (aN_1 Code_i_0 aVss aVss) n_iso_50_cdmos_g3 w=16.0u l=800n nf=4 \
+        as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    I0_5 INVx2
+    I0_4 INVx2
+    I0_3 INVx2
+    I0_2 INVx2
+    I0_1 INVx2
+    I0_0 INVx2
+    I1_5 INVx2
+    I1_4 INVx2
+    I1_3 INVx2
+    I1_2 INVx2
+    I1_1 INVx2
+    I1_0 INVx2
+ends IRef_R_A1
+
+subckt Bias_A1 En IRefTMO SUB TMIRefMeas TMIRefOn VBNC VBNC1 \
+        aVdd aVss ibp_250n_0 rgTrim_IRef_5 rgTrim_IRef_4 \
+        rgTrim_IRef_3 rgTrim_IRef_2 rgTrim_IRef_1 \
+        rgTrim_IRef_0 xIRefTMIO
+    MN13 (TMIO_ESD TMIRefOnA xIRefTMIOi aVss) n_iso_50_cdmos_g3 w=10u \
+        l=10u nf=1 as=4.9e-12 ad=4.9e-12 ps=10.98u pd=10.98u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 m=2 mf=2 mis_flag=1
+    MN12 (VSTR EnB aVss aVss) n_iso_50_cdmos_g3 w=1u l=1u nf=1 as=4.9e-13 \
+        ad=4.9e-13 ps=1.98u pd=1.98u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN11 (VSTR VBN aVss aVss) n_iso_50_cdmos_g3 w=21.0u l=2.5u nf=6 \
+        as=1.20167e-12 ad=9.45e-13 ps=1.85333u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN10 (VBPC VSTR aVss aVss) n_iso_50_cdmos_g3 w=500n l=500n nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MN9 (net1 VSTR aVss aVss) n_iso_50_cdmos_g3 w=500n l=6u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MN8 (net12 TMIRefMeas TMIO_ESD aVss) n_iso_50_cdmos_g3 w=3.5u l=10u \
+        nf=1 as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 m=4 mf=4 mis_flag=1
+    MN7 (aVss VBNC aVss aVss) n_iso_50_cdmos_g3 w=60u l=11.0u nf=6 \
+        as=3.43333e-12 ad=2.7e-12 ps=4.02u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=2 mf=2 mis_flag=1
+    MN6 (aVss VBNC aVss aVss) n_iso_50_cdmos_g3 w=60u l=10u nf=6 \
+        as=3.43333e-12 ad=2.7e-12 ps=4.02u pd=540.0n sa=4.9e-07 sb=4.9e-07 \
+        sd=540.0n m=1 mf=1 mis_flag=1
+    MN5 (VBNC EnB aVss aVss) n_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=4 mf=4 mis_flag=1
+    MN4 (VBPC VBN aVss aVss) n_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=4 mf=4 mis_flag=1
+    MN3 (VBN EnB aVss aVss) n_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=4 mf=4 mis_flag=1
+    MN2 (aVss VBN aVss aVss) n_iso_50_cdmos_g3 w=10u l=10u nf=1 as=4.9e-12 \
+        ad=4.9e-12 ps=10.98u pd=10.98u sa=4.9e-07 sb=4.9e-07 sd=0 m=2 mf=2 \
+        mis_flag=1
+    MN1 (VBNC VBN aVss aVss) n_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=4 mf=4 mis_flag=1
+    MN0 (VBP VBNC1 VBN VBN) n_iso_50_cdmos_g3 w=4u l=2u nf=2 as=9.8e-13 \
+        ad=5.4e-13 ps=2.98u pd=540.0n sa=4.9e-07 sb=4.9e-07 sd=540.0n m=1 \
+        mf=1 mis_flag=1
+    C0 (VBNC VBN) mimcaps_20f_cdmos_g3 w=10u l=10u mis_flag=1 m=2 mf=2
+    MP20 (aVdd VBPC aVdd aVdd) p_iso_50_cdmos_g3 w=30u l=20u nf=1 \
+        as=1.47e-11 ad=1.47e-11 ps=30.98u pd=30.98u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=6 mf=6 mis_flag=1
+    MP19 (aVdd VBP aVdd aVdd) p_iso_50_cdmos_g3 w=30u l=20u nf=1 \
+        as=1.47e-11 ad=1.47e-11 ps=30.98u pd=30.98u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=6 mf=6 mis_flag=1
+    MP18 (VBP EnA aVdd aVdd) p_iso_50_cdmos_g3 w=2u l=1u nf=1 as=9.8e-13 \
+        ad=9.8e-13 ps=2.98u pd=2.98u sa=4.9e-07 sb=4.9e-07 sd=0 m=2 mf=2 \
+        mis_flag=1
+    MP17 (VSTR aVss net2 aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP16 (net2 aVss net17 aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP15 (net17 aVss net15 aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP14 (net15 aVss net13 aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP13 (net13 aVss net10 aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP12 (net10 aVss aVdd aVdd) p_iso_50_cdmos_g3 w=500n l=20u nf=1 \
+        as=2.45e-13 ad=2.45e-13 ps=1.48u pd=1.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP11 (ibp_250n_0 VBPC net4 aVdd) p_iso_50_cdmos_g3 w=3.5u l=500n \
+        nf=1 as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 m=2 mf=2 mis_flag=1
+    MP10 (net4 VBP aVdd aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=2 mf=2 mis_flag=1
+    MP9 (net12 TMIRefMeasB net9 aVdd) p_iso_50_cdmos_g3 w=2u l=1u nf=1 \
+        as=9.8e-13 ad=9.8e-13 ps=2.98u pd=2.98u sa=4.9e-07 sb=4.9e-07 sd=0 \
+        m=2 mf=2 mis_flag=1
+    MP8 (IBP_Res TMIRefOnB net9 aVdd) p_iso_50_cdmos_g3 w=2u l=1u nf=1 \
+        as=9.8e-13 ad=9.8e-13 ps=2.98u pd=2.98u sa=4.9e-07 sb=4.9e-07 sd=0 \
+        m=2 mf=2 mis_flag=1
+    MP7 (net9 VBPC net5 aVdd) p_iso_50_cdmos_g3 w=3.5u l=500n nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=2 mf=2 mis_flag=1
+    MP6 (net5 VBP aVdd aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=8 mf=8 mis_flag=1
+    MP5 (VBPC VBPC net8 aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP4 (net8 VBPC net7 aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP3 (net7 VBPC net6 aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP2 (net6 VBPC aVdd aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=1 mf=1 mis_flag=1
+    MP1 (VBNC VBP aVdd aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=2 mf=2 mis_flag=1
+    MP0 (VBP VBP aVdd aVdd) p_iso_50_cdmos_g3 w=3.5u l=10u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 m=2 mf=2 mis_flag=1
+    I5 (EnB aVdd aVss EnA) INVx2_schematic
+    I4 (En aVdd aVss EnB) INVx2_schematic
+    I3 (TMIRefOnB aVdd aVss TMIRefOnA) INVx2_schematic
+    I2 (TMIRefOn aVdd aVss TMIRefOnB) INVx2_schematic
+    I1 (TMIRefMeas aVdd aVss TMIRefMeasB) INVx2_schematic
+    R0 (VBP net1 aVdd) RNHR3000_TG_CDMOS_G3_pcell_0_schematic m=1 \
+        segW=440n segL=15.6u multi1=(1) mis_flag1=1
+    C1 (aVdd VBP) mimcaps_20f_cdmos_g3 w=30u l=30u mis_flag=1 m=2 mf=2
+    I_CMP (TMIRefOnB xIRefTMIOi IBP_Res IRefTMO SUB aVdd aVss VBP VBPC) \
+        CMPTM_A1
+    R13_15 (IBP_Res netR13_15 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_14 (netR13_15 netR13_14 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_13 (netR13_14 netR13_13 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_12 (netR13_13 netR13_12 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_11 (netR13_12 netR13_11 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_10 (netR13_11 netR13_10 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_9 (netR13_10 netR13_9 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_8 (netR13_9 netR13_8 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_7 (netR13_8 netR13_7 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_6 (netR13_7 netR13_6 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_5 (netR13_6 netR13_5 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_4 (netR13_5 netR13_4 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_3 (netR13_4 netR13_3 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_2 (netR13_3 netR13_2 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_1 (netR13_2 netR13_1 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R13_0 (netR13_1 aVss aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R2 (xIRefTMIO TMIO_ESD aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=2.4u multi1=(1) mis_flag1=1
+    R10_7 (xIRefTMIOi netR10_7 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_6 (netR10_7 netR10_6 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_5 (netR10_6 netR10_5 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_4 (netR10_5 netR10_4 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_3 (netR10_4 netR10_3 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_2 (netR10_3 netR10_2 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_1 (netR10_2 netR10_1 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    R10_0 (netR10_1 aVss aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=9.2u \
+        multi1=(1) mis_flag1=1
+    I0 (rgTrim_IRef_5 rgTrim_IRef_4 rgTrim_IRef_3 \
+        rgTrim_IRef_2 rgTrim_IRef_1 rgTrim_IRef_0 VBN aVdd aVss) \
+        IRef_R_A1_schematic
+ends Bias_A1
+
+subckt CMPTM_A1 EnB InN InP OUT SUB VDD VSS aVbp aVbpc
+    I1 (net4 VDD VSS OUT) INVx2_schematic
+    I0 (net5 VDD VSS net4) INVx2_schematic
+    MP4 (VO1 InN net7 VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=500n nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=2 mf=2 mis_flag=1
+    MP3 (net1 InP net7 VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=500n nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=2 mf=2 mis_flag=1
+    MP2 (VO2 aVbpc net10 VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=500n nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=2 mf=2 mis_flag=1
+    MP1 (net10 aVbp VDD VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=2.5u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=8 mf=8 mis_flag=1
+    MP0 (net7 EnB net3 VDD SUB) p_iso_50_cdmos_dnw_g3 w=2u l=500n nf=1 \
+        as=9.8e-13 ad=9.8e-13 ps=2.98u pd=2.98u sa=4.9e-07 sb=4.9e-07 sd=0 \
+        dnw_w_1=7.56u dnw_l_1=7.04u m=1 mf=1 mis_flag=1
+    MP11 (net3 aVbpc net2 VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=500n \
+        nf=1 as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=2 mf=2 mis_flag=1
+    MP10 (net2 aVbp VDD VDD SUB) p_iso_50_cdmos_dnw_g3 w=3.5u l=2.5u nf=1 \
+        as=1.715e-12 ad=1.715e-12 ps=4.48u pd=4.48u sa=4.9e-07 sb=4.9e-07 \
+        sd=0 dnw_w_1=7.56u dnw_l_1=7.04u m=8 mf=8 mis_flag=1
+    MN3 (VO2 VO1 VSS VSS VDD SUB) n_iso_50_cdmos_dnw_g3 w=1u l=500n nf=1 \
+        as=4.9e-13 ad=4.9e-13 ps=1.98u pd=1.98u sa=4.9e-07 sb=4.9e-07 sd=0 \
+        dnw_w_1=7.64u dnw_l_1=6.16u m=1 mf=1 mis_flag=1
+    MN0 (net1 EnB VSS VSS VDD SUB) n_iso_50_cdmos_dnw_g3 w=1u l=500n nf=1 \
+        as=4.9e-13 ad=4.9e-13 ps=1.98u pd=1.98u sa=4.9e-07 sb=4.9e-07 sd=0 \
+        dnw_w_1=7.64u dnw_l_1=6.16u m=1 mf=1 mis_flag=1
+    MN2 (VO1 net1 VSS VSS VDD SUB) n_iso_50_cdmos_dnw_g3 w=1.2u l=6.5u \
+        nf=1 as=5.88e-13 ad=5.88e-13 ps=2.18u pd=2.18u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 dnw_w_1=7.64u dnw_l_1=6.16u m=4 mf=4 mis_flag=1
+    MN1 (net1 net1 VSS VSS VDD SUB) n_iso_50_cdmos_dnw_g3 w=1.2u l=6.5u \
+        nf=1 as=5.88e-13 ad=5.88e-13 ps=2.18u pd=2.18u sa=4.9e-07 \
+        sb=4.9e-07 sd=0 dnw_w_1=7.64u dnw_l_1=6.16u m=4 mf=4 mis_flag=1
+    I2 (EnB VO2 VDD VSS net5) NR2x2
+ends CMPTM_A1
+
+subckt IRef_R_A1_schematic Code_5 Code_4 Code_3 Code_2 \
+        Code_1 Code_0 aR_In aVdd aVss
+    R5_15 (aN_31 aN_30 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_14 (aN_30 aN_29 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_13 (aN_29 aN_28 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_12 (aN_28 aN_27 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_11 (aN_27 aN_26 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_10 (aN_26 aN_25 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_9 (aN_25 aN_24 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_8 (aN_24 aN_23 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_7 (aN_23 aN_22 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_6 (aN_22 aN_21 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_5 (aN_21 aN_20 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_4 (aN_20 aN_19 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_3 (aN_19 aN_18 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_2 (aN_18 aN_17 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_1 (aN_17 aN_16 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R5_0 (aN_16 aN_15 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_7 (aN_15 aN_14 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_6 (aN_14 aN_13 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_5 (aN_13 aN_12 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_4 (aN_12 aN_11 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_3 (aN_11 aN_10 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R4_2 (aN_10 aN_9 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R4_1 (aN_9 aN_8 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R4_0 (aN_8 aN_7 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R1 (aN_1 aVss aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 \
+        segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R3_3 (aN_7 aN_6 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R3_2 (aN_6 aN_5 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R3_1 (aN_5 aN_4 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R3_0 (aN_4 aN_3 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R2_1 (aN_3 aN_2 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R2_0 (aN_2 aN_1 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    R6_31 (aN_63 aN_62 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_30 (aN_62 aN_61 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_29 (aN_61 aN_60 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_28 (aN_60 aN_59 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_27 (aN_59 aN_58 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_26 (aN_58 aN_57 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_25 (aN_57 aN_56 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_24 (aN_56 aN_55 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_23 (aN_55 aN_54 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_22 (aN_54 aN_53 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_21 (aN_53 aN_52 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_20 (aN_52 aN_51 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_19 (aN_51 aN_50 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_18 (aN_50 aN_49 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_17 (aN_49 aN_48 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_16 (aN_48 aN_47 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_15 (aN_47 aN_46 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_14 (aN_46 aN_45 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_13 (aN_45 aN_44 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_12 (aN_44 aN_43 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_11 (aN_43 aN_42 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_10 (aN_42 aN_41 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_9 (aN_41 aN_40 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_8 (aN_40 aN_39 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_7 (aN_39 aN_38 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_6 (aN_38 aN_37 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_5 (aN_37 aN_36 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_4 (aN_36 aN_35 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_3 (aN_35 aN_34 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_2 (aN_34 aN_33 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_1 (aN_33 aN_32 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R6_0 (aN_32 aN_31 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R7_3 (aN_67 aN_66 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R7_2 (aN_66 aN_65 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R7_1 (aN_65 aN_64 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    R7_0 (aN_64 aN_63 aVss) \
+        RNHR4000_TG_CDMOS_G3_pcell_1_schematic m=1 segW=800n segL=16.17u \
+        multi1=(1) mis_flag1=1
+    RT_1 (aR_In aN_67 aVss) RNHR4000_TG_CDMOS_G3_pcell_1_schematic \
+        m=1 segW=800n segL=16.17u multi1=(1) mis_flag1=1
+    MN5 (aN_63 Code_i_5 aN_31 aVss) n_iso_50_cdmos_g3 w=16.0u \
+        l=800n nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN4 (aN_31 Code_i_4 aN_15 aVss) n_iso_50_cdmos_g3 w=16.0u \
+        l=800n nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN3 (aN_15 Code_i_3 aN_7 aVss) n_iso_50_cdmos_g3 w=16.0u \
+        l=800n nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN2 (aN_7 Code_i_2 aN_3 aVss) n_iso_50_cdmos_g3 w=16.0u \
+        l=800n nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN1 (aN_3 Code_i_1 aN_1 aVss) n_iso_50_cdmos_g3 w=16.0u \
+        l=800n nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    MN0 (aN_1 Code_i_0 aVss aVss) n_iso_50_cdmos_g3 w=16.0u l=800n \
+        nf=4 as=1.52e-12 ad=1.08e-12 ps=2.76u pd=540.0n sa=4.9e-07 \
+        sb=4.9e-07 sd=540.0n m=1 mf=1 mis_flag=1
+    I0_5 (Code_5 aVdd aVss net1_0) INVx2_schematic
+    I0_4 (Code_4 aVdd aVss net1_1) INVx2_schematic
+    I0_3 (Code_3 aVdd aVss net1_2) INVx2_schematic
+    I0_2 (Code_2 aVdd aVss net1_3) INVx2_schematic
+    I0_1 (Code_1 aVdd aVss net1_4) INVx2_schematic
+    I0_0 (Code_0 aVdd aVss net1_5) INVx2_schematic
+    I1_5 (net1_0 aVdd aVss Code_i_5) INVx2_schematic
+    I1_4 (net1_1 aVdd aVss Code_i_4) INVx2_schematic
+    I1_3 (net1_2 aVdd aVss Code_i_3) INVx2_schematic
+    I1_2 (net1_3 aVdd aVss Code_i_2) INVx2_schematic
+    I1_1 (net1_4 aVdd aVss Code_i_1) INVx2_schematic
+    I1_0 (net1_5 aVdd aVss Code_i_0) INVx2_schematic
+ends IRef_R_A1_schematic
+
+subckt INVx2_schematic A VDD VSS Z
+    MN1 (Z A VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN0 (Z A VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP1 (Z A VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP0 (Z A VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+ends INVx2_schematic
+
+subckt AN2x1 A B VDD VSS Z
+    MP2 (Z 3 VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP1 (3 B VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP0 (3 A VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN2 (Z 3 VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN1 (3 A 7 VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN0 (7 B VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+ends AN2x1
+
+subckt NR2x2 A B VDD VSS Z
+    MP4 (Z B 7 VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP2 (7 A VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP1 (Z B 6 VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MP0 (6 A VDD VDD) p_iso_50_cdmos_g3 w=1.71u l=500n nf=1 as=8.379e-13 \
+        ad=8.379e-13 ps=2.69u pd=2.69u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN3 (Z A VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN2 (Z B VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN1 (Z A VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+    MN0 (Z B VSS VSS) n_iso_50_cdmos_g3 w=1.22u l=500n nf=1 as=5.978e-13 \
+        ad=5.978e-13 ps=2.2u pd=2.2u sa=4.9e-07 sb=4.9e-07 sd=0 m=1 mf=1 \
+        mis_flag=1
+ends NR2x2
+
+subckt RNHR3000_TG_CDMOS_G3_pcell_0_schematic PLUS MINUS B
+parameters segW=2u segL=10u multi1=(1) mis_flag1=1
+    R15 (n15 MINUS B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R14 (n14 n15 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R13 (n13 n14 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R12 (n12 n13 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R11 (n11 n12 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R10 (n10 n11 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R9 (n9 n10 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R8 (n8 n9 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R7 (n7 n8 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R6 (n6 n7 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R5 (n5 n6 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R4 (n4 n5 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R3 (n3 n4 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R2 (n2 n3 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R1 (n1 n2 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+    R0 (PLUS n1 B) rnhr3000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+ends RNHR3000_TG_CDMOS_G3_pcell_0_schematic
+
+subckt RNHR4000_TG_CDMOS_G3_pcell_1_schematic PLUS MINUS B
+parameters segW=2u segL=10u multi1=(1) mis_flag1=1
+    R0 (PLUS MINUS B) rnhr4000_tg_cdmos_g3 w=segW l=segL mf=multi1 \
+        mis_flag=mis_flag1
+ends RNHR4000_TG_CDMOS_G3_pcell_1_schematic
+

@@ -456,7 +456,7 @@
                 {
                     "id": "capture_full_waveform",
                     "time": {
-                        "value": "1.8m",
+                        "value": "1.2m",
                         "related": null
                     },
                     "actions": {

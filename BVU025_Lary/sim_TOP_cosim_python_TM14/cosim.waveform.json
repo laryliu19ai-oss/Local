@@ -1,0 +1,137 @@
+{
+    "$schema": "../schema/waveform.2schema.json",
+    "version": 1.0,
+    "release": "2026/08/24",
+    "author": "Antigravity",
+    "debugMode": true,
+    "waveform": {
+        "type": "viva",
+        "imageSavePath": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/images",
+        "database": {
+            "sim_TOP_cosim_python_TM14": {
+                "file": "/home/lary/project/BVU025/SCH/cosim/pattern/TM14/psf"
+            }
+        },
+        "imageSettings": {
+            "resolution": 100,
+            "width": 1600,
+            "height": 900,
+            "backgroundColor": "white"
+        },
+        "plot": [
+            {
+                "enable": true,
+                "results": [
+                    {
+                        "enable": true,
+                        "select": "tran",
+                        "databaseGroup": [
+                            "sim_TOP_cosim_python_TM14"
+                        ],
+                        "signals": [
+                            {
+                                "type": "voltage",
+                                "signal": "/VDD_PCB",
+                                "display": "/VDD_PCB",
+                                "color": "red",
+                                "thickness": "thick",
+                                "stripNumber": 1
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/VSS_PCB",
+                                "display": "/VSS_PCB",
+                                "color": "green",
+                                "thickness": "thick",
+                                "stripNumber": 1
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/TMIRefOn",
+                                "display": "/TMIRefOn",
+                                "color": "magenta",
+                                "thickness": "thick",
+                                "stripNumber": 2
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/CLK",
+                                "display": "/CLK",
+                                "color": "green",
+                                "thickness": "thick",
+                                "stripNumber": 3
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/Board/TOP/I_Bias/IBP_Res",
+                                "display": "/Board/TOP/I_Bias/IBP_Res",
+                                "color": "cyan",
+                                "thickness": "thick",
+                                "stripNumber": 4
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/Board/TOP/I_Bias/xIRefTMIOi",
+                                "display": "/Board/TOP/I_Bias/xIRefTMIOi",
+                                "color": "purple",
+                                "thickness": "thick",
+                                "stripNumber": 4
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/dIRefTMO",
+                                "display": "/dIRefTMO",
+                                "color": "orange",
+                                "thickness": "thick",
+                                "stripNumber": 5
+                            },
+                            {
+                                "type": "digital",
+                                "signal": "NvTrmIref[5:0]",
+                                "display": "/NvTrmIref<5:0>",
+                                "color": "yellow",
+                                "thickness": "thick",
+                                "stripNumber": 6
+                            },
+                            {
+                                "type": "current",
+                                "signal": "/Board/TOP/I_Bias/MN0/D",
+                                "display": "/Board/TOP/I_Bias/MN0/D",
+                                "color": "blue",
+                                "thickness": "thick",
+                                "stripNumber": 7
+                            },
+                            {
+                                "type": "voltage",
+                                "signal": "/TMIRefMeas",
+                                "display": "/TMIRefMeas",
+                                "color": "white",
+                                "thickness": "thick",
+                                "stripNumber": 8
+                            },
+                            {
+                                "type": "current",
+                                "signal": "/Board/GPIO8",
+                                "display": "I(GPIO8)",
+                                "color": "red",
+                                "thickness": "thick",
+                                "stripNumber": 2,
+                                "yAxis": {
+                                    "min": -10e-6,
+                                    "max": 10e-6,
+                                    "step": 2e-6,
+                                    "unit": "uA"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "closeAfterCapture": true,
+                "capture": {
+                    "enable": true,
+                    "filename": "cosim_waveform.png"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,482 @@
+{
+    "$schema": "../schema/oneTest2.schema.json",
+    "version": 1.0,
+    "release": "2026/08/24",
+    "author": "Lary Liu",
+    "debugMode": true,
+    "dryRun": false,
+    "simulation": {
+        "ams": {
+            "solver": "Spectre",
+            "models": [
+                {
+                    "file": "/home/lary/pdk/pdk/umc18bcdg3/Models/Spectre/bcd18g3_hp_v0301_usage.lib.scs",
+                    "section": [
+                        "setup_postsim",
+                        "tt_mos",
+                        "tt_mim_mom",
+                        "tt_res_bip_dio"
+                    ]
+                }
+            ],
+            "output": {
+                "directory": "/home/lary/simulation/BVU025/BVU025A",
+                "format": "psf",
+                "savedSettings": {
+                    "signals": "all"
+                }
+            }
+        }
+    },
+    "testbenches": {
+        "sim_TOP_cosim_python_TM15": {
+            "enable": true,
+            "force": true,
+            "description": "OneTest Co-simulation Verification for BVU025 TOP_A1 (AMS/Ocean)",
+            "library": "BVU025_Lary",
+            "cell": "sim_TOP_cosim_python_TM15",
+            "view": "config",
+            "simulator": "ams",
+            "plotWaveform": "/home/lary/project/BVU025/SCH/cosim/pattern/TM15/cosim.waveform.json",
+            "oneTestConfig": "/home/lary/project/BVU025/SCH/cosim/pattern/TM15/run_cosim.oneTest.json",
+            "temperature": 25,
+            "analysis": [
+                {
+                    "type": "tran",
+                    "enable": true,
+                    "stop": "1.8m",
+                    "accuracy": "moderate",
+                    "errpreset": "moderate"
+                }
+            ],
+            "savedSignals": {
+                "voltage": [
+                    "/VDD_PCB",
+                    "/dIRefTMO",
+                    "/TMIRefOn",
+                    "/TMIRefMeas",
+                    "/NvTrmIref<5>",
+                    "/NvTrmIref<4>",
+                    "/NvTrmIref<3>",
+                    "/NvTrmIref<2>",
+                    "/NvTrmIref<1>",
+                    "/NvTrmIref<0>"
+                ],
+                "current": [
+                    "/Board/GPIO8"
+                ]
+            }
+        }
+    },
+    "oneTest": {
+        "ic_code": "BVU025",
+        "revision": "A",
+        "combo_version": "A0",
+        "combo_meta": {
+            "purpose": "engineering",
+            "backend_change": "SAR IRef calibration co-simulation with Python controlling TOP_A1"
+        },
+        "spec_version": "1.0.0",
+        "packages": {
+            "DFN-12_3x3mm_P0.5mm": {
+                "note": "Standard 12-pin DFN package for BVU025_A1 (Pin 1: aVdd, Pin 2: aVss, Pin 3: TMIRefOn, Pin 4: TMIRefMeas, Pin 5: GPIO8, Pin 6~11: NvTrmIref<5:0>, Pin 12: dIRefTMO)",
+                "lead_frame": {
+                    "unit": "mm",
+                    "body_width": 3.0,
+                    "body_length": 3.0,
+                    "body_height": 0.75,
+                    "pin_count": 12,
+                    "pin_sides": 2,
+                    "pin_pitch": 0.5,
+                    "pin_length": 0.4,
+                    "pin_width": 0.25,
+                    "pin_height": 0.2,
+                    "standoff": 0.02
+                },
+                "footprint": {
+                    "lib": "Package_DFN_QFN",
+                    "fp_type": "smd",
+                    "pad_shape": "rect"
+                }
+            },
+            "SMD_0402": {
+                "standard": {
+                    "spec": "IEC 60063 / EIA-198",
+                    "code": "0402",
+                    "metric_code": "1005"
+                },
+                "footprint": {
+                    "fp_type": "smd",
+                    "kicad_dist_ref": "Resistor_SMD.pretty/R_0402_1005Metric.kicad_mod"
+                }
+            },
+            "SMD_0805": {
+                "standard": {
+                    "spec": "IEC 60063 / EIA-198",
+                    "code": "0805",
+                    "metric_code": "2012"
+                },
+                "footprint": {
+                    "fp_type": "smd",
+                    "kicad_dist_ref": "Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod"
+                }
+            }
+        },
+        "components": {
+            "TOP_A1": {
+                "package": "DFN-12_3x3mm_P0.5mm",
+                "size": {
+                    "unit": "um",
+                    "x": 2400,
+                    "y": 2400
+                },
+                "design": {
+                    "library": "BVU025_Lary",
+                    "cell": "TOP_A1"
+                },
+                "spice_type": "sub-circuit",
+                "pins": {
+                    "aVdd": {
+                        "position": 1,
+                        "type": "analog power",
+                        "function": "Analog Main Power Supply 3.3V."
+                    },
+                    "aVss": {
+                        "position": 2,
+                        "type": "analog ground",
+                        "function": "Analog Ground 0V."
+                    },
+                    "TMIRefOn": {
+                        "position": 3,
+                        "type": "digital input",
+                        "function": "Test Mode IRef Trim Enable Control."
+                    },
+                    "TMIRefMeas": {
+                        "position": 4,
+                        "type": "digital input",
+                        "function": "Test Mode IRef Output Measurement Enable Control."
+                    },
+                    "GPIO8": {
+                        "position": 5,
+                        "type": "digital input/output",
+                        "function": "External Calibration & Measurement Pin (receives 2uA ISARC or outputs trimmed IRef)."
+                    },
+                    "NvTrmIref": {
+                        "position": [
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11
+                        ],
+                        "type": "digital input",
+                        "function": "6-bit SAR Trim Code Input Bus (NvTrmIref<5:0> on Pin 6~11)."
+                    },
+                    "dIRefTMO": {
+                        "position": 12,
+                        "type": "digital input/output",
+                        "function": "Internal Comparator Digital Output to SAR Logic."
+                    }
+                }
+            },
+            "CAP_0805": {
+                "package": "SMD_0805",
+                "design": {
+                    "library": "analogLib",
+                    "cell": "cap"
+                },
+                "spice_type": "capacitor",
+                "default_value": "10u",
+                "pins": {
+                    "PLUS": {
+                        "position": 0,
+                        "type": "none",
+                        "function": "Node 1"
+                    },
+                    "MINUS": {
+                        "position": 1,
+                        "type": "none",
+                        "function": "Node 2"
+                    }
+                }
+            },
+            "RES_0402": {
+                "package": "SMD_0402",
+                "design": {
+                    "library": "analogLib",
+                    "cell": "res"
+                },
+                "spice_type": "resistor",
+                "default_value": "2.2k",
+                "pins": {
+                    "PLUS": {
+                        "position": 0,
+                        "type": "none",
+                        "function": "Node 1"
+                    },
+                    "MINUS": {
+                        "position": 1,
+                        "type": "none",
+                        "function": "Node 2"
+                    }
+                }
+            }
+        },
+        "testers": {
+            "sim": {
+                "TESTER": {
+                    "design": {
+                        "library": "BVU025_Lary",
+                        "cell": "py_tester"
+                    },
+                    "spice_type": "sub-circuit",
+                    "pins": {
+                        "aVdd": {
+                            "type": "power",
+                            "function": "Primary supply voltage source to DUT.",
+                            "capabilities": [
+                                "voltage_source"
+                            ]
+                        },
+                        "aVss": {
+                            "type": "power ground",
+                            "function": "Common ground reference."
+                        },
+                        "TMIRefOn": {
+                            "type": "digital input/output",
+                            "function": "Digital control drive for TMIRefOn.",
+                            "capabilities": [
+                                "digital_source",
+                                "voltage_source"
+                            ]
+                        },
+                        "TMIRefMeas": {
+                            "type": "digital input/output",
+                            "function": "Digital control drive for TMIRefMeas.",
+                            "capabilities": [
+                                "digital_source",
+                                "voltage_source"
+                            ]
+                        },
+                        "GPIO8": {
+                            "type": "analog input",
+                            "function": "Source 2uA ISAR current / Sense trimmed IRef current.",
+                            "capabilities": [
+                                "current_source",
+                                "current_measurement",
+                                "voltage_source"
+                            ]
+                        },
+                        "NvTrmIref": {
+                            "type": "digital input/output",
+                            "function": "Digital bus drive for SAR Trim bits.",
+                            "capabilities": [
+                                "digital_source"
+                            ]
+                        },
+                        "dIRefTMO": {
+                            "type": "digital input/output",
+                            "function": "Comparator output monitor/readout.",
+                            "capabilities": [
+                                "digital_measurement",
+                                "voltage_measurement"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "testboard": {
+            "components": {
+                "TOP": {
+                    "id": "TOP_A1",
+                    "connection": {
+                        "aVdd": "aVdd",
+                        "aVss": "aVss",
+                        "TMIRefOn": "TMIRefOn",
+                        "TMIRefMeas": "TMIRefMeas",
+                        "GPIO8": "GPIO8",
+                        "NvTrmIref": "NvTrmIref",
+                        "dIRefTMO": "dIRefTMO"
+                    }
+                },
+                "CIN": {
+                    "id": "CAP_0805",
+                    "connection": {
+                        "aVdd": "PLUS",
+                        "aVss": "MINUS"
+                    },
+                    "value": "10u"
+                }
+            }
+        },
+        "testbench": {
+            "sim": {
+                "components": {
+                    "TESTER": {
+                        "id": "sim_TOP_cosim_python_TM15",
+                        "connection": {
+                            "VDD_PCB": "aVdd",
+                            "VSS_PCB": "aVss",
+                            "TMIRefOn": "TMIRefOn",
+                            "TMIRefMeas": "TMIRefMeas",
+                            "GPIO8": "GPIO8",
+                            "NvTrmIref": "NvTrmIref",
+                            "dIRefTMO": "dIRefTMO"
+                        },
+                        "measurements": {
+                            "101": {
+                                "tb": "dpi_c",
+                                "settle_ns": 200
+                            },
+                            "102": {
+                                "tb": "dpi_c",
+                                "settle_ns": 500
+                            },
+                            "103": {
+                                "tb": "dpi_c",
+                                "wave_db_mode": "simvision",
+                                "time_range": {
+                                    "start": "0ns",
+                                    "end": "2000000ns"
+                                }
+                            }
+                        }
+                    },
+                    "VGND": {
+                        "id": "global_ground",
+                        "connection": {
+                            "VSS_PCB": 0
+                        }
+                    }
+                }
+            }
+        },
+        "setup": {
+            "steps": [
+                {
+                    "id": "init",
+                    "time": {
+                        "value": 0,
+                        "related": null
+                    },
+                    "actions": {
+                        "V_VDD": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "current_limiting": "150m",
+                            "connection": "VDD_PCB"
+                        },
+                        "0": {
+                            "type": "ground",
+                            "connection": "VSS_PCB"
+                        },
+                        "V_TM_ON": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "connection": "TMIRefOn"
+                        },
+                        "V_TM_MEAS": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "connection": "TMIRefMeas"
+                        },
+                        "D_TRIM": {
+                            "type": "digital_source",
+                            "value": 32,
+                            "connection": "NvTrmIref"
+                        }
+                    }
+                },
+                {
+                    "id": "power_up",
+                    "time": {
+                        "value": "100u",
+                        "related": null
+                    },
+                    "actions": {
+                        "V_VDD": {
+                            "type": "voltage_source",
+                            "voltage": 3.3,
+                            "current_limiting": "150m",
+                            "connection": "VDD_PCB"
+                        }
+                    }
+                },
+                {
+                    "id": "enable_iref_measure_mode",
+                    "time": {
+                        "value": "500u",
+                        "related": null
+                    },
+                    "actions": {
+                        "V_TM_ON": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "connection": "TMIRefOn"
+                        },
+                        "V_TM_MEAS": {
+                            "type": "voltage_source",
+                            "voltage": 3.3,
+                            "connection": "TMIRefMeas"
+                        },
+                        "V_SENSE_GND": {
+                            "type": "voltage_source",
+                            "voltage": 0,
+                            "current_limiting": "1m",
+                            "connection": "GPIO8"
+                        }
+                    }
+                },
+                {
+                    "id": "measure_trimmed_iref",
+                    "time": {
+                        "value": "700u",
+                        "related": null
+                    },
+                    "actions": {
+                        "102": {
+                            "type": "measure",
+                            "connection": "GPIO8",
+                            "capability": "current_measurement",
+                            "test_item_id": 102,
+                            "name": "Measure trimmed reference current on GPIO8",
+                            "measure": {
+                                "metric": "IREF",
+                                "unit": "uA"
+                            },
+                            "conditions": {
+                                "vdd": 3.3,
+                                "temp_c": 25
+                            }
+                        }
+                    }
+                },
+                {
+                    "id": "capture_full_waveform",
+                    "time": {
+                        "value": "800u",
+                        "related": null
+                    },
+                    "actions": {
+                        "103": {
+                            "type": "measure",
+                            "connection": "VDD_PCB",
+                            "capability": "waveform_measurement",
+                            "test_item_id": 103,
+                            "name": "Capture transient simulation waveform",
+                            "measure": {
+                                "kind": "waveform"
+                            },
+                            "conditions": {
+                                "vdd": 3.3,
+                                "temp_c": 25
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

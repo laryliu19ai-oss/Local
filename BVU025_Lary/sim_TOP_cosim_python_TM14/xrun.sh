@@ -12,7 +12,7 @@ fi
 # ONLY run auto_assemble when xrun is invoked for actual simulation (with xrunArgs)
 # Do NOT run during intermediate netlisting (-version, -compile, assembler, etc.)
 if [[ "$*" == *"xrunArgs"* ]]; then
-    python3 /home/lary/bin/auto_assemble.py "$NETLIST_DIR" >> /tmp/xrun_wrapper.log 2>&1
+    python3 /home/lary/project/BVU025/SCH/cosim/pattern/TM14/auto_assemble_global.py "$NETLIST_DIR" >> /tmp/xrun_wrapper.log 2>&1
 
     # Ensure symlink between psf/xrun.log and netlist/xrun.log exists
     if [ -d "$NETLIST_DIR/../psf" ]; then

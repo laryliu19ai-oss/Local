@@ -133,16 +133,16 @@ void c_main_tester(void) {
         "if 'py_tester' in sys.modules: del sys.modules['py_tester']\n"  /* force fresh load */
         "search_paths = [\n"
         "    os.getcwd(),\n"
-        "    os.path.abspath(os.path.join(os.getcwd(), '../../..')),\n"
-        "    os.path.abspath(os.path.join(os.getcwd(), '..')),\n"
-        "    '/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1',\n"
         "    '/home/lary/project/BVU025/SCH/cosim/pattern/TM14and15',\n"
-        "    '/home/lary/project/BVU025/python/sim_TOP_cosim_python_A1'\n"
+        "    '/home/lary/simulation/BVU025/BVU025A/sim_TOP_cosim_python_A1',\n"
+        "    os.path.abspath(os.path.join(os.getcwd(), '..')),\n"
+        "    os.path.abspath(os.path.join(os.getcwd(), '../../..'))\n"
         "]\n"
-        "for p in search_paths:\n"
-        "    if os.path.exists(p) and p not in sys.path:\n"
+        "for p in reversed(search_paths):\n"
+        "    if os.path.exists(p):\n"
+        "        if p in sys.path: sys.path.remove(p)\n"
         "        sys.path.insert(0, p)\n"
-        "print('[py_bridge.c] Python sys.path:', sys.path[:4])\n"
+        "print('[py_bridge.c] Python sys.path:', sys.path[:3])\n"
     );
 
     PyObject* pModule = PyImport_ImportModule("py_tester");

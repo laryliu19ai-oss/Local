@@ -45,9 +45,9 @@
                                 "thickness": "thick",
                                 "stripNumber": 2,
                                 "yAxis": {
-                                    "min": -10e-6,
-                                    "max": 10e-6,
-                                    "step": 2e-6,
+                                    "min": -5e-6,
+                                    "max": 5e-6,
+                                    "step": 1e-6,
                                     "unit": "uA"
                                 }
                             }

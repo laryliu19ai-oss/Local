@@ -64,7 +64,7 @@ def load_onetest_config(netlist_dir, top_cell, pattern_dir=None):
                 print(f"[Auto-Assemble] Warning: failed to parse {p}: {e}")
     return {}
 
-def universal_assemble(netlist_dir, pattern_dir=None):
+def universal_assemble(netlist_dir, pattern_dir=None, target_psf_dir=None):
     """Assemble AMS netlist, subcircuits, and control files dynamically matching design cell."""
     netlist_dir = os.path.abspath(netlist_dir)
     cwd = os.getcwd()
@@ -534,28 +534,37 @@ amsd {{
         if "python" in top_cell or "sv" in top_cell:
             args = args.replace('AN2x1', '').replace('vaSAR6b', '').replace('vaVDAC6b_FIXED', '')
         
-        # 12. Link DPI-C py_bridge.c dynamically
+        # 12. Copy updated Python/SV execution files from pattern_dir to netlist_dir and clear pycache
+        if pattern_dir and os.path.abspath(pattern_dir) != os.path.abspath(netlist_dir):
+            for copy_fname in ["py_tester.py", "py_bridge.c", "py_tester.sv", "run_cosim.oneTest.json", "cosim.oneTest.json"]:
+                src_f = os.path.join(pattern_dir, copy_fname)
+                if os.path.exists(src_f):
+                    shutil.copy2(src_f, os.path.join(netlist_dir, copy_fname))
+        
+        pycache_dir = os.path.join(netlist_dir, "__pycache__")
+        if os.path.exists(pycache_dir):
+            shutil.rmtree(pycache_dir, ignore_errors=True)
+
+        # 13. Link DPI-C py_bridge.c dynamically
         candidate_c = [
-            os.path.join(pattern_dir, "py_bridge.c"),
+            os.path.join(pattern_dir, "py_bridge.c") if pattern_dir else "",
             os.path.join(netlist_dir, "py_bridge.c")
         ]
         py_bridge_path = find_first_existing(candidate_c) or candidate_c[0]
 
         # 14. Configure PSF output database directory
-        # For ADE L, results must be placed in netlist_dir/../psf so ADE L's ViVA auto-plot can find them.
+        # 14. Configure PSF output database directory
+        # If target_psf_dir is specified (e.g. from bvSim / run_cosim.py): use target_psf_dir (e.g. pattern/TM14and15/psf).
+        # Otherwise (e.g. ADE L RUN): use ADE L's standard netlist_dir/../psf (e.g. simulation/.../ams/config/psf).
         adel_psf_dir = os.path.abspath(os.path.join(netlist_dir, "..", "psf"))
-        if os.path.exists(os.path.abspath(os.path.join(netlist_dir, ".."))) and not os.path.exists(adel_psf_dir):
-            try:
-                os.makedirs(adel_psf_dir, exist_ok=True)
-            except Exception:
-                pass
-
-        if os.path.exists(adel_psf_dir):
+        if target_psf_dir:
+            psf_dir = os.path.abspath(target_psf_dir)
+        elif os.path.exists(adel_psf_dir):
             psf_dir = adel_psf_dir
         elif pattern_dir and pattern_dir != netlist_dir:
-            psf_dir = os.path.join(pattern_dir, "psf")
+            psf_dir = os.path.abspath(os.path.join(pattern_dir, "psf"))
         else:
-            psf_dir = os.path.join(netlist_dir, "psf")
+            psf_dir = os.path.abspath(os.path.join(netlist_dir, "psf"))
 
         if os.path.exists(psf_dir):
             preserve_files = {".simvision", "artistLogFile", "runObjFile", "simRunData", "variables_file", ".trynfssync"}

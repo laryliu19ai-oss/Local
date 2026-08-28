@@ -150,19 +150,9 @@ class OneTestRunner:
         return None
 
     def _resolve_psf_dir(self) -> str:
-        """Locate PSF results directory dynamically."""
-        candidates = [
-            os.path.join(self.work_dir, "psf"),
-            os.path.join(self.work_dir, "ams", "config", "psf"),
-            os.path.join(self.sim_output_dir, self.top_cell, "ams", "config", "netlist", "psf") if self.sim_output_dir else "",
-            os.path.join(self.sim_output_dir, self.top_cell, "psf") if self.sim_output_dir else "",
-            os.path.join(self.sim_output_dir, "psf") if self.sim_output_dir else ""
-        ]
-        for c in candidates:
-            if c and os.path.exists(c) and (os.path.exists(os.path.join(c, "tran.tran")) or os.path.exists(os.path.join(c, "psf.trn")) or os.path.exists(os.path.join(c, "runObjFile"))):
-                return os.path.abspath(c)
-        # Fallback to standard work_dir/psf
-        return os.path.join(self.work_dir, "psf")
+        """Locate PSF results directory for bvSim (pattern/psf)."""
+        pattern_psf = os.path.join(self.work_dir, "psf")
+        return os.path.abspath(pattern_psf)
 
     def run_simulation(self) -> bool:
         """Execute AMS simulation on the virtual workstation."""
@@ -188,6 +178,12 @@ class OneTestRunner:
             "/tmp/onetest_trim_code.txt",
             "/tmp/onetest_meas_val.txt"
         ]
+        active_psf = self._resolve_psf_dir()
+        if active_psf and os.path.exists(active_psf):
+            clean_targets.extend([
+                os.path.join(active_psf, "psf.trn"),
+                os.path.join(active_psf, "psf.dsn")
+            ])
         if self.sim_output_dir:
             clean_targets.append(os.path.join(self.sim_output_dir, "result", ".py_tester_state.json"))
 
@@ -220,7 +216,7 @@ class OneTestRunner:
                 aag_module = importlib.util.module_from_spec(spec)
                 sys.modules["auto_assemble_global_dynamic"] = aag_module
                 spec.loader.exec_module(aag_module)
-                aag_module.universal_assemble(netlist_dir, pattern_dir=self.work_dir)
+                aag_module.universal_assemble(netlist_dir, pattern_dir=self.work_dir, target_psf_dir=os.path.join(self.work_dir, "psf"))
         except Exception as e:
             print(f"\n[OneTest Sim] *** Auto-Assemble Error: {e} ***")
             self.generate_fail_report(f"Auto-Assemble Error: {e}")
@@ -240,16 +236,20 @@ class OneTestRunner:
             self.generate_fail_report(f"Simulation execution failed with code {res.returncode}")
             return False
 
-        # 4. Sync PSF database to work_dir/psf
+        # 4. Sync PSF database from active PSF directory to work_dir/psf
+        active_psf = self._resolve_psf_dir()
         tm14_psf = os.path.join(self.work_dir, "psf")
-        netlist_psf = os.path.join(netlist_dir, "psf")
-        if os.path.exists(netlist_psf):
-            os.makedirs(tm14_psf, exist_ok=True)
-            for item in os.listdir(netlist_psf):
-                s_item = os.path.join(netlist_psf, item)
-                d_item = os.path.join(tm14_psf, item)
-                if os.path.isfile(s_item):
-                    shutil.copy2(s_item, d_item)
+        if active_psf and active_psf != tm14_psf and os.path.exists(active_psf):
+            try:
+                if not os.path.islink(tm14_psf):
+                    os.makedirs(tm14_psf, exist_ok=True)
+                    for item in os.listdir(active_psf):
+                        s_item = os.path.join(active_psf, item)
+                        d_item = os.path.join(tm14_psf, item)
+                        if os.path.isfile(s_item):
+                            shutil.copy2(s_item, d_item)
+            except Exception:
+                pass
 
         self.evaluate_results()
         return True
@@ -342,7 +342,7 @@ exit()
             with open("/tmp/onetest_trim.ocn", "w") as f:
                 f.write(ocn_script)
             try:
-                subprocess.run("export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_trim.ocn", shell=True, executable="/bin/bash", capture_output=True)
+                subprocess.run("export DISPLAY=:0; source ~/.bashrc; xvfb-run -a ocean -replay /tmp/onetest_trim.ocn < /dev/null", shell=True, executable="/bin/bash", capture_output=True)
                 if os.path.exists("/tmp/onetest_trim_code.txt"):
                     val_str = open("/tmp/onetest_trim_code.txt").read().strip().replace('"', '').strip()
                     if val_str and "ERROR" not in val_str:
@@ -444,7 +444,7 @@ exit()
             
         try:
             subprocess.run(
-                "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/onetest_meas.ocn < /dev/null",
+                "export DISPLAY=:0; source ~/.bashrc; xvfb-run -a ocean -replay /tmp/onetest_meas.ocn < /dev/null",
                 cwd="/tmp",
                 shell=True, executable="/bin/bash", capture_output=True, timeout=25
             )
@@ -551,7 +551,7 @@ exit()
 
         try:
             subprocess.run(
-                "export DISPLAY=:0; source ~/.bashrc; ocean -nograph -replay /tmp/auto_wave_gen.ocn < /dev/null",
+                "export DISPLAY=:0; source ~/.bashrc; xvfb-run -a ocean -replay /tmp/auto_wave_gen.ocn < /dev/null",
                 cwd="/tmp",
                 shell=True, executable="/bin/bash", capture_output=True, text=True, timeout=30)
             

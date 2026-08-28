@@ -421,7 +421,7 @@
                 {
                     "id": "force_calibration_current",
                     "time": {
-                        "value": "400u",
+                        "value": "395u",
                         "related": null
                     },
                     "actions": {
@@ -436,7 +436,7 @@
                 {
                     "id": "sar_calibration_search",
                     "time": {
-                        "value": "500u",
+                        "value": "400u",
                         "related": null
                     },
                     "actions": {
